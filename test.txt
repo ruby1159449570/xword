@@ -1,0 +1,7 @@
+apple test
+boat test
+cat test
+dog test
+elephant test
+fox test
+giraffe test

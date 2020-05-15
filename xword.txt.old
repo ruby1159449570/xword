@@ -1,0 +1,3234 @@
+
+
+23 Oct 22:21 2019 Makefile Page 1
+
+
+#/Users/moonpie/xword/Makefile Wed29Aug2018 {fcG}
+#/home/franx/xword/Makefile Sat31Jan2004 {fcG}
+
+#CC = gcc
+CC = cc
+#######CFLAGS = -idirafter ../source -Wall
+CFLAGS = -g3 -idirafter ../source -DDEBUG=1 
+OBJS = xw_buildpuzz.o xw_createlinks.o xw_error.o xw_html.o \
+xw_initpuzz.o xw_listutil.o xw_matchpuzz.o xw_printpuzz.o xw_puzzutil.o \
+xw_readsort.o xw_tryword.o xw_fillpuzz.o xword.o
+
+SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_error.c xw_html.c \
+xw_initpuzz.c xw_listutil.c xw_matchpuzz.c xw_printpuzz.c xw_puzzutil.c \
+xw_readsort.c xw_tryword.c xw_fillpuzz.c
+
+xword: ${OBJS}
+	${CC} ${CFLAGS} ${OBJS}  -o xword
+
+xwindex: xwindex.o xw_error.o
+	${CC} ${CFLAGS} xwindex.o xw_error.o  -o xwindex
+
+testindex: testindex.o xw_error.o
+	${CC} ${CFLAGS} testindex.o xw_error.o -o testindex
+
+${OBJS} xwindex.o: ../source/defs.h xword.h
+
+bakup:
+	mcopy -t -o Makefile xw*.h xw*.c a:
+	mdir a:
+
+clean:
+	rm -f ${OBJS}
+
+print:
+	pr Makefile xword.h ${SOURCE} > xword.txt
+
+######## End of /home/franx/Makefile ########
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+13 Mar 17:44 2019 xword.h Page 1
+
+
+/* /home/franx/xword/xword.h Mon26Jan2004 {fcG} */
+
+/* MODIFACTION HISTORY */
+/* When		Who	What */
+/* Sun18Jun2006 {fcG}	ph_checksum & ph_failpuzz added to PUZZHEAD */
+/* Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR... */
+
+
+#ifndef _XWORD_H
+#define _XWORD_H 1
+#include <ctype.h>
+#include <errno.h>
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include "defs.h"
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		DEFINES			#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+#define	CLUELENGTH	200
+#define	WORDLENGTH	20
+#define	NUMLETTERS	26
+#define	EOWORD		'@'
+#define	NUMWORDS	100
+#define	UNDEFINED	32767
+#define	ORD(x)		((x) - 'A')
+#define	INV(x)		((x) EQ ACROSS ? DOWN : ACROSS)
+#define	DECODE(x)	((x) EQ UNUSED ? "UNUSED"  : \
+                        (x) EQ ACROSS ? "ACROSS" : \
+                        (x) EQ DOWN ? "DOWN"       : \
+                        "???")
+#define	INDEXDIR(x)	(sprintf(xw_indexdir, "%s.index/%06d", xw_indexfile,(x)))
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		TYPEDEFS		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+typedef	enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL } SEVERITY;
+
+typedef	enum status { UNUSED = 0, ACROSS = 1, DOWN = 2 } STATUS;
+
+typedef	struct	cluedescriptor
+{
+	char	*cd_clue;
+	char	*cd_word;
+	UINT	cd_number;
+}	CLUEDESCRIPTOR;
+
+
+
+
+
+
+
+
+13 Mar 17:44 2019 xword.h Page 2
+
+
+typedef	struct	puzzle
+{
+	char	pz_letter;
+	int	pz_rownum, pz_colnum;
+	struct	puzzle	*pz_up, *pz_down, *pz_left, *pz_right;
+	struct	wordlist *pz_ofaccrossword, *pz_ofdownword;
+}	PUZZLE;
+
+typedef	struct	puzzhead
+{
+	struct puzzhead	*ph_prevpuzz, *ph_failpuzz;
+        struct puzzle   *ph_puzzle;
+	struct wordlist *ph_lastword;
+        UINT		ph_numcols, ph_numrows, ph_numwords, ph_numletters;
+        float		ph_compact;
+	ULONG		ph_checksum;
+}       PUZZHEAD;
+
+typedef	 struct	wordfit
+{
+        int	wf_size, wf_x, wf_y;
+	STATUS	wf_status;
+}	WORDFIT;
+
+typedef	struct	wordlist
+{
+	int wl_numchar;
+	char	wl_word[WORDLENGTH+1], wl_clue[CLUELENGTH+1];
+	STATUS	wl_status;
+	int	wl_xpos, wl_ypos;
+	struct	wordlist *wl_prev, *wl_next, *wl_sameletter[WORDLENGTH];
+	struct	puzzhead *wl_failpuzz;
+}	WORDLIST;
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		EXTERNS			#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+/*  extern	PUZZHEAD *header; */
+extern	WORDFIT xw_best
+#ifdef	extern
+=
+{
+	0, 0, 0, UNUSED
+};
+#else
+	;
+#endif
+
+extern	WORDFIT xw_ret
+#ifdef	extern
+=
+{
+	0, 0, 0, UNUSED
+};
+
+
+
+
+
+
+
+13 Mar 17:44 2019 xword.h Page 3
+
+
+#else
+
+	;
+#endif
+
+extern	WORDLIST xw_start
+#ifdef	extern
+=
+{
+  WORDLENGTH+1, "", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, {NULL}
+/*    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, */
+/*     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
+};
+#else
+	;
+#endif
+
+extern	char	xw_inputfile[SZ_FILENAME+1],xw_outputfile[SZ_FILENAME+6],
+		xw_indexfile[SZ_FILENAME+1],xw_indexdir[SZ_FILENAME+1];
+extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
+extern	time_t	xw_starttime;
+extern	jmp_buf	xw_env;
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		FUNCTIONS		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+int	main(int, char*[]);
+BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
+PUZZHEAD *xw_copypuzz(PUZZHEAD *);
+PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
+PUZZHEAD *xw_initpuzz(WORDLIST *);
+PUZZLE	*xw_pointpuzz(PUZZHEAD *, int, int);
+void	xw_createcolumn(PUZZHEAD *, int);
+void	xw_createlinks();
+void	xw_createrow(PUZZHEAD *, int);
+void	xw_error(SEVERITY, char *, ...);
+void	xw_feeldown(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+void	xw_feelleft(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+void	xw_feelright(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+void	xw_feelup(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+void	xw_killlist();
+void	xw_killpuzz(PUZZHEAD *);
+void	*xw_malloc(size_t);
+void	xw_printpuzz(PUZZHEAD *);
+void	xw_pushlist(WORDLIST *);
+void	xw_putwordin(PUZZHEAD *,WORDLIST *, STATUS, int, int);
+int	xw_readsort();
+void	xw_restartlist();
+void	xw_tryword(PUZZHEAD *,WORDLIST *, int, WORDLIST *);
+void	xw_html(PUZZHEAD *);
+WORDLIST	*xw_buildpuzz(PUZZHEAD *, WORDLIST *);
+WORDLIST	*xw_poplist();
+
+#endif /* _XWORD_H */
+
+
+
+
+
+
+
+13 Mar 17:44 2019 xword.h Page 4
+
+
+
+/* End of /home/franx/xword/xword.h */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xword.c Page 1
+
+
+/* /home/franx/xword/xword.c Mon26Jan2004 {fcG} */
+
+#include <errno.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "defs.h"
+#define	extern
+#include "xword.h"
+
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#	SIGINT_HANDLER			#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+static PUZZHEAD *sigint_puzzle_header=NULL;
+
+static void sigint_handler()
+{
+  printf("\033[7;31m<CTRL-C> received, Hanging up...\033[0m\n");
+  if (sigint_puzzle_header != NULL)
+    {
+      xw_printpuzz(sigint_puzzle_header);
+      xw_html(sigint_puzzle_header);
+    }
+  xw_error(SV_ERROR, "<CTRL-C> received, Hanging up...");
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		MAIN			#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+int main(int argc, char *argv[])
+{
+  if(setjmp(xw_env) EQ 0)
+    {
+      int count;
+      PUZZHEAD *puzzle_header, *old_puzzhead;
+      WORDLIST *failword, *word, *firstfail;
+      
+      printf("\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+      printf("\033[7m#                                     #\033[0m\n");
+      printf("\033[7m#  Welcome to Franx X-word Generator! #\033[0m\n");
+      printf("\033[7m#                                     #\033[0m\n");
+      printf("\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+      WHEN;
+
+      if(argc < 2)
+	{
+	  char buf[10];
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xword.c Page 2
+
+
+	  
+	  sprintf(buf, "%%%ds", SZ_FILENAME);
+	  printf("\nInput file of words? ");
+	  scanf(buf, xw_inputfile);
+
+#ifdef SNARK
+	  fprintf(stderr, "Output file for final puzzle?\n");
+	  scanf(buf, xw_outputfile);
+	  fprintf(stderr, "Puzzle compactness?\n");
+	  scanf("%2d", &xw_puzz_compact_req);
+	  TEST(PR(d, xw_puzz_compact_req));
+	  TEST(PRINT2(s, xw_inputfile, xw_outputfile));
+#endif /* SNARK */
+ 
+	}
+      else
+	{
+	  PRINT1(s, argv[1]);
+	  strncpy(xw_inputfile, argv[1], SZ_FILENAME);
+	}
+      
+      time(&xw_starttime);
+      if ((count = xw_readsort()) > 0)
+	{
+	  xw_error(SV_ERROR, "%d Errors encountered in parsing %s", count, xw_inputfile);
+	}
+      if (xw_totwords <= 1)
+	{
+	  xw_error(SV_FATAL, "Don't be a Smartarse, a xword must have at least 2 words");
+	}
+      xw_createlinks();
+      
+      xw_poplist(); /* pop xw_start off wordlist?! */
+      
+      word = xw_poplist();
+      puzzle_header = xw_initpuzz(word);
+      TEST(PRINT1(#010x, (UINT)puzzle_header));
+
+GOBACK:
+
+      do
+	{
+	  PUZZHEAD *temp;
+	  
+	  temp = xw_copypuzz(puzzle_header);
+	  word = xw_poplist();
+
+	  TEST(PRINT3(#010x, (UINT)word, (UINT)temp, (UINT)puzzle_header));
+
+	  temp->ph_prevpuzz = puzzle_header;
+	  puzzle_header = temp;
+	}
+      while((word != NULL) && (failword = xw_buildpuzz(puzzle_header, word)) EQ NULL);
+	  
+      if (failword != NULL)
+	{
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xword.c Page 3
+
+
+	  PUZZHEAD *temp;
+	      
+	  firstfail = failword;
+	  puzzle_header->ph_failpuzz = failword->wl_failpuzz;
+	  failword->wl_failpuzz = puzzle_header;
+#ifdef DEBUG
+	  printf("\033[32;40m");
+	  PR(010x, (UINT)firstfail);
+	  PR(s, firstfail->wl_word);
+	  printf("\033[0m");
+#endif
+	  do
+	    {	
+	      do
+		{
+		  puzzle_header = puzzle_header->ph_prevpuzz;
+		  if (puzzle_header EQ NULL)
+		    {
+		      puzzle_header = xw_initpuzz(failword);
+		      break;
+		    }
+		  temp = xw_copypuzz(puzzle_header);
+#ifdef DEBUG
+		  TEST(WHERE);
+		  PRINT2(010x, (UINT)temp, (UINT)puzzle_header);
+		  xw_printpuzz(puzzle_header);
+#endif /* DEBUG */
+		      
+		  if(puzzle_header->ph_lastword != NULL)
+		    {
+		      xw_pushlist(puzzle_header->ph_lastword);
+		    }
+		  puzzle_header = temp;
+		}
+	      while((word != NULL) && (xw_buildpuzz(puzzle_header,failword) != NULL));
+
+#ifdef DEBUG
+	      printf("\033[32;40m");
+	      WHERE; printf("Found a spot for %s\n", failword->wl_word);
+	      printf("\033[0m");
+#endif /* DEBUG */
+	      do
+		{
+		  temp = xw_copypuzz(puzzle_header); 
+		  temp->ph_prevpuzz = puzzle_header;
+		  puzzle_header = temp;
+		  word = xw_poplist();
+		}
+	      while((word != NULL) && (failword = xw_buildpuzz(puzzle_header,word)) EQ NULL);
+	      if (failword != NULL)
+		{
+		  old_puzzhead = failword->wl_failpuzz;
+		  while(old_puzzhead != NULL)
+		    {
+		      if (xw_matchpuzz(old_puzzhead, puzzle_header))
+			{
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xword.c Page 4
+
+
+			  xw_error(SV_FATAL, "Could not find spot for %s",
+				   failword->wl_word);
+			}
+		      old_puzzhead = old_puzzhead->ph_failpuzz;
+		    }
+		  if (failword EQ firstfail)
+		    {
+		      static WORDLIST *newhead = NULL;
+#ifdef DEBUG
+		      PR(s, firstfail->wl_word);
+		      PRINT2(010x, (UINT)newhead, (UINT)firstfail);
+#endif
+		      if (newhead EQ NULL || firstfail != newhead)
+			{   
+			  newhead = firstfail;
+
+			  xw_restartlist();
+			  xw_poplist(); /* pop xw_start off wordlist?! */
+
+			  puzzle_header = xw_initpuzz(failword);
+
+			  goto GOBACK;
+			}
+		    }
+		}
+	    }
+	    while((word != NULL) && (failword != NULL));
+	}
+      sigint_puzzle_header = puzzle_header;
+      if (signal(SIGINT, (void (*)(int))sigint_handler) EQ SIG_ERR)
+	{
+	  xw_error(SV_ERROR, "signal snarked!!!");
+	}
+
+#ifdef	SNARK
+      for(EVER)
+	{
+	  ;
+	}
+#endif	/* SNARK */
+      
+      xw_fillpuzz(puzzle_header);
+
+      xw_html(puzzle_header);
+      xw_killlist();
+      exit(0);
+    }
+    else
+    {
+      fprintf(stderr, "xword: aborting due to errors...\n");
+      exit(-1);
+    }
+}
+/* End of /home/franx/xword/xword.c */
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_buildpuzz.c Page 1
+
+
+/* /home/franx/xword/xw_buildpuzz.c Wed04Feb2004 {fcG} */
+
+/* MODIFACTION HISTORY */
+/* When		Who	What */
+/* Sun18Jun2006	{fcG}	ph_checksum aggregate added to xw_putwordin(). */
+
+#include <stdio.h>
+#include "xword.h"
+
+/* WORDFIT best = { UNDEFINED, 0, 0, UNUSED}; */
+/* WORDFIT ret  = { UNDEFINED, 0, 0, UNUSED}; */
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_BUILDPUZZ		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+WORDLIST *xw_buildpuzz(PUZZHEAD *ph, WORDLIST *word)
+{
+
+/*  	register WORDLIST *word; */
+
+	register int i;
+	BOOLEAN  couldntbuild;
+/*  	WORDLIST *failure; */
+
+	couldntbuild = FALSE;
+	if (word != NULL)
+	  {
+	    xw_best.wf_size = UNDEFINED;
+	    xw_ret.wf_size = UNDEFINED;
+	    for (i=0; i < word->wl_numchar; i++)
+	      {
+		if(word->wl_sameletter[i] != NULL)
+		  {
+		    TEST(PRINT1(#010x, (UINT)word->wl_sameletter[i]));
+		    TEST(PRINT1(s, word->wl_sameletter[i]->wl_word));
+		    xw_tryword(ph, word, i, word->wl_sameletter[i]);
+		    if(xw_best.wf_size > xw_ret.wf_size)
+		      {
+			xw_best.wf_size = xw_ret.wf_size;
+			xw_best.wf_x = xw_ret.wf_x;
+			xw_best.wf_y = xw_ret.wf_y;
+			xw_best.wf_status = xw_ret.wf_status;
+		      }
+		  }
+	      }
+#ifdef DEBUG
+	    printf("xw_buildpuzz(): tryword returns ");
+	    PRINT3(d, xw_best.wf_size, xw_best.wf_x, xw_best.wf_y);
+	    printf("xw_best.wf_status = %d[%s]\n", xw_best.wf_status,
+		   DECODE(xw_best.wf_status));
+#endif /* DEBUG */
+	    ph->ph_compact = (ph->ph_numrows - 2) * (ph->ph_numcols - 2) + xw_best.wf_size;
+#if DEBUG
+	      PRINT2(6f, (double)ph->ph_compact, (double)xw_puzz_compact_req);
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_buildpuzz.c Page 2
+
+
+#endif /* DEBUG */
+	    if(xw_best.wf_size EQ UNDEFINED)
+
+/*|| ((ph->ph_numrows - 2) * (ph->ph_numcols - 2) + xw_best.wf_size */
+/* > ((xw_totletters - 2) * (xw_totwords + 2)) * 100 / xw_puzz_compact_req)) */
+
+	      {
+		couldntbuild = TRUE;
+/*  		    goto GETOUTOFHERE; */
+	      }
+	    else
+	      {
+		xw_putwordin(ph, word, xw_best.wf_status, xw_best.wf_x, xw_best.wf_y);
+
+		xw_printpuzz(ph);
+	  
+	      }
+	  }
+
+/*  GETOUTOFHERE: */
+
+/*  	for(;index > 0; index--) */
+/*  	{ */
+/*  	  xw_pushlist(failure[index]); */
+/*  	} */
+	if(couldntbuild)
+	  {
+	/*      xw_error(SV_INFO, "xw_buildpuzz(): couldn't find a spot for %s", */
+/*  		     word); */
+	    return word;
+	}
+	else
+	{
+#ifdef DEBUG
+	  printf("Success!!!\n");
+#endif /* DEBUG */
+	  return NULL;
+	}
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_PUTWORDIN		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void	xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
+{
+	int i;
+	PUZZLE	*ref;
+
+#ifdef	DEBUG
+	printf("xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
+                w->wl_word, s, DECODE(s), x, y);
+#endif	/* DEBUG*/
+
+	if (s EQ ACROSS)
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_buildpuzz.c Page 3
+
+
+	{
+		xw_createcolumn(p, x-1);
+		xw_createcolumn(p, x+w->wl_numchar);
+		ref = xw_pointpuzz(p, x-1, y);
+		ref->pz_letter = EOWORD;
+		ref = ref->pz_right;
+		ref->pz_ofaccrossword = w;
+	}
+	else
+	{
+		xw_createrow(p, y-1);
+		xw_createrow(p, y+w->wl_numchar);
+		ref = xw_pointpuzz(p, x, y-1);
+		ref->pz_letter = EOWORD;
+		ref = ref->pz_down;
+		ref->pz_ofdownword = w;
+	}
+	for (i=0; i<w->wl_numchar; i++)
+	{
+		if (ref->pz_letter EQ '\0')
+		{
+		  TEST(PR(c, w->wl_word[i]));
+		  TEST(PRINT1(d, w->wl_word[i]));
+		  p->ph_checksum += w->wl_word[i];
+		}
+		ref->pz_letter = w->wl_word[i];
+		if (s EQ ACROSS)
+		{
+			ref = ref->pz_right;
+		}
+		else
+		{
+			ref = ref->pz_down;
+		}
+	}
+	p->ph_numwords++;
+	p->ph_lastword = w;
+	ref->pz_letter = EOWORD;
+	w->wl_status = s;
+	w->wl_xpos = x;
+	w->wl_ypos = y;
+}
+
+/* End of /home/franx/xword/xw_buildpuzz.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_createlinks.c Page 1
+
+
+/* /home/franx/xword/xw_createlinks.c Mon02Feb2004 {fcG} */
+
+/*  #include <stdio.h> */
+/*  #include <stdlib.h> */
+/*  #include <ctype.h> */
+/*  #include "defs.h" */
+#include "xword.h"
+
+WORDLIST	*letterlink[NUMLETTERS] =
+{
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL
+};
+
+#ifdef SNARK
+int	*freqletters[NUMLETTERS];
+#endif /* SNARK */
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_CREATELINKS		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+/* This routine sets up rings to words that have the sameletter. */
+
+void xw_createlinks()
+{
+	register WORDLIST *ref, *prev = NULL;
+	register int i,j;
+
+	ref = xw_start.wl_next;
+	while(ref != NULL)
+	{
+	  if (prev != NULL)
+	  {
+	    ref->wl_prev = prev;
+	  }
+	  prev = ref;
+
+	  for(i = 0; i < ref->wl_numchar; i++)
+	    {
+	      j = ORD(ref->wl_word[i]);
+	      ref->wl_sameletter[i] = letterlink[j];
+	    }
+	  for(i = 0; i < ref->wl_numchar; i++)
+	    {
+	      j = ORD(ref->wl_word[i]);
+	      letterlink[j] = ref;
+	    }
+	  ref = ref->wl_next;
+	}
+
+	/*  Now link the head to the tail. */
+
+	ref = xw_start.wl_next;
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_createlinks.c Page 2
+
+
+	while(ref != NULL)
+	  {
+#ifdef DEBUG
+	    printf("xw_createlinks: ref = %#010x\n", (UINT)ref);
+#endif /* DEBUG */
+
+	    for(i = 0; i < ref->wl_numchar; i++)
+	      {
+		j = ORD(ref->wl_word[i]);
+		if (ref->wl_sameletter[i] EQ NULL
+		    && ref != letterlink[j])
+		  {
+		    ref->wl_sameletter[i] = letterlink[j];
+#ifdef DEBUG
+		    printf("xw_createlinks: %c evaluated to %2d, sameletter is %#010x\n",
+			   ref->wl_word[i],j,(UINT)ref->wl_sameletter[i]);
+#endif /* DEBUG */
+		  }
+	      }
+	    ref = ref->wl_next;
+	  }
+
+	/*  Now check for words that do not have letters in other words. */
+
+	ref = xw_start.wl_next;
+	while(ref != NULL)
+	  {
+	    for(i = 0; i < ref->wl_numchar; i++)
+	      {
+		if(ref->wl_sameletter[i] != NULL)
+		  {
+		    break;
+		  }
+		if(i EQ ref->wl_numchar - 1)
+		  {
+		    xw_error(SV_FATAL,"%s does not have letters in any other words",
+			     ref->wl_word);
+		  }
+	      }
+	    ref = ref->wl_next;
+	  }
+}
+
+/* End of /home/franx/xword/xw_createlinks.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_error.c Page 1
+
+
+/* /home/franx/xword/xw_error.c Sat31Jan2004 {fcG} */
+
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <setjmp.h>
+#include <string.h>
+
+#undef DEBUG
+
+#include "defs.h"
+#include "xword.h"
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_ERROR		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_error(SEVERITY sv, char *fmt, ...)
+{
+  va_list	ap;
+  
+  va_start(ap, fmt);
+  switch(sv)
+    {
+    case SV_FATAL:
+      fprintf(stderr,"\033[4;31mFATAL-");
+      break;
+    case SV_ERROR:
+      fprintf(stderr,"\033[31mERROR-");
+      break;
+    case SV_WARNING:
+      fprintf(stderr,"\033[35mWARN-");
+      break;
+    case SV_INFO:
+      fprintf(stderr,"\033[32mINFO-");
+    }
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr,"\033[0m\n");
+  va_end(ap);
+/*perror("xw_error()");  */
+  if (errno != 0)
+    {
+      fprintf(stderr, "errno = %d (%s)\n", errno,
+	      (char *)strerror(errno));
+    }
+  if (sv >= SV_ERROR)
+    {
+      longjmp(xw_env, -1);
+    }
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_MALLOC		#
+#					#
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_error.c Page 2
+
+
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void *xw_malloc(size_t size)
+{
+  void *return_code;
+
+#ifdef SNARK
+  if ((return_code = malloc(size)) EQ NULL)
+#endif /* SNARK */
+    if ((return_code = calloc(1, size)) EQ NULL)
+      {
+	xw_error(SV_FATAL, "xw_malloc: OUT OF MEMORY!!!");
+      }
+
+#ifdef DEBUG
+  printf("xw_malloc(%d): ==> %#010x\t", (UINT)size, (UINT)return_code);
+#endif /* DEBUG */
+
+  return return_code;
+}
+
+/* End of /home/franx/xword/xw_error.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+13 Mar 16:50 2019 xw_html.c Page 1
+
+
+/* /home/franx/xword/xw_html.c Mon24May2004 {fcG} */
+
+/* MODIFACTION HISTORY */
+/* When		Who	What */
+/* Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR... */
+
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <setjmp.h>
+#include "defs.h"
+#include "xword.h"
+
+#define BORDER 0
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_HTML			#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_html(PUZZHEAD *puzz_hdr)
+{
+	FILE	*fp;
+	PUZZLE	*hptr, *vptr;
+	BOOLEAN new_word = FALSE;
+	register	UINT i=0, j=0, k=0, numword=0;
+	CLUEDESCRIPTOR  accrosslist[NUMWORDS], downlist[NUMWORDS];
+
+	strncpy(xw_outputfile, xw_inputfile, SZ_FILENAME);
+	strncat(xw_outputfile, ".html", SZ_FILENAME);
+	printf("Writing Output to %s...\n", xw_outputfile);
+	if ((fp = freopen( xw_outputfile, "w", stdout)) EQ NULL)
+		{
+			xw_error(SV_ERROR, "Error opening \"%s\"", xw_outputfile);
+		}
+
+	printf("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Final//EN\">\n");
+	printf("<!-- %s %s %s {fcG} -->\n", xw_outputfile, __DATE__, __TIME__);
+	printf("<HTML>\n");
+	printf("<HEAD>\n");
+	/* printf("<LINK REL=\"StyleSheet\" TYPE=\"text/css\" HREF=\"xword_style.css\">\n"); */
+	printf("<LINK REV=\"made\" HREF=\"mailto:franxg@bigpond.com\">\n");
+	printf("<META NAME=\"Author\" CONTENT=\"Frank C.Gallacher\">\n");
+	printf("<TITLE> Franx X-word Generator. </TITLE>\n");
+	printf("</HEAD>\n");
+
+	printf("<BODY BGCOLOR=\"White\">\n");
+
+	printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
+
+	hptr = puzz_hdr->ph_puzzle;
+
+	if(puzz_hdr->ph_numwords != 1)
+	{
+
+
+
+
+
+
+
+13 Mar 16:50 2019 xw_html.c Page 2
+
+
+		hptr = hptr->pz_down;
+	}
+	vptr = hptr->pz_right;
+	while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+		|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+	{
+	  printf("<TR>\n");
+	  while(vptr->pz_right != NULL)
+	    {
+	      new_word = FALSE;
+	      if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
+		{
+		  if (vptr->pz_ofaccrossword != NULL)
+		    {
+		      accrosslist[j].cd_clue = vptr->pz_ofaccrossword->wl_clue;
+			accrosslist[j].cd_word = vptr->pz_ofaccrossword->wl_word;
+		      accrosslist[j++].cd_number = ++numword;
+		      new_word = TRUE;
+		    }
+		  if (vptr->pz_ofdownword != NULL)
+		    {
+		      if (!new_word)
+			{
+			  numword++;
+			}
+		      downlist[k].cd_clue = vptr->pz_ofdownword->wl_clue;
+			downlist[k].cd_word = vptr->pz_ofdownword->wl_word;
+		      downlist[k++].cd_number = numword;
+		      new_word = TRUE;
+		    }
+		  
+		  printf("<TD BGCOLOR=\"White\" ");
+		  
+		  printf("<FONT COLOR=\"Black\" FACE=\"Courier\" SIZE=\"2\">");
+		  if (new_word)
+		    {
+		      printf("%d<BR>&nbsp;&nbsp;&nbsp;", numword);
+		    }
+		  else
+		    {
+		      printf("&nbsp;&nbsp;&nbsp;<BR>&nbsp;&nbsp;&nbsp;");
+		    }
+		  printf("</FONT>\n");
+		  
+		  
+		  printf("</TD>");
+		}
+	      else
+		{
+		  printf("<TD>");
+		  printf("&nbsp;");
+		  printf("</TD>");
+		}
+	      vptr = vptr->pz_right;
+	    }
+	  printf("</TR>\n");
+
+
+
+
+
+
+
+13 Mar 16:50 2019 xw_html.c Page 3
+
+
+	  hptr = hptr->pz_down;
+	  if (hptr != NULL)
+	    {
+	      vptr = hptr->pz_right;
+	    }
+	  else
+	    {
+	      break;
+	    }
+	}
+	printf("\n");
+
+	printf("</TABLE>\n");
+
+	printf("<TABLE BORDER=\"0\" BGCOLOR=\"White\">");
+	printf("<TH> Across </TH>\n");
+	printf("<TH> Down </TH>\n");
+	
+	for (i=0;i<MAX(j,k); i++)
+	{
+	  printf("<TR>\n");
+	  
+	  if (i < j)
+	    {
+	      printf("<TD>%d.%s</TD>", accrosslist[i].cd_number, accrosslist[i].cd_clue);
+		fprintf(stderr, "%s %dA\n", 
+			accrosslist[i].cd_word,
+			accrosslist[i].cd_number);
+	    }
+	  else
+	    {
+	      printf("<TD>&nbsp;</TD>\n");
+	    }
+
+	  if (i < k)
+	    {
+	      printf("<TD>%d.%s</TD>", downlist[i].cd_number, downlist[i].cd_clue );
+		fprintf(stderr, "%s %dD\n", 
+			downlist[i].cd_word,
+			downlist[i].cd_number);
+	    }
+	  else
+	    {
+	      printf("<TD>&nbsp;</TD>\n");
+	    }
+	  printf("</TR>\n");
+	}
+
+		     
+	printf("</TABLE>\n");
+
+	printf("<HR>\n");
+
+
+	printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
+	hptr = puzz_hdr->ph_puzzle;
+
+
+
+
+
+
+
+13 Mar 16:50 2019 xw_html.c Page 4
+
+
+
+	if(puzz_hdr->ph_numwords != 1)
+	{
+		hptr = hptr->pz_down;
+	}
+	vptr = hptr->pz_right;
+	while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+		|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+	{
+	  printf("<TR>\n");
+	  while(vptr->pz_right != NULL)
+	    {
+	      if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
+		{
+		  printf("<TD BGCOLOR=\"White\" ");
+		  
+		  printf("<FONT COLOR=\"Black\" FACE=\"Arial\" SIZE=\"2\">");
+		  
+		  printf("%c", vptr->pz_letter);
+		  printf("</FONT>\n");
+		  
+		  
+		  printf("</TD>");
+		}
+	      else
+		{
+		  printf("<TD>");
+		  printf("&nbsp;");
+		  printf("</TD>");
+		}
+	      vptr = vptr->pz_right;
+	    }
+	  printf("</TR>\n");
+	  hptr = hptr->pz_down;
+	  if (hptr != NULL)
+	    {
+	      vptr = hptr->pz_right;
+	    }
+	  else
+	    {
+	      break;
+	    }
+	}
+	printf("\n");
+
+	printf("</TABLE>\n");
+
+	printf("</BODY>\n");
+	printf("</HTML>\n");
+	fclose(fp);
+}
+
+/* End of /home/franx/xword/xw_html.c */
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_initpuzz.c Page 1
+
+
+/* /home/franx/xword/xw_initpuzz.c Mon02Feb2004 {fcG} */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+
+#undef DEBUG
+
+#include "defs.h"
+#include "xword.h"
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_INITPUZZ		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+PUZZHEAD *xw_initpuzz(WORDLIST *w)
+{
+
+	PUZZHEAD *puzzle_header;
+
+#if SNARK
+	register WORDLIST *w;
+#endif /* SNARK */
+
+	register PUZZLE *ref, *prev;
+	register int i;
+
+#ifdef DEBUG
+	printf("xw_initpuzz(): Starting up..\n");
+#endif /* DEBUG */
+
+	/* w = xw_poplist(); */
+	puzzle_header = (PUZZHEAD *)xw_malloc(sizeof(PUZZHEAD));
+
+#ifdef DEBUG
+	printf("initpuzz: xw_malloc returned %#010x\n",
+	       (UINT)puzzle_header);
+#endif /* DEBUG */
+
+	puzzle_header->ph_numrows = 1;
+	puzzle_header->ph_numcols = w->wl_numchar+2;
+	puzzle_header->ph_numwords = 1;
+	puzzle_header->ph_lastword = w;
+	puzzle_header->ph_prevpuzz = NULL;
+
+	ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+
+#ifdef DEBUG
+	printf("initpuzz: xw_malloc returned %#010x\n", (UINT)ref);
+#endif /* DEBUG */
+
+	puzzle_header->ph_puzzle = ref;
+	ref->pz_letter = EOWORD;
+	ref->pz_rownum = 0;
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_initpuzz.c Page 2
+
+
+	ref->pz_colnum = -1;
+	prev = ref;
+	ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+
+#ifdef DEBUG
+	printf("initpuzz: xw_malloc returned %#010x\n", (UINT)ref);
+#endif /* DEBUG */
+
+	ref->pz_ofaccrossword = w;
+	puzzle_header->ph_checksum = 0;
+	for(i = 0; i < w->wl_numchar; i++)
+	{
+		if (ref->pz_letter EQ '\0')
+		{
+		  TEST(PR(c, w->wl_word[i]));
+		  TEST(PRINT1(d, w->wl_word[i]));
+		  puzzle_header->ph_checksum += w->wl_word[i];
+		}
+		prev->pz_right = ref;
+		ref->pz_left = prev;
+		ref->pz_letter = w->wl_word[i];
+
+#ifdef DEBUG
+		TEST(PR(c, ref->pz_letter));
+#endif /* DEBUG */
+
+		ref->pz_rownum = 0;
+		ref->pz_colnum = i;
+		prev = ref;
+		ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+
+#ifdef DEBUG
+		printf("initpuzz: xw_malloc returned %#010x\n", (UINT)ref);
+#endif /* DEBUG */
+
+	}
+	ref->pz_letter = EOWORD;
+	ref->pz_rownum = 0;
+	ref->pz_colnum = w->wl_numchar;
+	prev->pz_right = ref;
+	ref->pz_left = prev;
+	w->wl_status = ACROSS;
+	w->wl_xpos = 0;
+	w->wl_ypos = 0;
+
+	TEST(WHERE);
+	TEST(PRINT1(#010x, (UINT)puzzle_header));
+	return puzzle_header;
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_COPYPUZZ		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+PUZZHEAD *xw_copypuzz(PUZZHEAD *old)
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_initpuzz.c Page 3
+
+
+{
+	PUZZHEAD *new;
+	PUZZLE *hptr, *vptr, *prevcol, **prevrow;
+	register int i,j;
+
+#ifdef DEBUG
+	printf("xw_copypuzz(%#010x): Starting up..\n", (UINT)old);
+#endif /* DEBUG */
+
+	new = (PUZZHEAD *)xw_malloc(sizeof(PUZZHEAD));
+	memcpy(new, old, sizeof(PUZZHEAD));
+	new->ph_lastword = NULL;
+
+	prevrow = (PUZZLE **)xw_malloc(old->ph_numcols * sizeof(PUZZLE *));
+
+	hptr = vptr = old->ph_puzzle;
+	prevcol = NULL;
+#ifdef DEBUG
+	PRINT2(d, (UINT)old->ph_numrows,(UINT)old->ph_numcols);
+#endif /* DEBUG */
+	for(j=0; j < old->ph_numrows; j++)
+	  {
+	    for(i=0; i < old->ph_numcols; i++)
+	      {
+		PUZZLE *temp;
+		
+		temp = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+
+		memcpy(temp, vptr, sizeof(PUZZLE));
+
+		if (i EQ 0)
+		  {
+		    if (j EQ 0)
+		      {
+			new->ph_puzzle = temp;
+		      }
+		  }
+		else
+		  {
+		    temp->pz_left = prevcol;
+		    prevcol->pz_right = temp;
+		  }
+		if (j != 0)
+		  {
+		    temp->pz_up = prevrow[i];
+		    prevrow[i]->pz_down = temp;
+		  }
+#ifdef DEBUG
+		PRINT2(d, (UINT)i, (UINT)j);
+		PRINT3(010x, (UINT)prevrow[i], (UINT)prevcol,
+		       (UINT)temp);
+#endif /* DEBUG */
+		vptr = vptr->pz_right;
+		prevrow[i] = prevcol = temp;
+
+	      }
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_initpuzz.c Page 4
+
+
+
+	    hptr = vptr = hptr->pz_down;
+	}
+	free(prevrow);
+	return new;
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_KILLPUZZ		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_killpuzz(PUZZHEAD *puzzle_header)
+{
+	PUZZLE *hptr, *vptr, *temp;
+
+
+#ifdef DEBUG
+	printf("xw_killpuzz(%#010x): Starting up..\n", (UINT)puzzle_header);
+#endif /* DEBUG */
+
+	hptr = puzzle_header->ph_puzzle;
+	while (hptr != NULL)
+	{
+		vptr = hptr;
+		hptr = hptr->pz_down;
+		while(vptr != NULL)
+		{
+			temp = vptr;
+			vptr = vptr->pz_right;
+			free(temp);
+		}
+	}
+	free(puzzle_header);
+}
+
+/* End of /home/franx/xword/xw_initpuzz.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_listutil.c Page 1
+
+
+/* /home/franx/xword/xw_listutil.c Mon02Feb2004 {fcG} */
+
+#include <stdio.h>
+#include "defs.h"
+#include "xword.h"
+
+static WORDLIST *nextword = &xw_start;
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_POPLIST		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+WORDLIST *xw_poplist()
+{
+    TEST(PRINT1(010x, (UINT)nextword));
+    if(nextword != NULL)
+      {
+	WORDLIST *temp;
+	
+	while (nextword != NULL && nextword->wl_status != UNUSED)
+	  {
+	    nextword = nextword->wl_next;
+	  }
+	if (nextword != NULL)
+	  {
+#ifdef DEBUG
+	    printf("poplist: returned %#010x which points to %s\n",
+		   (UINT)nextword, nextword->wl_word);
+#endif /* DEBUG */
+	    temp = nextword;
+	    nextword = nextword->wl_next;
+	    return temp;
+	  }
+	else
+	  {
+	    return NULL;
+	  }
+      }
+    else
+      {
+/* 	      xw_error(SV_ERROR,"poplist: The list is exhausted"); */
+	return NULL;
+      }
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_PUSHLIST		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_pushlist(struct wordlist *ref)
+{
+	  register WORDLIST *cur, *ptr;
+
+	  cur = nextword;
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_listutil.c Page 2
+
+
+
+#ifdef DEBUG
+	  printf("pushlist: putting %#010x which points to %s back on\n",
+		  (UINT)ref, ref->wl_word);
+	  ptr = xw_start.wl_next;
+	  while (ptr != NULL)
+	    {
+	      printf("%#010x\t[%s]\n", (UINT)ptr, ptr->wl_word);
+	      ptr = ptr->wl_next;
+	    }
+#endif /* DEBUG */
+ 
+	  ref->wl_status = UNUSED;
+	  ref->wl_xpos = ref->wl_ypos = 0;
+
+	  if (cur EQ NULL)
+	    {
+	      nextword = ref;
+	    }
+	  else
+	    {
+	      while(cur != ref && cur != NULL)
+		{
+		  /* 	      PRINT3(010x, (UINT)cur, (UINT)cur->wl_next, (UINT)nextword); */
+		  /* 	      PRINT1(010x, (UINT)cur->wl_prev); */
+		  
+		  cur = cur->wl_prev;
+#ifdef DEBUG
+		  printf("pushlist: cur = %#010x\t\n", (UINT)cur);
+#endif /* DEBUG */
+		  if(cur EQ NULL)
+		    {
+/* 		      xw_error(SV_ERROR, */
+/* 			       "pushlist: %#010x [%s] was not in wordlist", */
+/* 			       (UINT)ref, ref->wl_word); */
+		      break;
+		    }
+		}
+	      if (cur != NULL)
+		{
+		  nextword = cur;
+		}
+	    }
+
+	  TEST(PRINT1(010x, (UINT)nextword));
+
+	  /* ref->wl_next = nextword; */
+	  /* cur->wl_next = nextword = ref; */
+
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_RESTARTLIST		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_listutil.c Page 3
+
+
+void xw_restartlist()
+{
+
+/*  This resets the list. */
+	  WORDLIST *ref;
+
+#ifdef DEBUG
+	  printf("xw_restartlist(): Starting up..\n");
+#endif
+
+	  nextword = &xw_start;
+	  ref = nextword->wl_next;
+	  while (ref != NULL)
+	    {
+
+#ifdef DEBUG
+	      printf("xw_restartlist(): ref = %#010x[%s]\n", (UINT)ref, ref->wl_word);
+#endif
+
+	      ref->wl_status = UNUSED;
+	      ref = ref ->wl_next;
+	    }
+}
+
+/* End of /home/franx/xword/xw_listutil.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_matchpuzz.c Page 1
+
+
+/* /home/franx/xw_matchpuzz.c Wed21Jun2006 {fcG} */
+
+#include <stdio.h>
+/* #define extern */
+#include "xword.h"
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		xwmatchpuzz()		#
+#returns TRUE if both puzzles identical	#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+BOOLEAN xw_matchpuzz(PUZZHEAD *puzz1, PUZZHEAD *puzz2)
+{
+    PUZZLE *h1ptr, *h2ptr, *v1ptr, *v2ptr;
+#ifdef	DEBUG
+    ULONG checksum = 0;
+
+    WHERE, WHEN;;
+    printf(" xw_matchpuzz()::");
+    PRINT2(#010x, (UINT)puzz1, (UINT)puzz2);
+    PRINT2(d, (UINT)puzz1->ph_checksum, (UINT)puzz2->ph_checksum);
+#endif	/* DEBUG */
+    if((puzz1->ph_numrows != puzz2->ph_numrows)
+       || (puzz1->ph_numcols != puzz2->ph_numcols)
+       || (puzz1->ph_checksum != puzz2->ph_checksum))
+      {
+	return FALSE;
+      }
+    h1ptr = puzz1->ph_puzzle;
+    h2ptr = puzz2->ph_puzzle;
+    if (puzz1->ph_numwords != 1)
+      {
+	h1ptr = h1ptr->pz_down;
+      }
+    if (puzz2->ph_numwords != 1)
+      {
+	h2ptr = h2ptr->pz_down;
+      }
+    while(h1ptr != NULL)
+      {
+	v1ptr = h1ptr->pz_right;
+	v2ptr = h2ptr->pz_right;
+	while(v1ptr != NULL)
+	  {
+	    if (v1ptr->pz_letter != v2ptr->pz_letter)
+	      {
+		return FALSE;
+	      }
+#ifdef	DEBUG
+	    if ((v1ptr->pz_letter != EOWORD)
+		&& (v1ptr->pz_letter != '\0'))
+	      {
+		TEST(PR(c, v1ptr->pz_letter));
+		TEST(PRINT1(d, v1ptr->pz_letter));
+		checksum += v1ptr->pz_letter;
+	      }
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_matchpuzz.c Page 2
+
+
+#endif	/* DEBUG */
+
+	    v1ptr = v1ptr->pz_right;
+	    v2ptr = v2ptr->pz_right;
+	  }
+	h1ptr = h1ptr->pz_down;
+	h2ptr = h2ptr->pz_down;
+      }
+    TEST(PRINT1(d, (UINT)checksum));
+    return TRUE;
+}
+
+#ifdef	SNARK
+
+WORDLIST word1 = { 8, "ELEPHANT", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, NULL };
+WORDLIST word2 = { 8, "ANTEATER", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, NULL };
+WORDLIST word3 = { 3, "PIG", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, NULL };
+
+int main(int argc, char *argv[])
+{
+  PUZZHEAD *ph1, *ph2;
+
+  ph1 = xw_initpuzz(&word1);
+  ph2 = xw_initpuzz(&word1);
+  xw_putwordin(ph1, &word2, DOWN, 5, 0);
+  xw_putwordin(ph2, &word2, DOWN, 5, 0);
+  xw_printpuzz(ph1);
+  xw_printpuzz(ph2);
+  if (xw_matchpuzz(ph1, ph2))
+    {
+      printf("xw_matchpuzz() returns TRUE\n");
+    }
+  else
+    {
+      printf("xw_matchpuzz() returns FALSE\n");
+    } 
+  xw_putwordin(ph1, &word3, DOWN, 3, 0);
+  xw_printpuzz(ph1);
+  xw_printpuzz(ph2);
+  if (xw_matchpuzz(ph1, ph2))
+    {
+      printf("xw_matchpuzz() returns TRUE\n");
+    }
+  else
+    {
+      printf("xw_matchpuzz() returns FALSE\n");
+    } 
+}
+
+#endif	/* SNARK */
+
+/* End of /home/franx/xw_matchpuzz.c  */
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_printpuzz.c Page 1
+
+
+/* /home/franx/xword/xw_printpuzz.c Tue03Feb2004 {fcG} */
+
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <setjmp.h>
+#include "defs.h"
+#include "xword.h"
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_PRINTPUZZ		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_printpuzz(PUZZHEAD *puzz_hdr)
+{
+	  PUZZLE	*hptr, *vptr;
+	  register	int i;
+
+#ifndef DEBUG
+	  printf("\033[2J\033[0;0H");
+#else
+	  printf("xw_printpuzz(%#010x)\n", (UINT)puzz_hdr);
+#endif  /*  DEBUG */
+
+	  TEST(WHEN;nL);
+	  puzz_hdr->ph_numletters = 0;
+	  hptr = puzz_hdr->ph_puzzle;
+
+	  if(puzz_hdr->ph_numwords != 1)
+	    {
+	      hptr = hptr->pz_down;
+	    }
+	  vptr = hptr->pz_right;
+#ifdef DEBUG
+	  printf("   ");
+	  while(vptr != NULL)
+	    {
+	      printf("%2d", vptr->pz_colnum);
+	      vptr = vptr->pz_right;
+	    }
+	  vptr = hptr->pz_right;
+	  printf("\n    ");
+#endif /* DEBUG */
+	  printf("+");
+	   for(i = 0; i < puzz_hdr->ph_numcols - 2; i++)
+	    {
+	      printf("-+");
+	    }
+	  printf("\n");
+
+	  while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+		|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+	    {
+#ifdef DEBUG
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_printpuzz.c Page 2
+
+
+
+/*            PRINT2(010x, (UINT)hptr, (UINT)vptr); */
+
+	      printf("%4d", hptr->pz_rownum);
+#endif /* DEBUG */
+	      printf("|");
+
+	      while(vptr->pz_right != NULL)
+		{
+#ifdef DEBUG
+		  if(vptr->pz_letter == EOWORD)
+		    {
+		      printf("%c|", EOWORD);
+		    }
+		  else
+#endif /* DEBUG */
+		    if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
+		      {
+			puzz_hdr->ph_numletters++;
+#ifdef DEBUG
+			printf("%c|", vptr->pz_letter);
+#else
+			printf("\033[0;4m%c|\033[0m", vptr->pz_letter);
+#endif /* DEBUG */
+		      }
+		    else
+		      {
+#if DEBUG
+			printf(" |");
+#else
+			printf("\033[40m  \033[0m", vptr->pz_letter);
+#endif /* DEBUG */
+		      }
+		  vptr = vptr->pz_right;
+		}
+	      printf("\n");
+	      hptr = hptr->pz_down;
+	      if (hptr != NULL)
+		{
+		  vptr = hptr->pz_right;
+		}
+	      else
+		{
+		  break;
+		}
+	    }
+	  TEST(PRINT1(d, puzz_hdr->ph_numcols));
+#ifdef DEBUG
+	  printf("  ");
+#endif /* DEBUG */
+	  printf("+");
+	  for(i = 0; i < puzz_hdr->ph_numcols - 2; i++)
+	    {
+	      printf("-+");
+	    }
+	  printf("\n");
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_printpuzz.c Page 3
+
+
+
+	  if (puzz_hdr->ph_numwords != 1)
+	    {
+	      puzz_hdr->ph_compact = puzz_hdr->ph_numletters/(((float)puzz_hdr->ph_numrows-2.0)
+			      * ((float)puzz_hdr->ph_numcols - 2.0)) * 100.0;
+	      printf("Puzzle Compactness: %6.2f%%\n", puzz_hdr->ph_compact);
+	    }
+	  printf("Time taken to insert %d words: %6.2f secs.\n",
+		 puzz_hdr->ph_numwords, difftime(time(NULL), xw_starttime));
+#if DEBUG
+	  PR(s, puzz_hdr->ph_lastword->wl_word);
+	  PRINT2(010x, (UINT)puzz_hdr->ph_lastword, (UINT)puzz_hdr->ph_prevpuzz);
+#endif /* DEBUG */
+
+}
+
+/* End of /home/franx/xword/xw_printpuzz.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_puzzutil.c Page 1
+
+
+/* /home/franx/xword/xw_puzzutil.c Tue10Feb2004 {fcG} */
+
+#include "xword.h"
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_CREATEROW		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void	xw_createrow(PUZZHEAD *ph, int i)
+{
+        register	int j,k;
+	register	PUZZLE *ref, *prev, *prevrow, *edge;
+
+#if DEBUG
+	printf("xw_createrow: i = %d\n", i);
+#endif /* DEBUG */
+
+	if(i < ph->ph_puzzle->pz_rownum)
+	  {
+	    prevrow = ph->ph_puzzle;
+	    for(j = ph->ph_puzzle->pz_rownum - 1; j >= i; j--)
+	      {
+		ph->ph_numrows++;
+		edge = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+		ref = edge;
+		prev = NULL;
+		for (k = 0; k < ph->ph_numcols; k++)
+		  {
+		    ref->pz_letter = '\0';
+		    ref->pz_rownum = j;
+		    ref->pz_colnum = prevrow->pz_colnum;
+		    ref->pz_left = prev;
+		    if(prev != NULL)
+		      {
+			prev->pz_right = ref;
+		      }
+		    ref->pz_down = prevrow;
+		    prevrow->pz_up = ref;
+		    prev = ref;
+		    ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+		    prevrow = prevrow->pz_right;
+		  }
+		prevrow = edge;
+	      }
+	    ph->ph_puzzle = edge;
+	  }
+	else
+	  {
+	    prevrow = ph->ph_puzzle;
+	    while(prevrow->pz_down != NULL)
+	      {
+		prevrow = prevrow->pz_down;
+	      }
+	    if (prevrow->pz_down != NULL)
+	      {
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_puzzutil.c Page 2
+
+
+		prevrow = prevrow->pz_down;
+	      }
+	    if (prevrow->pz_rownum < i)
+	      {
+		for (j = prevrow->pz_rownum + 1; j <= i; j++)
+		  {
+		    ph->ph_numrows++;
+		    edge = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+		    ref = edge;
+		    prev = NULL;
+		    for (k = 0; k < ph->ph_numcols; k++)
+		      {
+			ref->pz_letter = '\0';
+			ref->pz_rownum = j;
+			ref->pz_colnum = prevrow->pz_colnum;
+			ref->pz_left = prev;
+			if(prev != NULL)
+			  {
+			    prev->pz_right = ref;
+			  }
+			ref->pz_up = prevrow;
+			prevrow->pz_down = ref;
+			prev = ref;
+			ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+			prevrow = prevrow->pz_right;
+		      }
+		    prevrow = edge;
+		  }
+	      }
+	  }
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_CREATECOLUMN       	#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void	xw_createcolumn(PUZZHEAD *ph, int i)
+{
+        register	int j, k;
+	register	PUZZLE *ref, *prev, *prevcol, *edge;
+
+#if DEBUG
+	printf("xw_createcolumn: i = %d\n", i);
+	PRINT1(d, ph->ph_puzzle->pz_colnum);
+#endif /* DEBUG */
+
+	if(i < ph->ph_puzzle->pz_colnum)
+	  {
+	    prevcol = ph->ph_puzzle;
+	    for(j = ph->ph_puzzle->pz_colnum - 1; j >= i; j--)
+	      {
+		ph->ph_numcols++;
+		edge = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+		ref = edge;
+		prev = NULL;
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_puzzutil.c Page 3
+
+
+		for (k = 0; k < ph->ph_numrows; k++)
+		  {
+		    ref->pz_letter = '\0';
+		    ref->pz_colnum = j;
+#ifdef DEBUG
+		    PR(#010x, (UINT)prevcol);
+		    PRINT2(d, (UINT)prevcol->pz_rownum,
+			   (UINT)ph->ph_numcols);
+#endif /* DEBUG */
+		    ref->pz_rownum = prevcol->pz_rownum;
+		    ref->pz_up = prev;
+		    if(prev != NULL)
+		      {
+			prev->pz_down = ref;
+		      }
+		    ref->pz_right = prevcol;
+		    prevcol->pz_left = ref;
+		    prev = ref;
+		    ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+		    prevcol = prevcol->pz_down;
+		  }
+		prevcol = edge;
+	      }
+	    ph->ph_puzzle = edge;
+	  }
+	else
+	  {
+	    prevcol = ph->ph_puzzle;
+	    while(prevcol->pz_right != NULL)
+	      {
+		prevcol = prevcol->pz_right;
+	      }
+	    if (prevcol->pz_colnum < i)
+	      {
+		for (j = prevcol->pz_colnum + 1; j <= i; j++)
+		  {
+		    ph->ph_numcols++;
+		    edge = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+		    prev = NULL;
+		    ref = edge;
+		    for (k = 0; k < ph->ph_numrows; k++)
+		      {
+			ref->pz_letter = '\0';
+			ref->pz_colnum = j;
+			ref->pz_rownum = prevcol->pz_rownum;
+			ref->pz_up = prev;
+			if(prev != NULL)
+			  {
+			    prev->pz_down = ref;
+			  }
+			ref->pz_left = prevcol;
+			prevcol->pz_right = ref;
+			prev = ref;
+			ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
+			prevcol = prevcol->pz_down;
+		      }
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_puzzutil.c Page 4
+
+
+		    prevcol = edge;
+		  }
+	      }
+	  }
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_POINTPUZZ		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+PUZZLE	*xw_pointpuzz(PUZZHEAD *ph, int x, int y)
+{
+  register PUZZLE *ref;
+
+#if DEBUG
+	printf("xw_pointpuzz: x = %d, y = %d\n", (int)x, (int)y);
+	WHERE, PRINT1(#010x, (UINT)ph);
+/* 	PRINT2(d, ph->ph_puzzle->pz_rownum, ph->ph_puzzle->pz_colnum); */
+#endif /* DEBUG */
+	ref = ph->ph_puzzle;
+	if((ref->pz_colnum > x) || (ref->pz_rownum > y))
+	{
+	  xw_error(SV_INFO, "pointpuzz: setting ref to NULL");
+	  ref = NULL;
+	}
+	else
+	{
+	  while((ref != NULL) && (ref->pz_colnum < x))
+	    {
+	      ref = ref->pz_right;
+	    }
+	  while ((ref != NULL) && (ref->pz_rownum < y))
+	    {
+	      ref = ref->pz_down;
+	    }
+	}
+#if DEBUG
+	  printf("xw_pointpuzz: returning %#010x\n", (UINT)ref);
+#endif /* DEBUG */
+	  return ref;
+}
+
+/* End of /home/franx/xword/xw_puzzutil.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_readsort.c Page 1
+
+
+/* /home/franx/xword/xw_readsort.c Mon02Feb2004 {fcG} */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include "defs.h"
+#include "xword.h"
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		READSORT		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+int xw_readsort()
+{
+  FILE	*fp;
+  int	c;
+  int return_code = 0, linenum = 0;
+  BOOLEAN alpha_word, printable_clue;
+  register	int i;
+  register	WORDLIST	*ref, *new;
+  
+  fp = fopen(xw_inputfile, "r");
+  if (fp EQ NULL)
+    {
+      xw_error(SV_ERROR, "Error opening \"%s\"", xw_inputfile);
+    }
+  c = getc(fp);
+  while(c != EOF)
+    {
+      new = (WORDLIST *)xw_malloc(sizeof(WORDLIST));
+      i = 0;
+      new->wl_numchar = 0;
+      linenum++;
+      alpha_word = printable_clue = TRUE;
+      while(c != ' ' && c != '\n' && c != '\t' && c != EOF)
+	{
+	  if(!isalpha(c))
+	    {
+	      alpha_word = FALSE;
+	    }
+	  c = islower(c) ? toupper(c) : c;
+#ifdef DEBUG
+	  printf("readsort: word[%d] is  %c\n", i, c);
+#endif /* DEBUG */
+	  new->wl_word[i++] = c;
+	  new->wl_numchar++;
+	  xw_totletters++;
+	  if (i > WORDLENGTH)
+	    {
+	      new->wl_word[i] = '\0';
+	      xw_error(SV_INFO,"line %d: %s... too long for word (limit %d)",
+		       linenum,new->wl_word, WORDLENGTH);
+	      return_code++;
+	      while(c != ' ' && c != '\n' && c != '\t' && c != EOF)
+		{
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_readsort.c Page 2
+
+
+		  c = getc(fp);
+		}
+	      break;
+	    }
+	  c = getc(fp);
+	}
+      new->wl_word[i] = '\0';
+      if(!alpha_word)
+	{
+	  xw_error(SV_WARNING,"line %d: Words must be alphabetic(\"%s\")",
+		   linenum,new->wl_word);
+	  return_code++;
+	}
+      if (i < 3)
+	{
+	  xw_error(SV_INFO,"line %d: %s not long enough for word",linenum,new->wl_word);
+	  return_code++;
+	  /* break */;
+	}
+      xw_totwords++;
+
+/* Input the Clue. */
+      
+      i = 0;
+      if(c EQ ' ' || c EQ '\t')
+	{
+	  c = getc(fp);
+	}
+      while((c != EOF) && (c != '\n'))
+	{
+	  new->wl_clue[i++] = c;
+	  if(!isprint(c) && c != '\t')
+	    {
+	      printable_clue = FALSE;
+	    }
+	  if(i > CLUELENGTH)
+	    {
+	      if (CLUELENGTH > 30)
+		{
+		  new->wl_clue[30] = '\0';
+		}
+	      else
+		{
+		  new->wl_clue[i] = '\0';
+		}
+	      xw_error(SV_INFO, "line %d: %30s... too long for clue (limit %d)",
+		       linenum, new->wl_clue, CLUELENGTH);
+	      return_code++;
+	      while(c != '\n')
+		{
+		  c = getc(fp);
+		}
+	      break;
+	    }
+	  c = getc(fp);
+	}
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_readsort.c Page 3
+
+
+      new->wl_clue[i] = '\0';
+      if (!printable_clue)
+	{
+	  xw_error(SV_WARNING,"line %d: Clues must be printable(\"%s\")",
+		   linenum,new->wl_clue);
+	  return_code++;
+	}
+      if(i < 2)
+	{
+	  xw_error(SV_INFO, "line %d: clue for %s not long enough for clue",linenum,new->wl_word);
+	  return_code++;
+	}
+      
+      c = getc(fp);
+#ifdef DEBUG
+      printf("readsort: inserting  %s of length %d\n",
+	     new->wl_word, new->wl_numchar);
+#endif /* DEBUG */
+
+/* Now, sort according to wordlength (ie. numchar field). */
+			
+      ref = &xw_start;
+      for(EVER)
+	{
+	  if ((ref->wl_next EQ 0) || (ref->wl_next->wl_numchar < new->wl_numchar))
+	    {
+#ifdef DEBUG
+	      printf("readsort: inserting after %s of length %d\n",
+		     ref->wl_word, ref->wl_numchar);
+#endif /* DEBUG */
+
+/* Put it in. */
+	      new->wl_next = ref->wl_next;
+	      ref->wl_next = new;
+	      break;
+	    }
+	  else
+	    {
+#ifdef DEBUG
+	      printf("readsort: moving past %s of length %d\n",
+		     ref->wl_word, ref->wl_numchar);
+#endif /* DEBUG */
+
+/* Move along */
+
+	      ref = ref->wl_next;
+	    }
+	}
+    }
+  if (xw_totwords > NUMWORDS)
+    {
+      xw_error(SV_INFO, "line %d: Word limit of %d exceeded; %d words encountered",
+	       linenum,NUMWORDS, xw_totwords);
+      return_code++;
+    }
+  fclose(fp);
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_readsort.c Page 4
+
+
+  return return_code;
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		KILLIST			#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_killlist()
+{
+  WORDLIST	*ref, *tmp;
+
+#ifdef DEBUG
+  printf("killist: STARTING UP\n");
+#endif /* DEBUG */
+
+  ref = xw_start.wl_next;
+  while(ref != 0)
+    {
+      tmp = ref->wl_next;
+      TEST(PR(#010x, (UINT)ref));
+      TEST(PRINT2(s, ref->wl_word, ref->wl_clue));
+      free((char *)ref);
+      ref = tmp;
+    }
+}
+	
+/* End of /home/franx/xword/xw_readsort.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+13 Mar 16:01 2019 xw_tryword.c Page 1
+
+
+/* /home/franx/xword/xw_tryword.c Tue10Feb2004 {fcG} */
+
+#include <stdio.h>
+#include "xword.h"
+
+BOOLEAN	spotfound = FALSE;
+int	sizeincrease = UNDEFINED;
+/* WORDFIT	ret = { 0, 0, 0, UNUSED}; */
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_TRYWORD		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void	xw_tryword(PUZZHEAD *ph, WORDLIST *w, int i, WORDLIST *x)
+{
+	int j;
+	int	newx, newy;
+	PUZZLE	*ref;
+
+#if DEBUG
+	printf("xw_tryword: w = %s, i = %d, x = %s[%s]\n",
+		w->wl_word, i, x->wl_word, DECODE(x->wl_status));
+#endif /* DEBUG */
+
+	if (x->wl_status != UNUSED)
+	  {
+	    for(j=0; j < x->wl_numchar; j++)
+	      {
+		if(x->wl_word[j] EQ w->wl_word[i])
+		  {
+		    spotfound = TRUE;
+		    sizeincrease = UNDEFINED;
+		    if(x->wl_status EQ ACROSS)
+		      {
+			ref = xw_pointpuzz(ph, x->wl_xpos + j, x->wl_ypos);
+			newx = x->wl_xpos + j;
+			newy = x->wl_ypos - i;
+			xw_feelup(ph, w, i-1, ref->pz_up);
+			if (spotfound)
+			  {
+			    xw_feeldown(ph, w, i+1, ref->pz_down);
+			  }
+		      }
+		    else
+		      {
+			ref = xw_pointpuzz(ph, x->wl_xpos, x->wl_ypos + j);
+			newx = x->wl_xpos - i;   ;
+			newy = x->wl_ypos + j;
+			xw_feelleft(ph, w, i - 1, ref->pz_left);
+			if (spotfound)
+			  {
+			    xw_feelright(ph, w, i + 1, ref->pz_right);
+			  }
+		      }
+		    if (spotfound && (sizeincrease < xw_ret.wf_size))
+
+
+
+
+
+
+
+13 Mar 16:01 2019 xw_tryword.c Page 2
+
+
+		      {
+			xw_ret.wf_size = sizeincrease;
+			xw_ret.wf_x = newx;
+			xw_ret.wf_y = newy;
+			xw_ret.wf_status = INV(x->wl_status);
+		      }
+		  }
+	      }
+	  }
+	for(j = 0; x->wl_word[j] != w->wl_word[i]
+	&& x->wl_word[j] != '\0'; j++)
+	  {
+	    ; /*  Do NOTHING!!! */
+	  }
+	if (x->wl_sameletter[j] != w && x->wl_sameletter[j] != NULL)
+	  {
+	    xw_tryword(ph, w, i, x->wl_sameletter[j]);
+	  }
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_FEELUP		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void	xw_feelup(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
+{
+#if DEBUG
+	printf("xw_feelup: w->word[i] = %c, i = %d, p = %#010x\n",
+		w->wl_word[i], i, (UINT)p);
+#endif /* DEBUG */
+
+	if (p EQ NULL)
+	{
+		sizeincrease = (i + 2) * (ph->ph_numcols - 2);
+	}
+	else if (i < 0)
+	{
+	  if ((p->pz_letter != EOWORD) && (p->pz_letter != '\0'))
+	    {
+	      spotfound = FALSE;
+	    }
+	  else
+	    {
+	      sizeincrease = 0;
+	    }
+	}
+	else if(p->pz_letter EQ EOWORD)
+	{
+		spotfound = FALSE;
+	}
+	else if(p->pz_letter EQ w->wl_word[i]
+		|| (p->pz_letter EQ '\0'
+		    && (p->pz_left->pz_letter EQ '\0'
+			|| p->pz_left->pz_letter EQ EOWORD)
+		    && (p->pz_right->pz_letter EQ '\0'
+
+
+
+
+
+
+
+13 Mar 16:01 2019 xw_tryword.c Page 3
+
+
+			|| p->pz_right->pz_letter EQ EOWORD)))
+	{
+		xw_feelup(ph, w, i - 1, p->pz_up);
+	}
+	else
+	{
+		spotfound = FALSE;
+	}
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_FEELDOWN		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void	xw_feeldown(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
+{
+#if DEBUG
+	printf("xw_feeldown: w->word[i] = %c, i = %d, p = %#010x\n",
+		w->wl_word[i], i,  (UINT)p);
+#endif /* DEBUG */
+
+	if (p EQ NULL)
+	{
+	  sizeincrease += (w->wl_numchar - i) * (ph->ph_numcols - 2);
+	}
+	else if (i >= w->wl_numchar)
+	  {
+	    if ((p->pz_letter != EOWORD) && (p->pz_letter != '\0'))
+	      {
+		spotfound = FALSE;
+	      }
+	  }
+	else if (p->pz_letter EQ EOWORD)
+	  {
+	    spotfound = FALSE;
+	  }
+	else if (p->pz_letter EQ w->wl_word[i]
+		 || (p->pz_letter EQ '\0'
+		     && (p->pz_left->pz_letter EQ '\0'
+			 || p->pz_left->pz_letter EQ EOWORD)
+		     && (p->pz_right->pz_letter EQ '\0'
+			 || p->pz_right->pz_letter EQ EOWORD)))
+	  {
+	    xw_feeldown(ph, w, i + 1, p->pz_down);
+	  }
+	else
+	  {
+	    spotfound = FALSE;
+	  }
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_FEELLEFT		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+
+
+
+
+
+
+13 Mar 16:01 2019 xw_tryword.c Page 4
+
+
+
+void	xw_feelleft(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
+{
+#if DEBUG
+	printf("xw_feelleft: w->word[i] = %c, i = %d, p = %#010x\n",
+		w->wl_word[i], i,  (UINT)p);
+#endif /* DEBUG */
+
+	if (p EQ NULL)
+	  {
+		sizeincrease = (i + 2) * (ph->ph_numrows - 2);
+	  }
+	else if (i < 0)
+	  {
+	    if (p->pz_letter != '\0' && p->pz_letter != EOWORD)
+	      {
+		spotfound = FALSE;
+	      }
+	    else
+	      {
+		sizeincrease = 0;
+	      }
+	  }
+	else if (p->pz_letter EQ EOWORD)
+	  {
+	    spotfound = FALSE;
+	  }
+	else if (p->pz_letter EQ w->wl_word[i]
+		 || (p->pz_letter EQ '\0'
+		     && (p->pz_up->pz_letter EQ '\0'
+			 || p->pz_up->pz_letter EQ EOWORD)
+		     && (p->pz_down->pz_letter EQ '\0'
+			 || p->pz_down->pz_letter EQ EOWORD)))
+	{
+	  xw_feelleft(ph, w, i - 1, p->pz_left);
+	}
+		 else
+	{
+	  spotfound = FALSE;
+	}
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_FEELRIGHT		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void	xw_feelright(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
+{
+#if DEBUG
+        printf("xw_feelright: w->word[i] = %c, i = %d, p = %#010x\n",
+		w->wl_word[i], i,  (UINT)p);
+	PRINT1(d, w->wl_numchar);
+#endif /* DEBUG */
+
+	if (p EQ NULL)
+
+
+
+
+
+
+
+13 Mar 16:01 2019 xw_tryword.c Page 5
+
+
+	{
+		sizeincrease += (w->wl_numchar - i) * (ph->ph_numcols - 2);
+	}
+	else if (i >= w->wl_numchar)
+	{
+	  if (p->pz_letter != '\0' && p->pz_letter != EOWORD)
+	    {
+	      spotfound = FALSE;
+	    }
+	}
+	else if (p->pz_letter EQ EOWORD)
+	  {
+	    spotfound = FALSE;
+	  }
+	else if (p->pz_letter EQ w->wl_word[i]
+		 ||(p->pz_letter EQ '\0'
+		    && (p->pz_up->pz_letter EQ '\0'
+			|| p->pz_up->pz_letter EQ EOWORD)
+		    && (p->pz_down->pz_letter EQ '\0'
+			|| p->pz_down->pz_letter EQ EOWORD)))
+	{
+		xw_feelright(ph, w, i + 1, p->pz_right);
+	}
+	else
+	{
+		spotfound = FALSE;
+	}
+}
+
+/* End of /home/franx/xword/xw_tryword.c  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_fillpuzz.c Page 1
+
+
+/* /home/franx/xword/xw_fillpuzz.c Fri28Jul2006 {fcG} */
+
+#include "xword.h"
+
+typedef struct spot
+{
+  char sp_letter;
+  int  sp_pos;
+} SPOT;
+
+typedef struct wordhole
+{
+  int wh_key, wh_rownum, wh_colnum;
+  STATUS wh_status;
+  struct wordhole *wh_next;
+  struct spot wh_spot[WORDLENGTH];
+ 
+} WORDHOLE;
+
+WORDHOLE xw_whstart =
+  {
+    2020, UNDEFINED, UNDEFINED, UNUSED, NULL,
+  };
+
+WORDHOLE *xw_inserthole(int spots, int letters, WORDHOLE *wh, PUZZLE *pzptr, STATUS stat) 
+{
+  register WORDHOLE *wh_ptr = &xw_whstart;
+
+  wh->wh_key = (spots * 100) + letters;
+  wh->wh_status = stat;
+  for(EVER)
+    {
+      if((wh_ptr->wh_next EQ NULL) || (wh_ptr->wh_next->wh_key < wh->wh_key))
+	{
+	  wh->wh_next = wh_ptr->wh_next;
+	  wh_ptr->wh_next = wh;
+	  break;
+	}
+      else
+	{
+	  wh_ptr = wh_ptr->wh_next;
+	}
+    }
+  return (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
+}
+
+void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
+{
+  register int i, numletters, numspots;
+  WORDHOLE *wh_ptr;
+
+  numletters = numspots = 0;
+  wh_ptr = (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
+  wh_ptr->wh_rownum = pzptr->pz_rownum;
+  wh_ptr->wh_colnum = pzptr->pz_colnum;
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_fillpuzz.c Page 2
+
+
+  for(i = 0; i < length; i++)
+    {
+      if (pzptr->pz_letter EQ EOWORD)
+	{
+	  if (numspots != 0 && numspots != numletters)
+	    {
+	      wh_ptr = xw_inserthole(numspots, numletters, wh_ptr, pzptr, stat);
+	    }
+	  else
+	    {
+	      register int j;
+	      
+/* 	      PRINT1(d, sizeof(SPOT)); */
+/* 	      PRINT2(d, sizeof(wh_ptr->wh_spot), SZ_TABLE(wh_ptr->wh_spot)); */
+
+	      for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot); j++)
+		{
+		  wh_ptr->wh_spot[j].sp_letter = '\0';
+		  wh_ptr->wh_spot[j].sp_pos = 0;
+		}
+	    }
+	  if (stat EQ ACROSS)
+	    {
+	      wh_ptr->wh_rownum = pzptr->pz_rownum;
+	      wh_ptr->wh_colnum = pzptr->pz_colnum+1;
+	    }
+	  else
+	    {
+	      wh_ptr->wh_rownum = pzptr->pz_rownum+1;
+	      wh_ptr->wh_colnum = pzptr->pz_colnum;
+	    }
+	  numletters = numspots = 0;
+	}
+      else
+	{
+/* 	  TEST(PR(#06x,pzptr->pz_letter)); */
+/* 	  TEST(PR(c,pzptr->pz_letter)); */
+
+	  if (pzptr->pz_letter EQ '\0' || pzptr->pz_letter EQ ' ')
+	    {
+	      numletters++;
+	    }
+	  else
+	    {
+	      wh_ptr->wh_spot[numspots].sp_pos = ++numletters;
+	      wh_ptr->wh_spot[numspots++].sp_letter = pzptr->pz_letter;
+
+/* 	      TEST(PR(c,pzptr->pz_letter)); */
+/* 	      TEST(PRINT2(d,numletters,numspots)); */
+	    }
+	}
+      if (stat EQ ACROSS)
+	{
+	  pzptr = pzptr->pz_right;
+	}
+      else
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_fillpuzz.c Page 3
+
+
+	{
+	  pzptr = pzptr->pz_down;
+	}
+    }
+  if (numspots != 0 && numspots != numletters)
+    {
+      wh_ptr = xw_inserthole(numspots, numletters, wh_ptr, pzptr, stat);
+    }
+  else
+    {
+      free(wh_ptr);
+    }
+}
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_FINDGAPS		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_findgaps(PUZZHEAD *ph)
+{
+  PUZZLE *hptr, *vptr;
+  register int i;
+
+  hptr = ph->ph_puzzle;
+  if(ph->ph_numrows != 1)
+    {
+      hptr = hptr->pz_down;
+    }
+  vptr = hptr->pz_right;
+  for(i = 0; i < ph->ph_numcols - 2; i++)
+  {
+    xw_searchrank(vptr, DOWN, ph->ph_numrows-2);
+    vptr = vptr->pz_right;
+  }
+  vptr = hptr->pz_right;
+  for(i = 0; i < ph->ph_numrows - 2; i++)
+  {
+    xw_searchrank(vptr, ACROSS, ph->ph_numcols-2);
+    vptr = vptr->pz_down;
+  }
+}	
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		XW_FILLPUZZ		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
+{
+  register WORDHOLE *wh_ptr = &xw_whstart;
+  
+  xw_findgaps(ph);
+  
+#ifdef DEBUG
+
+
+
+
+
+
+
+
+24 Aug 23:31 2007 xw_fillpuzz.c Page 4
+
+
+  WHEN; WHERE, nL;
+  
+  wh_ptr =wh_ptr->wh_next;
+  while (wh_ptr != NULL)
+    {
+      register int i,j, k;
+      char buf[SZ_STRING+1];
+      
+      printf("%d %s (%d,%d) ", wh_ptr->wh_key, DECODE(wh_ptr->wh_status),
+	     wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
+      for(i=0; i < wh_ptr->wh_key / 100; i++)
+	{
+	  printf("\"%c\"[%#04x]->%d ", wh_ptr->wh_spot[i].sp_letter,
+		 wh_ptr->wh_spot[i].sp_letter, wh_ptr->wh_spot[i].sp_pos);
+	}
+      for(j = k = 0; j < wh_ptr->wh_key % 100; j++)
+	{
+	  if (wh_ptr->wh_spot[k].sp_pos - 1 EQ j)
+	    {
+	      buf[j] = wh_ptr->wh_spot[k++].sp_letter;
+	    }
+	  else
+	    {
+		  buf[j] = '?';
+	    }
+	}
+      buf[j] = '\0';
+      printf("%s\n", buf);
+      wh_ptr =wh_ptr->wh_next;
+    }
+
+#endif /* DEBUG */
+
+  return ph;
+}	
+
+/* End of /home/franx/xword/xw_fillpuzz.c */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

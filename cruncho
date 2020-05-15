@@ -1,0 +1,11 @@
+#!/bin/bash -vx
+#/home/franx/debianstuff/xword/cruncho Mon16May2011 {fcG}
+
+CRUNCHO=manbash
+
+sed -e "s/ /\n/g" $CRUNCHO.txt \
+| tr "[A-Z]" "[a-z]" \
+| sed -e "s/[\;\t\.\,\?\'\"\!\&\(\)]*//g" \
+| sort -b -u -o $CRUNCHO.sort
+
+######## End of /home/franx/debianstuff/xword/cruncho #########
