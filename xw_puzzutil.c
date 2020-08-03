@@ -1,5 +1,9 @@
 /* /home/franx/xword/xw_puzzutil.c Tue10Feb2004 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 #include "xword.h"
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
@@ -115,7 +119,7 @@ void	xw_createcolumn(PUZZHEAD *ph, int i)
 		    ref->pz_letter = '\0';
 		    ref->pz_colnum = j;
 #ifdef DEBUG
-		    PR(#010x, (UINT)prevcol);
+		    PR(#018lx, (ULONG)prevcol);
 		    PRINT2(d, (UINT)prevcol->pz_rownum,
 			   (UINT)ph->ph_numcols);
 #endif /* DEBUG */
@@ -183,7 +187,7 @@ PUZZLE	*xw_pointpuzz(PUZZHEAD *ph, int x, int y)
 
 #if DEBUG
 	printf("xw_pointpuzz: x = %d, y = %d\n", (int)x, (int)y);
-	WHERE, PRINT1(#010x, (UINT)ph);
+	WHERE, PRINT1(#018lx, (ULONG)ph);
 /* 	PRINT2(d, ph->ph_puzzle->pz_rownum, ph->ph_puzzle->pz_colnum); */
 #endif /* DEBUG */
 	ref = ph->ph_puzzle;
@@ -204,7 +208,7 @@ PUZZLE	*xw_pointpuzz(PUZZHEAD *ph, int x, int y)
 	    }
 	}
 #if DEBUG
-	  printf("xw_pointpuzz: returning %#010x\n", (UINT)ref);
+	  printf("xw_pointpuzz: returning %#018lx\n", (ULONG)ref);
 #endif /* DEBUG */
 	  return ref;
 }

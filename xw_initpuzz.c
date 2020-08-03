@@ -1,5 +1,9 @@
 /* /home/franx/xword/xw_initpuzz.c Mon02Feb2004 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -35,8 +39,8 @@ PUZZHEAD *xw_initpuzz(WORDLIST *w)
 	puzzle_header = (PUZZHEAD *)xw_malloc(sizeof(PUZZHEAD));
 
 #ifdef DEBUG
-	printf("initpuzz: xw_malloc returned %#010x\n",
-	       (UINT)puzzle_header);
+	printf("initpuzz: xw_malloc returned %#018lx\n",
+	       (ULONG)puzzle_header);
 #endif /* DEBUG */
 
 	puzzle_header->ph_numrows = 1;
@@ -48,7 +52,7 @@ PUZZHEAD *xw_initpuzz(WORDLIST *w)
 	ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
 
 #ifdef DEBUG
-	printf("initpuzz: xw_malloc returned %#010x\n", (UINT)ref);
+	printf("initpuzz: xw_malloc returned %#018lx\n", (ULONG)ref);
 #endif /* DEBUG */
 
 	puzzle_header->ph_puzzle = ref;
@@ -59,7 +63,7 @@ PUZZHEAD *xw_initpuzz(WORDLIST *w)
 	ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
 
 #ifdef DEBUG
-	printf("initpuzz: xw_malloc returned %#010x\n", (UINT)ref);
+	printf("initpuzz: xw_malloc returned %#018lx\n", (ULONG)ref);
 #endif /* DEBUG */
 
 	ref->pz_ofaccrossword = w;
@@ -86,7 +90,8 @@ PUZZHEAD *xw_initpuzz(WORDLIST *w)
 		ref = (PUZZLE *)xw_malloc(sizeof(PUZZLE));
 
 #ifdef DEBUG
-		printf("initpuzz: xw_malloc returned %#010x\n", (UINT)ref);
+		printf("initpuzz: xw_malloc returned %#018lx\n",
+			(ULONG)ref);
 #endif /* DEBUG */
 
 	}
@@ -100,7 +105,7 @@ PUZZHEAD *xw_initpuzz(WORDLIST *w)
 	w->wl_ypos = 0;
 
 	TEST(WHERE);
-	TEST(PRINT1(#010x, (UINT)puzzle_header));
+	TEST(PRINT1(#018lx, (ULONG)puzzle_header));
 	return puzzle_header;
 }
 
@@ -116,7 +121,7 @@ PUZZHEAD *xw_copypuzz(PUZZHEAD *old)
 	register int i,j;
 
 #ifdef DEBUG
-	printf("xw_copypuzz(%#010x): Starting up..\n", (UINT)old);
+	printf("xw_copypuzz(%#018lx): Starting up..\n", (ULONG)old);
 #endif /* DEBUG */
 
 	new = (PUZZHEAD *)xw_malloc(sizeof(PUZZHEAD));
@@ -159,8 +164,8 @@ PUZZHEAD *xw_copypuzz(PUZZHEAD *old)
 		  }
 #ifdef DEBUG
 		PRINT2(d, (UINT)i, (UINT)j);
-		PRINT3(010x, (UINT)prevrow[i], (UINT)prevcol,
-		       (UINT)temp);
+		PRINT3(#018x, (ULONG)prevrow[i], (ULONG)prevcol,
+		       (ULONG)temp);
 #endif /* DEBUG */
 		vptr = vptr->pz_right;
 		prevrow[i] = prevcol = temp;
@@ -184,7 +189,8 @@ void xw_killpuzz(PUZZHEAD *puzzle_header)
 
 
 #ifdef DEBUG
-	printf("xw_killpuzz(%#010x): Starting up..\n", (UINT)puzzle_header);
+	printf("xw_killpuzz(%#018lx): Starting up..\n",
+		(ULONG)puzzle_header);
 #endif /* DEBUG */
 
 	hptr = puzzle_header->ph_puzzle;

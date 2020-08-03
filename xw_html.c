@@ -1,8 +1,10 @@
 /* /home/franx/xword/xw_html.c Mon24May2004 {fcG} */
 
-/* MODIFACTION HISTORY */
-/* When		Who	What */
-/* Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR... */
+// MODIFICATION HISTORY
+// When		Who	What
+// Tue17May2011 {fcG}	Updated email address.
+// Sun12Jul2020 {fcG}	stderr => sed file.
+// Mon13Jul2020 {fcG}	sed I flag (fold case) not supported; removed.
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -22,26 +24,39 @@
 
 void xw_html(PUZZHEAD *puzz_hdr)
 {
-	FILE	*fp;
+	FILE	*fp1, *fp2;
 	PUZZLE	*hptr, *vptr;
 	BOOLEAN new_word = FALSE;
 	register	UINT i=0, j=0, k=0, numword=0;
 	CLUEDESCRIPTOR  accrosslist[NUMWORDS], downlist[NUMWORDS];
 
+	strncpy(xw_sedfile, xw_inputfile, SZ_FILENAME);
+	strncat(xw_sedfile, ".sed", SZ_FILENAME);
+	printf("Writing sed Output to %s...\n", xw_sedfile);
+	if ((fp2 = fopen( xw_sedfile, "w")) EQ NULL)
+	{
+		xw_error(SV_ERROR, "Error opening \"%s\"", xw_sedfile);
+	}
+
 	strncpy(xw_outputfile, xw_inputfile, SZ_FILENAME);
 	strncat(xw_outputfile, ".html", SZ_FILENAME);
-	printf("Writing Output to %s...\n", xw_outputfile);
-	if ((fp = freopen( xw_outputfile, "w", stdout)) EQ NULL)
-		{
-			xw_error(SV_ERROR, "Error opening \"%s\"", xw_outputfile);
-		}
+	printf("Writing HTML Output to %s...\n", xw_outputfile);
+	if ((fp1 = freopen( xw_outputfile, "w", stdout)) EQ NULL)
+	{
+		xw_error(SV_ERROR, "Error opening \"%s\"", xw_outputfile);
+	}
 
-	printf("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Final//EN\">\n");
-	printf("<!-- %s %s %s {fcG} -->\n", xw_outputfile, __DATE__, __TIME__);
+	printf(
+"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Final//EN\">\n");
+	printf("<!-- %s Version: %#4.2f Linked: %s{fcG} -->\n",
+		xw_outputfile, version(), date_compiled());
+	printf(
+"<!-- Copyleft © 2020 Frank Charles Gallacher. All rights reserved.-->\n");
 	printf("<HTML>\n");
 	printf("<HEAD>\n");
-	/* printf("<LINK REL=\"StyleSheet\" TYPE=\"text/css\" HREF=\"xword_style.css\">\n"); */
-	printf("<LINK REV=\"made\" HREF=\"mailto:franxg@bigpond.com\">\n");
+	/* printf(
+"<LINK REL=\"StyleSheet\" TYPE=\"text/css\" HREF=\"xword_style.css\">\n"); */
+	printf("<LINK REV=\"made\" HREF=\"mailto:franxg@gmail.com\">\n");
 	printf("<META NAME=\"Author\" CONTENT=\"Frank C.Gallacher\">\n");
 	printf("<TITLE> Franx X-word Generator. </TITLE>\n");
 	printf("</HEAD>\n");
@@ -58,7 +73,7 @@ void xw_html(PUZZHEAD *puzz_hdr)
 	}
 	vptr = hptr->pz_right;
 	while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
-		|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+	|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
 	{
 	  printf("<TR>\n");
 	  while(vptr->pz_right != NULL)
@@ -68,8 +83,10 @@ void xw_html(PUZZHEAD *puzz_hdr)
 		{
 		  if (vptr->pz_ofaccrossword != NULL)
 		    {
-		      accrosslist[j].cd_clue = vptr->pz_ofaccrossword->wl_clue;
-			accrosslist[j].cd_word = vptr->pz_ofaccrossword->wl_word;
+		      accrosslist[j].cd_clue =
+				vptr->pz_ofaccrossword->wl_clue;
+			accrosslist[j].cd_word
+				= vptr->pz_ofaccrossword->wl_word;
 		      accrosslist[j++].cd_number = ++numword;
 		      new_word = TRUE;
 		    }
@@ -87,14 +104,15 @@ void xw_html(PUZZHEAD *puzz_hdr)
 		  
 		  printf("<TD BGCOLOR=\"White\" ");
 		  
-		  printf("<FONT COLOR=\"Black\" FACE=\"Courier\" SIZE=\"2\">");
+		  printf(
+		"<FONT COLOR=\"Black\" FACE=\"Courier\" SIZE=\"2\">");
 		  if (new_word)
 		    {
-		      printf("%d<BR>&nbsp;&nbsp;&nbsp;", numword);
+		      printf("%d<BR>&nbsp;&nbsp;&nbsp;&nbsp;", numword);
 		    }
 		  else
 		    {
-		      printf("&nbsp;&nbsp;&nbsp;<BR>&nbsp;&nbsp;&nbsp;");
+		      printf("&nbsp;&nbsp;&nbsp;&nbsp;<BR>&nbsp;&nbsp;&nbsp;&nbsp;");
 		    }
 		  printf("</FONT>\n");
 		  
@@ -135,7 +153,7 @@ void xw_html(PUZZHEAD *puzz_hdr)
 	  if (i < j)
 	    {
 	      printf("<TD>%d.%s</TD>", accrosslist[i].cd_number, accrosslist[i].cd_clue);
-		fprintf(stderr, "%s %dA\n", 
+		fprintf(fp2, "1,$s/%s/%dA/g\n", 
 			accrosslist[i].cd_word,
 			accrosslist[i].cd_number);
 	    }
@@ -146,8 +164,9 @@ void xw_html(PUZZHEAD *puzz_hdr)
 
 	  if (i < k)
 	    {
-	      printf("<TD>%d.%s</TD>", downlist[i].cd_number, downlist[i].cd_clue );
-		fprintf(stderr, "%s %dD\n", 
+	      printf("<TD>%d.%s</TD>",
+		downlist[i].cd_number, downlist[i].cd_clue );
+		fprintf(fp2, "1,$s/%s/%dD/g\n", 
 			downlist[i].cd_word,
 			downlist[i].cd_number);
 	    }
@@ -173,7 +192,7 @@ void xw_html(PUZZHEAD *puzz_hdr)
 	}
 	vptr = hptr->pz_right;
 	while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
-		|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+	|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
 	{
 	  printf("<TR>\n");
 	  while(vptr->pz_right != NULL)
@@ -182,7 +201,7 @@ void xw_html(PUZZHEAD *puzz_hdr)
 		{
 		  printf("<TD BGCOLOR=\"White\" ");
 		  
-		  printf("<FONT COLOR=\"Black\" FACE=\"Arial\" SIZE=\"2\">");
+	  printf("<FONT COLOR=\"Black\" FACE=\"Arial\" SIZE=\"2\">");
 		  
 		  printf("%c", vptr->pz_letter);
 		  printf("</FONT>\n");
@@ -215,7 +234,8 @@ void xw_html(PUZZHEAD *puzz_hdr)
 
 	printf("</BODY>\n");
 	printf("</HTML>\n");
-	fclose(fp);
+	fclose(fp1);
+	fclose(fp2);
 }
 
 /* End of /home/franx/xword/xw_html.c */

@@ -1,5 +1,9 @@
 /* /home/franx/xword/xw_readsort.c Mon02Feb2004 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -160,11 +164,12 @@ int xw_readsort()
 	}
     }
   if (xw_totwords > NUMWORDS)
-    {
-      xw_error(SV_INFO, "line %d: Word limit of %d exceeded; %d words encountered",
-	       linenum,NUMWORDS, xw_totwords);
-      return_code++;
-    }
+	{
+	xw_error(SV_INFO,
+	"line %d: Word limit of %d exceeded; %d words encountered",
+	linenum,NUMWORDS, xw_totwords);
+	return_code++;
+	}
   fclose(fp);
   return return_code;
 }
@@ -186,7 +191,7 @@ void xw_killlist()
   while(ref != 0)
     {
       tmp = ref->wl_next;
-      TEST(PR(#010x, (UINT)ref));
+      TEST(PR(#018lx, (ULONG)ref));
       TEST(PRINT2(s, ref->wl_word, ref->wl_clue));
       free((char *)ref);
       ref = tmp;

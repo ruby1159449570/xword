@@ -1,5 +1,9 @@
 /* /home/franx/xword/xw_error.c Sat31Jan2004 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -40,7 +44,7 @@ void xw_error(SEVERITY sv, char *fmt, ...)
   fprintf(stderr,"\033[0m\n");
   va_end(ap);
 /*perror("xw_error()");  */
-  if (errno != 0)
+  if (errno != 0 && errno != ENOENT)
     {
       fprintf(stderr, "errno = %d (%s)\n", errno,
 	      (char *)strerror(errno));
@@ -69,7 +73,7 @@ void *xw_malloc(size_t size)
       }
 
 #ifdef DEBUG
-  printf("xw_malloc(%d): ==> %#010x\t", (UINT)size, (UINT)return_code);
+  printf("xw_malloc(%d): ==> %#018lx\t", (UINT)size, (ULONG)return_code);
 #endif /* DEBUG */
 
   return return_code;

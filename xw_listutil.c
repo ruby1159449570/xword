@@ -1,5 +1,9 @@
 /* /home/franx/xword/xw_listutil.c Mon02Feb2004 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 #include <stdio.h>
 #include "defs.h"
 #include "xword.h"
@@ -13,7 +17,7 @@ static WORDLIST *nextword = &xw_start;
 
 WORDLIST *xw_poplist()
 {
-    TEST(PRINT1(010x, (UINT)nextword));
+    TEST(PRINT1(#018lx, (ULONG)nextword));
     if(nextword != NULL)
       {
 	WORDLIST *temp;
@@ -25,8 +29,8 @@ WORDLIST *xw_poplist()
 	if (nextword != NULL)
 	  {
 #ifdef DEBUG
-	    printf("poplist: returned %#010x which points to %s\n",
-		   (UINT)nextword, nextword->wl_word);
+	    printf("poplist: returned %#018lx which points to %s\n",
+		   (ULONG)nextword, nextword->wl_word);
 #endif /* DEBUG */
 	    temp = nextword;
 	    nextword = nextword->wl_next;
@@ -56,12 +60,13 @@ void xw_pushlist(struct wordlist *ref)
 	  cur = nextword;
 
 #ifdef DEBUG
-	  printf("pushlist: putting %#010x which points to %s back on\n",
-		  (UINT)ref, ref->wl_word);
+	  printf("pushlist: putting %#018lx which points to %s back on\n",
+		  (ULONG)ref, ref->wl_word);
 	  ptr = xw_start.wl_next;
 	  while (ptr != NULL)
 	    {
-	      printf("%#010x\t[%s]\n", (UINT)ptr, ptr->wl_word);
+	      printf("%#018lx\t[%s]\t%s\n", (ULONG)ptr, ptr->wl_word,
+		DECODE(ptr->wl_status));
 	      ptr = ptr->wl_next;
 	    }
 #endif /* DEBUG */
@@ -77,18 +82,19 @@ void xw_pushlist(struct wordlist *ref)
 	    {
 	      while(cur != ref && cur != NULL)
 		{
-		  /* 	      PRINT3(010x, (UINT)cur, (UINT)cur->wl_next, (UINT)nextword); */
-		  /* 	      PRINT1(010x, (UINT)cur->wl_prev); */
+  /* PRINT3(#018lx, (ULONG)cur, (ULONG)cur->wl_next, (ULONG)nextword); */
+  /* PRINT1(#018lx, (ULONG)cur->wl_prev); */
 		  
 		  cur = cur->wl_prev;
 #ifdef DEBUG
-		  printf("pushlist: cur = %#010x\t\n", (UINT)cur);
+		  printf("pushlist: cur = %#018lx\t\n", (ULONG)cur);
 #endif /* DEBUG */
 		  if(cur EQ NULL)
 		    {
 /* 		      xw_error(SV_ERROR, */
-/* 			       "pushlist: %#010x [%s] was not in wordlist", */
-/* 			       (UINT)ref, ref->wl_word); */
+/* 		       "pushlist: %#018lx [%s] was not in wordlist", */
+/* 		       (ULONG)ref, ref->wl_word); */
+
 		      break;
 		    }
 		}
@@ -98,7 +104,7 @@ void xw_pushlist(struct wordlist *ref)
 		}
 	    }
 
-	  TEST(PRINT1(010x, (UINT)nextword));
+	  TEST(PRINT1(#018lx, (ULONG)nextword));
 
 	  /* ref->wl_next = nextword; */
 	  /* cur->wl_next = nextword = ref; */
@@ -126,7 +132,8 @@ void xw_restartlist()
 	    {
 
 #ifdef DEBUG
-	      printf("xw_restartlist(): ref = %#010x[%s]\n", (UINT)ref, ref->wl_word);
+		printf("xw_restartlist(): ref = %#018lx[%s]\n",
+		(ULONG)ref, ref->wl_word);
 #endif
 
 	      ref->wl_status = UNUSED;

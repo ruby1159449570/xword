@@ -1,5 +1,9 @@
 /* /home/franx/xword/xw_createlinks.c Mon02Feb2004 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 /*  #include <stdio.h> */
 /*  #include <stdlib.h> */
 /*  #include <ctype.h> */
@@ -57,7 +61,7 @@ void xw_createlinks()
 	while(ref != NULL)
 	  {
 #ifdef DEBUG
-	    printf("xw_createlinks: ref = %#010x\n", (UINT)ref);
+	    printf("xw_createlinks: ref = %#018lx\n", (ULONG)ref);
 #endif /* DEBUG */
 
 	    for(i = 0; i < ref->wl_numchar; i++)
@@ -68,8 +72,10 @@ void xw_createlinks()
 		  {
 		    ref->wl_sameletter[i] = letterlink[j];
 #ifdef DEBUG
-		    printf("xw_createlinks: %c evaluated to %2d, sameletter is %#010x\n",
-			   ref->wl_word[i],j,(UINT)ref->wl_sameletter[i]);
+		    printf(
+"xw_createlinks: %c evaluated to %2d, sameletter is %#018lx\n",
+ref->wl_word[i],j,(ULONG)ref->wl_sameletter[i]);
+
 #endif /* DEBUG */
 		  }
 	      }

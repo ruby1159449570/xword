@@ -1,4 +1,12 @@
 /* /home/franx/xword/xword.c Mon26Jan2004 {fcG} */
+//
+//  Created by Frank Charles Gallacher on 22/5/20.
+//  Copyleft © 2020 Frank Charles Gallacher. All rights reserved.
+//
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+// Sun12Jul2020 {fcG}	"Thousand island" do-do bug squashed!!!
 
 #include <errno.h>
 #include <setjmp.h>
@@ -12,7 +20,6 @@
 #define	extern
 #include "xword.h"
 
-
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #	SIGINT_HANDLER			#
 #					#
@@ -22,14 +29,14 @@ static PUZZHEAD *sigint_puzzle_header=NULL;
 
 static void sigint_handler()
 {
-  printf(
-"\033[7;31m<CTRL-C> received, Hanging up...\033[0m\n");
-  if (sigint_puzzle_header != NULL)
-    {
-      xw_printpuzz(sigint_puzzle_header);
-      xw_html(sigint_puzzle_header);
-    }
-  xw_error(SV_ERROR, "<CTRL-C> received, Hanging up...");
+	printf(
+	"\033[7;31m<CTRL-C> received, Hanging up...\033[0m\n");
+	if (sigint_puzzle_header != NULL)
+	{
+		xw_printpuzz(sigint_puzzle_header);
+		xw_html(sigint_puzzle_header);
+	}
+	xw_error(SV_ERROR, "<CTRL-C> received, Hanging up...");
 }
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
@@ -48,22 +55,26 @@ int main(int argc, char *argv[])
       printf(
 "\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
       printf(
-"\033[7m#                                     #\033[0m\n");
-      printf(
 "\033[7m#  Welcome to Franx X-word Generator! #\033[0m\n");
       printf(
-"\033[7m#                                     #\033[0m\n");
+"\033[7m#             Version: %#4.2f           #\033[0m\n",
+	version());
+      printf(
+"\033[7m# Link Date: %s#\033[0m\n", date_compiled());
       printf(
 "\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
-      WHEN;
-
+/* 	WHEN; */
       if(argc < 2)
 	{
 	  char buf[10];
 	  
 	  sprintf(buf, "%%%ds", SZ_FILENAME);
-	  printf("\nInput file of words? ");
+	  printf("\nxword: Input file of words? ");
 	  scanf(buf, xw_inputfile);
+
+	  sprintf(buf, "%%%ds", SZ_FILENAME);
+	  printf("\nxword: Dictionary file of words? ");
+	  scanf(buf, xw_indexfile);
 
 #ifdef SNARK
 	  fprintf(stderr, "Output file for final puzzle?\n");
@@ -77,48 +88,90 @@ int main(int argc, char *argv[])
 	}
       else
 	{
-	  PRINT1(s, argv[1]);
-	  strncpy(xw_inputfile, argv[1], SZ_FILENAME);
+		PRINT1(s, argv[1]);
+		strncpy(xw_inputfile, argv[1], SZ_FILENAME);
+
+		if(argc EQ 3)
+		{
+			PRINT1(s, argv[2]);
+			strncpy(xw_indexfile, argv[2], SZ_FILENAME);
+		}
+		else
+		{
+			strncpy(xw_indexfile, "", SZ_FILENAME);
+			
+		}
 	}
-      
-      time(&xw_starttime);
-      if ((count = xw_readsort()) > 0)
-	{
-	  xw_error(SV_ERROR,
+
+time(&xw_starttime);
+if ((count = xw_readsort()) > 0)
+{
+  xw_error(SV_ERROR,
 "%d Errors encountered in parsing %s", count, xw_inputfile);
-	}
-      if (xw_totwords <= 1)
-	{
-	  xw_error(SV_FATAL,
+}
+if (xw_totwords <= 1)
+{
+  xw_error(SV_FATAL,
 "Don't be a Smartarse, a xword must have at least 2 words");
-	}
-      xw_createlinks();
-      
-      xw_poplist(); /* pop xw_start off wordlist?! */
-      
-      word = xw_poplist();
-      puzzle_header = xw_initpuzz(word);
-      TEST(PRINT1(#010x, (UINT)puzzle_header));
+}
+xw_createlinks();
+
+xw_poplist(); /* pop xw_start off wordlist?! */
+
+word = xw_poplist();
+puzzle_header = xw_initpuzz(word);
+TEST(PRINT1(#018lx, (ULONG)puzzle_header));
+
+#ifdef	SNARK
 
 GOBACK:
 
-      do
-	{
-	  PUZZHEAD *temp;
-	  
-	  temp = xw_copypuzz(puzzle_header);
-	  word = xw_poplist();
+do
+{
+	PUZZHEAD *temp;
 
-	  TEST(PRINT3(#010x,
-(UINT)word, (UINT)temp, (UINT)puzzle_header));
+	temp = xw_copypuzz(puzzle_header);
+	word = xw_poplist();
 
-	  temp->ph_prevpuzz = puzzle_header;
-	  puzzle_header = temp;
-	}
-      while((word != NULL)
+	TEST(PRINT3(#018lx,
+	(ULONG)word, (ULONG)temp, (ULONG)puzzle_header));
+
+	temp->ph_prevpuzz = puzzle_header;
+	puzzle_header = temp;
+}
+while((word != NULL)
 && (failword = xw_buildpuzz(puzzle_header, word)) EQ NULL);
-	  
-      if (failword != NULL)
+#endif	/* SNARK */
+  
+while((word = xw_poplist()))
+{
+	PUZZHEAD *temp;
+
+	temp = xw_copypuzz(puzzle_header);
+	temp->ph_prevpuzz = puzzle_header;
+	puzzle_header = temp;
+	
+	while(failword = xw_buildpuzz(puzzle_header, word))
+	{
+
+		TEST(PRINT2(#018lx,
+		(ULONG)failword, (ULONG)puzzle_header));
+		puzzle_header->ph_failpuzz = failword->wl_failpuzz;
+		failword->wl_failpuzz = puzzle_header;
+		puzzle_header = puzzle_header->ph_prevpuzz;
+		if(!puzzle_header)
+		{
+			xw_error(SV_FATAL,
+			"Could not find spot for %s",
+			failword->wl_word);
+		}
+	}
+}
+	
+#ifdef	SNARK
+
+
+if (failword != NULL)
 	{
 	  PUZZHEAD *temp;
 	      
@@ -127,9 +180,9 @@ GOBACK:
 	  failword->wl_failpuzz = puzzle_header;
 #ifdef DEBUG
 		printf("\033[32;40m");
-		PR(010x, (UINT)firstfail);
+		PR(#018lx, (ULONG)firstfail);
 		PR(s, firstfail->wl_word);
-		printf("\033[0m\n");
+	printf("\033[0m\n");
 #endif
 	  do
 	    {	
@@ -142,11 +195,12 @@ GOBACK:
 		      break;
 		    }
 		  temp = xw_copypuzz(puzzle_header);
-#ifdef DEBUG
+	#ifdef DEBUG
 		  TEST(WHERE);
-		  PRINT2(010x, (UINT)temp, (UINT)puzzle_header);
+		  PRINT2(#018lx, (ULONG)temp,
+			(ULONG)puzzle_header);
 		  xw_printpuzz(puzzle_header);
-#endif /* DEBUG */
+	#endif /* DEBUG */
 		      
 		  if(puzzle_header->ph_lastword != NULL)
 		    {
@@ -157,11 +211,12 @@ GOBACK:
 	      while((word != NULL)
 		&& (xw_buildpuzz(puzzle_header,failword) != NULL));
 
-#ifdef DEBUG
+	#ifdef DEBUG
 	      printf("\033[32;40m");
-	      WHERE; printf("Found a spot for %s", failword->wl_word);
+	      WHERE; printf("Found a spot for %s",
+			failword->wl_word);
 	      printf("\033[0m\n");
-#endif /* DEBUG */
+	#endif /* DEBUG */
 	      do
 		{
 		  temp = xw_copypuzz(puzzle_header); 
@@ -177,7 +232,8 @@ GOBACK:
 		  while(old_puzzhead != NULL)
 		    {
 		      if (xw_matchpuzz(old_puzzhead, puzzle_header))
-			{
+			
+			
 			xw_error(SV_FATAL, "Could not find spot for %s",
 			failword->wl_word);
 			}
@@ -186,10 +242,10 @@ GOBACK:
 		  if (failword EQ firstfail)
 		    {
 		      static WORDLIST *newhead = NULL;
-#ifdef DEBUG
+	#ifdef DEBUG
 		      PR(s, firstfail->wl_word);
-		      PRINT2(010x, (UINT)newhead, (UINT)firstfail);
-#endif
+		      PRINT2(#018lx, (ULONG)newhead, (ULONG)firstfail);
+	#endif
 		      if (newhead EQ NULL || firstfail != newhead)
 			{   
 			  newhead = firstfail;
@@ -199,41 +255,45 @@ GOBACK:
 
 			  puzzle_header = xw_initpuzz(failword);
 
-#ifdef DEBUG
+	#ifdef DEBUG
 				printf("\033[32;40m");
 				WHERE; printf("Going to GOBACK...");
 				printf("\033[0m\n");
-#endif /* DEBUG */
+	#endif /* DEBUG */
 			  goto GOBACK;
 			}
 		    }
-		}
 	    }
 	    while((word != NULL) && (failword != NULL));
 	}
-      sigint_puzzle_header = puzzle_header;
-      if (signal(SIGINT, (void (*)(int))sigint_handler) EQ SIG_ERR)
+
+#endif	/* SNARK */
+
+	sigint_puzzle_header = puzzle_header;
+	if (signal(SIGINT, (void (*)(int))sigint_handler) EQ SIG_ERR)
 	{
-	  xw_error(SV_ERROR, "signal snarked!!!");
+		xw_error(SV_ERROR, "signal snarked!!!");
 	}
 
 #ifdef	SNARK
-      for(EVER)
+	for(EVER)
 	{
-	  ;
+	  ;	// Do *NOTHING*
 	}
-#endif	/* SNARK */
-      
-      xw_fillpuzz(puzzle_header);
+	#endif	/* SNARK */
 
-      xw_html(puzzle_header);
-      xw_killlist();
-      exit(0);
-    }
-    else
-    {
-      fprintf(stderr, "xword: aborting due to errors...\n");
-      exit(-1);
-    }
+		if (strncmp(xw_indexfile, "", SZ_FILENAME))
+		{
+			xw_fillpuzz(puzzle_header);
+		}
+		xw_html(puzzle_header);
+		xw_killlist();
+		exit(0);
+	}
+	else
+	{
+		fprintf(stderr, "xword: aborting due to errors...\n");
+		exit(-1);
+	}
 }
 /* End of /home/franx/xword/xword.c */

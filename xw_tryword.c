@@ -1,5 +1,9 @@
 /* /home/franx/xword/xw_tryword.c Tue10Feb2004 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 #include <stdio.h>
 #include "xword.h"
 
@@ -82,8 +86,8 @@ void	xw_tryword(PUZZHEAD *ph, WORDLIST *w, int i, WORDLIST *x)
 void	xw_feelup(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
 {
 #if DEBUG
-	printf("xw_feelup: w->word[i] = %c, i = %d, p = %#010x\n",
-		w->wl_word[i], i, (UINT)p);
+	printf("xw_feelup: w->word[i] = %c, i = %d, p = %#018lx\n",
+		w->wl_word[i], i, (ULONG)p);
 #endif /* DEBUG */
 
 	if (p EQ NULL)
@@ -128,8 +132,8 @@ void	xw_feelup(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
 void	xw_feeldown(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
 {
 #if DEBUG
-	printf("xw_feeldown: w->word[i] = %c, i = %d, p = %#010x\n",
-		w->wl_word[i], i,  (UINT)p);
+	printf("xw_feeldown: w->word[i] = %c, i = %d, p = %#018lx\n",
+		w->wl_word[i], i,  (ULONG)p);
 #endif /* DEBUG */
 
 	if (p EQ NULL)
@@ -170,8 +174,8 @@ void	xw_feeldown(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
 void	xw_feelleft(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
 {
 #if DEBUG
-	printf("xw_feelleft: w->word[i] = %c, i = %d, p = %#010x\n",
-		w->wl_word[i], i,  (UINT)p);
+	printf("xw_feelleft: w->word[i] = %c, i = %d, p = %#018lx\n",
+		w->wl_word[i], i,  (ULONG)p);
 #endif /* DEBUG */
 
 	if (p EQ NULL)
@@ -216,8 +220,8 @@ void	xw_feelleft(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
 void	xw_feelright(PUZZHEAD *ph, WORDLIST *w, int i, PUZZLE *p)
 {
 #if DEBUG
-        printf("xw_feelright: w->word[i] = %c, i = %d, p = %#010x\n",
-		w->wl_word[i], i,  (UINT)p);
+        printf("xw_feelright: w->word[i] = %c, i = %d, p = %#018lx\n",
+		w->wl_word[i], i,  (ULONG)p);
 	PRINT1(d, w->wl_numchar);
 #endif /* DEBUG */
 

@@ -1,9 +1,11 @@
 /* /home/franx/xword/xword.h Mon26Jan2004 {fcG} */
 
-/* MODIFACTION HISTORY */
-/* When		Who	What */
-/* Sun18Jun2006 {fcG}	ph_checksum & ph_failpuzz added to PUZZHEAD */
-/* Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR... */
+// MODIFACTION HISTORY
+// When		Who	What
+// Sun18Jun2006 {fcG}	ph_checksum & ph_failpuzz added to PUZZHEAD
+// Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR...
+// Sun12Jul2020 {fcG}	sed file added...
+// Sat18Jul2020 {fcG}	index file/dirs added
 
 #ifndef _XWORD_H
 #define _XWORD_H 1
@@ -32,9 +34,9 @@
 #define	ORD(x)		((x) - 'A')
 #define	INV(x)		((x) EQ ACROSS ? DOWN : ACROSS)
 #define	DECODE(x)	((x) EQ UNUSED ? "UNUSED"  : \
-                        (x) EQ ACROSS ? "ACROSS" : \
-                        (x) EQ DOWN ? "DOWN"       : \
-                        "???")
+			(x) EQ ACROSS ? "ACROSS" : \
+			(x) EQ DOWN ? "DOWN"       : \
+			"???")
 #define	INDEXDIR(x)	(sprintf(xw_indexdir,\
 			"%s.index/%06d", xw_indexfile,(x)))
 
@@ -43,9 +45,20 @@
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
-typedef	enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL } SEVERITY;
+typedef	enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL
+	} SEVERITY;
 
-typedef	enum status { UNUSED = 0, ACROSS = 1, DOWN = 2 } STATUS;
+typedef	enum status { UNUSED = 0, ACROSS = 1, DOWN = 2
+	} STATUS;
+
+typedef	enum color {
+	RED	= 31,
+	GREEN	= 32,
+	YELLOW	= 33,
+	BLUE	= 34,
+	PURPLE	= 35,
+	CYAN	= 36
+	} COLOR;
 
 typedef	struct	cluedescriptor
 {
@@ -58,6 +71,7 @@ typedef	struct	puzzle
 {
 	char	pz_letter;
 	int	pz_rownum, pz_colnum;
+	COLOR	pz_color;
 	struct	puzzle	*pz_up, *pz_down, *pz_left, *pz_right;
 	struct	wordlist *pz_ofaccrossword, *pz_ofdownword;
 }	PUZZLE;
@@ -67,7 +81,8 @@ typedef	struct	puzzhead
 	struct puzzhead	*ph_prevpuzz, *ph_failpuzz;
         struct puzzle   *ph_puzzle;
 	struct wordlist *ph_lastword;
-        UINT		ph_numcols, ph_numrows, ph_numwords, ph_numletters;
+        UINT		ph_numcols, ph_numrows,
+			ph_numwords, ph_numletters;
         float		ph_compact;
 	ULONG		ph_checksum;
 }       PUZZHEAD;
@@ -120,15 +135,18 @@ extern	WORDLIST xw_start
 =
 {
   WORDLENGTH+1, "", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, {NULL}
-/*    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, */
-/*     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
+/* {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, */
+/*  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
 };
 #else
 	;
 #endif
 
-extern	char	xw_inputfile[SZ_FILENAME+1],xw_outputfile[SZ_FILENAME+6],
-		xw_indexfile[SZ_FILENAME+1],xw_indexdir[SZ_FILENAME+1];
+extern	char	xw_inputfile[SZ_FILENAME+1],
+		xw_outputfile[SZ_FILENAME+6],
+		xw_indexfile[SZ_FILENAME+1],
+		xw_indexdir[SZ_FILENAME+1],
+		xw_sedfile[SZ_FILENAME+1];
 extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
 extern	time_t	xw_starttime;
 extern	jmp_buf	xw_env;
@@ -139,6 +157,10 @@ extern	jmp_buf	xw_env;
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 int	main(int, char*[]);
+
+char	*date_compiled();
+float	version();
+
 BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
 PUZZHEAD *xw_copypuzz(PUZZHEAD *);
 PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
@@ -160,6 +182,7 @@ void	xw_pushlist(WORDLIST *);
 void	xw_putwordin(PUZZHEAD *,WORDLIST *, STATUS, int, int);
 int	xw_readsort();
 void	xw_restartlist();
+int	xw_sizedict(char *);
 void	xw_tryword(PUZZHEAD *,WORDLIST *, int, WORDLIST *);
 void	xw_html(PUZZHEAD *);
 WORDLIST	*xw_buildpuzz(PUZZHEAD *, WORDLIST *);
