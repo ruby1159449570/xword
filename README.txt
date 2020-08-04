@@ -2,3 +2,4 @@
 
 Franx Cross-word Generator
 
+(For documentation, see "xword_doco.pdf")
