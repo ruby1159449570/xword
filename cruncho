@@ -1,11 +1,25 @@
+#!/usr/local/bin/zsh -vx
+#!/usr/local/bin/zsh
 #!/bin/bash -vx
 #/home/franx/debianstuff/xword/cruncho Mon16May2011 {fcG}
 
-CRUNCHO=manbash
+if [ $# -eq 0 ]; then
+        CRUNCHO=john
+else
+        CRUNCHO=$*;
+fi;
+####### CRUNCHO=letter2keith
 
-sed -e "s/ /\n/g" $CRUNCHO.txt \
-| tr "[A-Z]" "[a-z]" \
-| sed -e "s/[\;\t\.\,\?\'\"\!\&\(\)]*//g" \
+#######sed -e "s/ /\n/g" $CRUNCHO.txt \
+cat $CRUNCHO.txt \
+| tr "[\011\-]" " " \
+| tr " " "\n" \
+| tr "[a-z]" "[A-Z]" \
+| sed -e "s/[0-9]//g" \
+| ./strip_punc \
 | sort -b -u -o $CRUNCHO.sort
+
+#######| sed -e "s/[\-\[\]\*]//g" \
+#######| sed -e "s/[\'\;\:\.\,\?\`\"\!\&\(\)]//g" \
 
 ######## End of /home/franx/debianstuff/xword/cruncho #########
