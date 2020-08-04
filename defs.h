@@ -15,20 +15,20 @@
 #define	MAX(x,y)	((x) > (y) ? (x) : (y))
 #define	MIN(x,y)	((x) < (y) ? (x) : (y))
 
-#define	MAXINT		(~(int)(1<<sizeof(int)*8-1))
-#define	MAXLONG		(~(1L<<sizeof(long)*8-1))
-#define	MAXSHORT	(~(short)(1<<sizeof(short)*8-1))
+#define	MAXINT		(~(int)(1<<(sizeof(int)*8-1)))
+#define	MAXLONG		(~(1L<<(sizeof(long)*8-1)))
+#define	MAXSHORT	(~(short)(1<<(sizeof(short)*8-1)))
 
 #define	SZ_FILENAME	FILENAME_MAX
 #define	SZ_STRING	100
 #define	SZ_TABLE(x)	(sizeof(x)/sizeof(x[0]))
 
 #ifdef	__STDC__
-#define	PR(format,value)	printf(#value " = %" #format "\t", (value))
-#define	WHEN	printf("%s %s", __DATE__, __TIME__) 
-#define	WHERE	printf("%s[%d]", __FILE__, __LINE__) 
+#define	PR(fmt,value)	printf(#value " = %" #fmt "\t", (value))
+#define	WHEN		printf("%s %s", __DATE__, __TIME__) 
+#define	WHERE		printf("%s[%d]", __FILE__, __LINE__) 
 #else
-#define	PR(format,value)	printf("value = %format\t", (value))
+#define	PR(fmt,value)	printf("value = %fmt\t", (value))
 #define	WHEN
 #define	WHERE
 #endif	/* __STDC__ */
