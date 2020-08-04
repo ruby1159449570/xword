@@ -1,1 +1,1 @@
-# xword Franx Crodd-word Puzzle Generator
+# xword Franx Cross-word Puzzle Generator
