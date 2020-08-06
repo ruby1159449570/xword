@@ -1,18 +1,18 @@
 #!/bin/zsh -vx
 #!/bin/zsh
-#!/Users/moonpie/xword/./debugmake Sun05Apr2020 {fcG}
+#!/Users/moonpie/xword/debugmake Sat04Jul2020 {fcG}
 
-clang -g3 -idirafter ../source -Wall -DDEBUG=1    -c -o xw_buildpuzz.o xw_buildpuzz.c
-clang -g3 -idirafter ../source -Wall -c -o xw_createlinks.o xw_createlinks.c
-clang -g3 -idirafter ../source -Wall -c -o xw_error.o xw_error.c
-clang -g3 -idirafter ../source -Wall -c -o xw_html.o xw_html.c
-clang -g3 -idirafter ../source -Wall -c -o xw_initpuzz.o xw_initpuzz.c
-clang -g3 -idirafter ../source -Wall -c -o xw_listutil.o xw_listutil.c
-clang -g3 -idirafter ../source -Wall -DDEBUG=1    -c -o xw_matchpuzz.o xw_matchpuzz.c
-clang -g3 -idirafter ../source -Wall -DDEBUG=1    -c -o xw_printpuzz.o xw_printpuzz.c
-clang -g3 -idirafter ../source -Wall -DDEBUG=1    -c -o xw_puzzutil.o xw_puzzutil.c
-clang -g3 -idirafter ../source -Wall -c -o xw_readsort.o xw_readsort.c
-clang -g3 -idirafter ../source -Wall -DDEBUG=1    -c -o xw_tryword.o xw_tryword.c
-clang -g3 -idirafter ../source -Wall -DDEBUG=1    -c -o xw_fillpuzz.o xw_fillpuzz.c
-clang -g3 -idirafter ../source -Wall -DDEBUG=1    -c -o xword.o xword.c
-clang -g3 -idirafter ../source -Wall -DDEBUG=1  xw_buildpuzz.o xw_createlinks.o xw_error.o xw_html.o xw_initpuzz.o xw_listutil.o xw_matchpuzz.o xw_printpuzz.o xw_puzzutil.o xw_readsort.o xw_tryword.o xw_fillpuzz.o xword.o  -o xword
+clang -g -O0 -c -o xw_buildpuzz.o xw_buildpuzz.c
+clang -g -O0 -c -o xw_createlinks.o xw_createlinks.c
+clang -g -O0 -c -o xw_matchpuzz.o xw_matchpuzz.c
+#######clang -g -O0 -c -o xw_printpuzz.o xw_printpuzz.c
+clang -g -O0 -DDEBUG=1 -c -o xw_printpuzz.o xw_printpuzz.c
+clang -g -O0 -c -o xw_listutil.o xw_listutil.c
+clang -g -O0 -c -o xw_puzzutil.o xw_puzzutil.c
+clang -g -O0 -c -o xw_tryword.o xw_tryword.c
+clang -g -O0 -DDEBUG=1 -c -o xw_fillpuzz.o xw_fillpuzz.c
+clang -g -O0 -c -o xw_readsort.o xw_readsort.c
+clang -g -O0 -c -o xw_sizedict.o xw_sizedict.c
+clang -g -O0 -c -o xword.o xword.c
+
+####### End of /Users/moonpie/xword/debugmake #######

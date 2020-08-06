@@ -1,8 +1,10 @@
 /* /home/franx/xword/xw_buildpuzz.c Wed04Feb2004 {fcG} */
 
-/* MODIFACTION HISTORY */
-/* When		Who	What */
-/* Sun18Jun2006	{fcG}	ph_checksum aggregate added to xw_putwordin(). */
+// MODIFICATION HISTORY
+// When		Who	What
+// Sun18Jun2006	{fcG}	ph_checksum aggregate added to
+// 			xw_putwordin().
+// Wed08Jul2020 {fcG}	64-bit debug code.
 
 #include <stdio.h>
 #include "xword.h"
@@ -33,16 +35,16 @@ WORDLIST *xw_buildpuzz(PUZZHEAD *ph, WORDLIST *word)
 	      {
 		if(word->wl_sameletter[i] != NULL)
 		  {
-		    TEST(PRINT1(#010x, (UINT)word->wl_sameletter[i]));
+		    TEST(PRINT1(#018lx, (ULONG)word->wl_sameletter[i]));
 		    TEST(PRINT1(s, word->wl_sameletter[i]->wl_word));
 		    xw_tryword(ph, word, i, word->wl_sameletter[i]);
 		    if(xw_best.wf_size > xw_ret.wf_size)
-		      {
-			xw_best.wf_size = xw_ret.wf_size;
-			xw_best.wf_x = xw_ret.wf_x;
-			xw_best.wf_y = xw_ret.wf_y;
-			xw_best.wf_status = xw_ret.wf_status;
-		      }
+			{
+				xw_best.wf_size = xw_ret.wf_size;
+				xw_best.wf_x = xw_ret.wf_x;
+				xw_best.wf_y = xw_ret.wf_y;
+				xw_best.wf_status = xw_ret.wf_status;
+			}
 		  }
 	      }
 #ifdef DEBUG
@@ -51,14 +53,17 @@ WORDLIST *xw_buildpuzz(PUZZHEAD *ph, WORDLIST *word)
 	    printf("xw_best.wf_status = %d[%s]\n", xw_best.wf_status,
 		   DECODE(xw_best.wf_status));
 #endif /* DEBUG */
-	    ph->ph_compact = (ph->ph_numrows - 2) * (ph->ph_numcols - 2) + xw_best.wf_size;
+	    ph->ph_compact = (ph->ph_numrows - 2)
+		* (ph->ph_numcols - 2) + xw_best.wf_size;
 #if DEBUG
-	      PRINT2(6f, (double)ph->ph_compact, (double)xw_puzz_compact_req);
+	      PRINT2(6f, (double)ph->ph_compact,
+			(double)xw_puzz_compact_req);
 #endif /* DEBUG */
 	    if(xw_best.wf_size EQ UNDEFINED)
 
 /*|| ((ph->ph_numrows - 2) * (ph->ph_numcols - 2) + xw_best.wf_size */
-/* > ((xw_totletters - 2) * (xw_totwords + 2)) * 100 / xw_puzz_compact_req)) */
+/* > ((xw_totletters - 2) * (xw_totwords + 2)) * 100s
+ / xw_puzz_compact_req)) */
 
 	      {
 		couldntbuild = TRUE;
@@ -66,8 +71,8 @@ WORDLIST *xw_buildpuzz(PUZZHEAD *ph, WORDLIST *word)
 	      }
 	    else
 	      {
-		xw_putwordin(ph, word, xw_best.wf_status, xw_best.wf_x, xw_best.wf_y);
-
+		xw_putwordin(ph, word, xw_best.wf_status,
+			xw_best.wf_x, xw_best.wf_y);
 		xw_printpuzz(ph);
 	  
 	      }
@@ -80,10 +85,11 @@ WORDLIST *xw_buildpuzz(PUZZHEAD *ph, WORDLIST *word)
 /*  	  xw_pushlist(failure[index]); */
 /*  	} */
 	if(couldntbuild)
-	  {
-	/*      xw_error(SV_INFO, "xw_buildpuzz(): couldn't find a spot for %s", */
-/*  		     word); */
-	    return word;
+	{
+		xw_error(SV_INFO,
+		"xw_buildpuzz(): couldn't find a spot for %s",
+		word->wl_word);
+		return word;
 	}
 	else
 	{
@@ -99,7 +105,7 @@ WORDLIST *xw_buildpuzz(PUZZHEAD *ph, WORDLIST *word)
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
-void	xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
+void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 {
 	int i;
 	PUZZLE	*ref;

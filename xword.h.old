@@ -1,9 +1,21 @@
 /* /home/franx/xword/xword.h Mon26Jan2004 {fcG} */
 
+/* MODIFACTION HISTORY */
+/* When		Who	What */
+/* Sun18Jun2006 {fcG}	ph_checksum&ph_failpuzz added to PUZZHEAD */
+/* Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR... */
+
 #ifndef _XWORD_H
 #define _XWORD_H 1
+#include <ctype.h>
+#include <errno.h>
 #include <setjmp.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include "defs.h"
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
@@ -14,28 +26,33 @@
 #define	CLUELENGTH	200
 #define	WORDLENGTH	20
 #define	NUMLETTERS	26
-#define	EOWORD		'@'
+#define	EOWORD		'$'
 #define	NUMWORDS	100
 #define	UNDEFINED	32767
 #define	ORD(x)		((x) - 'A')
-#define	INV(x)		((x) EQ ACCROSS ? DOWN : ACCROSS)
+#define	INV(x)		((x) EQ ACROSS ? DOWN : ACROSS)
 #define	DECODE(x)	((x) EQ UNUSED ? "UNUSED"  : \
-                        (x) EQ ACCROSS ? "ACCROSS" : \
-                        (x) EQ DOWN ? "DOWN"       : \
-                        "???")
+			(x) EQ ACROSS ? "ACROSS" : \
+			(x) EQ DOWN ? "DOWN"       : \
+			"???")
+#define	INDEXDIR(x)	(sprintf(xw_indexdir,\
+			"%s.index/%06d", xw_indexfile,(x)))
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		TYPEDEFS		#
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
-typedef	enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL } SEVERITY;
+typedef	enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL
+	} SEVERITY;
 
-typedef	enum status { UNUSED = 0, ACCROSS = 1, DOWN = 2 } STATUS;
+typedef	enum status { UNUSED = 0, ACROSS = 1, DOWN = 2
+	} STATUS;
 
 typedef	struct	cluedescriptor
 {
 	char	*cd_clue;
+	char	*cd_word;
 	UINT	cd_number;
 }	CLUEDESCRIPTOR;
 
@@ -49,11 +66,13 @@ typedef	struct	puzzle
 
 typedef	struct	puzzhead
 {
-	struct puzzhead	*ph_prevpuzz;
+	struct puzzhead	*ph_prevpuzz, *ph_failpuzz;
         struct puzzle   *ph_puzzle;
 	struct wordlist *ph_lastword;
-        UINT		ph_numcols, ph_numrows, ph_numwords, ph_numletters;
+        UINT		ph_numcols, ph_numrows,
+			ph_numwords, ph_numletters;
         float		ph_compact;
+	ULONG		ph_checksum;
 }       PUZZHEAD;
 
 typedef	 struct	wordfit
@@ -69,6 +88,7 @@ typedef	struct	wordlist
 	STATUS	wl_status;
 	int	wl_xpos, wl_ypos;
 	struct	wordlist *wl_prev, *wl_next, *wl_sameletter[WORDLENGTH];
+	struct	puzzhead *wl_failpuzz;
 }	WORDLIST;
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
@@ -94,6 +114,7 @@ extern	WORDFIT xw_ret
 	0, 0, 0, UNUSED
 };
 #else
+
 	;
 #endif
 
@@ -101,14 +122,18 @@ extern	WORDLIST xw_start
 #ifdef	extern
 =
 {
-  WORDLENGTH+1, "", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, NULL
-/*    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, */
-/*     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
+  WORDLENGTH+1, "", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, {NULL}
+/* {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, */
+/*  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
 };
 #else
 	;
 #endif
-extern	char	xw_inputfile[SZ_FILENAME+1],xw_outputfile[SZ_FILENAME+1];
+
+extern	char	xw_inputfile[SZ_FILENAME+1],
+		xw_outputfile[SZ_FILENAME+6],
+		xw_indexfile[SZ_FILENAME+1],
+		xw_indexdir[SZ_FILENAME+1];
 extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
 extern	time_t	xw_starttime;
 extern	jmp_buf	xw_env;
@@ -119,13 +144,19 @@ extern	jmp_buf	xw_env;
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 int	main(int, char*[]);
+
+char	*date_compiled();
+float	version();
+
+BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
 PUZZHEAD *xw_copypuzz(PUZZHEAD *);
+PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
 PUZZHEAD *xw_initpuzz(WORDLIST *);
 PUZZLE	*xw_pointpuzz(PUZZHEAD *, int, int);
 void	xw_createcolumn(PUZZHEAD *, int);
 void	xw_createlinks();
 void	xw_createrow(PUZZHEAD *, int);
-void	*xw_error(SEVERITY, char *, ...);
+void	xw_error(SEVERITY, char *, ...);
 void	xw_feeldown(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
 void	xw_feelleft(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
 void	xw_feelright(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
@@ -136,7 +167,7 @@ void	*xw_malloc(size_t);
 void	xw_printpuzz(PUZZHEAD *);
 void	xw_pushlist(WORDLIST *);
 void	xw_putwordin(PUZZHEAD *,WORDLIST *, STATUS, int, int);
-void	xw_readsort();
+int	xw_readsort();
 void	xw_restartlist();
 void	xw_tryword(PUZZHEAD *,WORDLIST *, int, WORDLIST *);
 void	xw_html(PUZZHEAD *);
@@ -146,4 +177,3 @@ WORDLIST	*xw_poplist();
 #endif /* _XWORD_H */
 
 /* End of /home/franx/xword/xword.h */
-

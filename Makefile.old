@@ -1,20 +1,35 @@
 #/Users/moonpie/xword/Makefile Wed29Aug2018 {fcG}
 #/home/franx/xword/Makefile Sat31Jan2004 {fcG}
 
-#CC = gcc
-CC = cc
-#######CFLAGS = -idirafter ../source -Wall
-CFLAGS = -g3 -idirafter ../source -DDEBUG=1 
-OBJS = xw_buildpuzz.o xw_createlinks.o xw_error.o xw_html.o \
-xw_initpuzz.o xw_listutil.o xw_matchpuzz.o xw_printpuzz.o xw_puzzutil.o \
-xw_readsort.o xw_tryword.o xw_fillpuzz.o xword.o
+CC = clang
+#######CC = gcc
+CFLAGS =  -g -O0 -DDEBUG=1 
+#######CFLAGS = -include version.h -Wall
+#######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
 
-SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_error.c xw_html.c \
-xw_initpuzz.c xw_listutil.c xw_matchpuzz.c xw_printpuzz.c xw_puzzutil.c \
-xw_readsort.c xw_tryword.c xw_fillpuzz.c
+OBJS = xw_buildpuzz.o xw_createlinks.o xw_error.o xw_html.o \
+xw_initpuzz.o xw_listutil.o xw_matchpuzz.o xw_printpuzz.o \
+xw_puzzutil.o xw_readsort.o xw_tryword.o xw_fillpuzz.o xword.o
+
+SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_error.c \
+xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
+xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_tryword.c \
+xw_fillpuzz.c
 
 xword: ${OBJS}
-	${CC} ${CFLAGS} ${OBJS}  -o xword
+	${CC} ${CFLAGS} datecomp.c -o datecomp
+	./datecomp ${CFLAGS} -c version.c -o version.o 
+	${CC} ${CFLAGS} ${OBJS} version.o -o xword
+#######	mv version2.h version1.h
+#######	diff version1.h version2.h 
+####### rm -f version.o; sync
+
+datecomp: datecomp.c
+	${CC} ${CFLAGS} datecomp.c -o datecomp
+
+testdate:
+	./datecomp -E ${CFLAGS} version.c
+#######	./datecomp -E ${CFLAGS} -include version2.h version.c
 
 xwindex: xwindex.o xw_error.o
 	${CC} ${CFLAGS} xwindex.o xw_error.o  -o xwindex
@@ -31,7 +46,10 @@ bakup:
 clean:
 	rm -f ${OBJS}
 
+git:
+	git add xword.h ${SOURCE} 
 print:
-	pr Makefile xword.h ${SOURCE} > xword.txt
+	pr -f -e -n3 -l58 Makefile defs.h xword.h ${SOURCE} \
+> xword.txt
 
 ######## End of /home/franx/Makefile ########

@@ -173,27 +173,37 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 
 void xw_findgaps(PUZZHEAD *ph)
 {
-  PUZZLE *hptr, *vptr;
-  register int i;
+	PUZZLE *hptr, *vptr, *ptr_ptr;
+	register int i, j;
 
-  hptr = ph->ph_puzzle;
-  if(ph->ph_numrows != 1)
-    {
-      hptr = hptr->pz_down;
-    }
-  vptr = hptr->pz_right;
-  for(i = 0; i < ph->ph_numcols - 2; i++)
-  {
-    xw_searchrank(vptr, DOWN, ph->ph_numrows-2);
-    vptr = vptr->pz_right;
-  }
-  vptr = hptr->pz_right;
-  for(i = 0; i < ph->ph_numrows - 2; i++)
-  {
-    xw_searchrank(vptr, ACROSS, ph->ph_numcols-2);
-    vptr = vptr->pz_down;
-  }
-}	
+	hptr = ph->ph_puzzle;
+	if(ph->ph_numrows != 1)
+	{
+		hptr = hptr->pz_down;
+	}
+	vptr = hptr->pz_right;
+	for(i = 0; i < ph->ph_numcols - 2; i++)
+	{
+		ptr_ptr = vptr;
+		for(j = 0; j < ph->ph_numrows - i - 2; j++)
+		{
+			xw_searchrank(ptr_ptr, DOWN, ph->ph_numrows-j-2);
+			ptr_ptr = ptr_ptr->pz_down;
+		}
+		vptr = vptr->pz_right;
+	}
+	vptr = hptr->pz_right;
+	for(i = 0; i < ph->ph_numrows - 2; i++)
+	{
+		ptr_ptr = vptr;
+		for(j = 0; j < ph->ph_numcols - i - 2; j++)
+		{
+			xw_searchrank(ptr_ptr, ACROSS, ph->ph_numcols-j-2);
+			ptr_ptr = ptr_ptr->pz_down;
+		}
+		vptr = vptr->pz_down;
+	}
+}
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		CLEAR			#

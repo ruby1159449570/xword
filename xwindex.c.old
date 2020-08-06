@@ -23,15 +23,21 @@ int main(int argc, char *argv[])
   BOOLEAN alpha_word, printable_clue;
   int	c,i, linenum = 0, return_code = 0;
   long offset;
-  char indexdir[SZ_FILENAME], sysbuf[SZ_STRING], word[WORDLENGTH+1], clue[CLUELENGTH+1];
+  char indexdir[SZ_FILENAME], sysbuf[SZ_STRING],
+	word[WORDLENGTH+1], clue[CLUELENGTH+1];
 
   if(setjmp(xw_env) EQ 0)
     {
-      printf("\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
-      printf("\033[7m#                                     #\033[0m\n");
-      printf("\033[7m#  Welcome to Franx X-word Indexer!   #\033[0m\n");
-      printf("\033[7m#                                     #\033[0m\n");
-      printf("\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+      printf(
+"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+      printf(
+"\033[7m#                                     #\033[0m\n");
+      printf(
+"\033[7m#  Welcome to Franx X-word Indexer!   #\033[0m\n");
+      printf
+("\033[7m#                                     #\033[0m\n");
+      printf(
+"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
       WHEN;
 
       if(argc < 2)
@@ -59,7 +65,8 @@ int main(int argc, char *argv[])
 
       sprintf(xw_indexdir, "%s.index", xw_indexfile);
 
-      sprintf(sysbuf, "if [ -d  %s ]; then rm -rf %s; fi;", xw_indexdir, xw_indexdir);
+      sprintf(sysbuf, "if [ -d  %s ]; then rm -rf %s; fi;",
+		xw_indexdir, xw_indexdir);
       if (system(sysbuf))
 	{
 	  xw_error(SV_ERROR, "Error nuking %s\n", xw_indexdir);
@@ -94,8 +101,9 @@ int main(int argc, char *argv[])
 	      if (i > WORDLENGTH)
 		{
 		  word[i] = '\0';
-		  xw_error(SV_INFO,"line %d: %s... too long for word (limit %d)",
-			   linenum, word, WORDLENGTH);
+		  xw_error(SV_INFO,
+			"line %d: %s... too long for word (limit %d)",
+			linenum, word, WORDLENGTH);
 		  return_code++;
 		  while(c != ' ' && c != '\n' && c != '\t' && c != EOF)
 		    {
@@ -109,7 +117,8 @@ int main(int argc, char *argv[])
 		      xw_indexdir, xw_indexdir);
 	      if (system(sysbuf))
 		{
-		  xw_error(SV_ERROR, "Error creating %s/%c\n", xw_indexdir,c);
+		  xw_error(SV_ERROR,
+			"Error creating %s/%c\n", xw_indexdir,c);
 		}
 
 	      sprintf(newfname, "%s/%c", xw_indexdir, c);
@@ -132,15 +141,17 @@ int main(int argc, char *argv[])
 	    }
 	  word[i] = '\0';
 	  if(!alpha_word)
-	    {
-	      xw_error(SV_WARNING,"line %d: Words must be alphabetic(\"%s\")",
+		{
+		xw_error(SV_WARNING,
+		"line %d: Words must be alphabetic(\"%s\")",
 		       linenum,word);
-	      return_code++;
-	    }
+		return_code++;
+		}
 
 	  if (i < 3)
 	    {
-	      xw_error(SV_INFO,"line %d: %s not long enough for word",linenum,word);
+	      xw_error(SV_INFO,
+		"line %d: %s not long enough for word",linenum,word);
 	      return_code++;
 	      /* break */;
 	    }
@@ -173,7 +184,8 @@ int main(int argc, char *argv[])
 		    }
 #ifdef	SNARK
 
-		  xw_error(SV_INFO, "line %d: %30s... too long for clue (limit %d)",
+		  xw_error(SV_INFO,
+			"line %d: %30s... too long for clue (limit %d)",
 			   linenum, clue, CLUELENGTH);
 		  return_code++;
 #endif	/* SNARK */
@@ -190,7 +202,8 @@ int main(int argc, char *argv[])
 	  clue[i] = '\0';
 	  if (!printable_clue)
 	    {
-	      xw_error(SV_WARNING,"line %d: Clues must be printable(\"%s\")",
+	      xw_error(SV_WARNING,
+		"line %d: Clues must be printable(\"%s\")",
 		       linenum,clue);
 	      return_code++;
 	    }
@@ -198,7 +211,9 @@ int main(int argc, char *argv[])
 #ifdef	SNARK
 	  if(i < 2)
 	    {
-	      xw_error(SV_INFO, "line %d: clue for %s not long enough for clue",linenum,word);
+	      xw_error(SV_INFO,
+		"line %d: clue for %s not long enough for clue",
+		linenum,word);
 	      return_code++;
 	    }
 #endif	/* SNARK */
@@ -208,13 +223,15 @@ int main(int argc, char *argv[])
 	}
       if (xw_totwords > NUMWORDS)
 	{
-	  xw_error(SV_INFO, "line %d: Word limit of %d exceeded; %d words encountered",
-		   linenum,NUMWORDS, xw_totwords);
-	  return_code++;
+		xw_error(SV_INFO,
+		"line %d: Word limit of %d exceeded; %d words encountered",
+		linenum,NUMWORDS, xw_totwords);
+		return_code++;
 	}
-      fclose(fp);
-      printf("Time elapsed %6.2f secs.\n", difftime(time(NULL), xw_starttime));      
-      exit(0);
+	fclose(fp);
+	printf("Time elapsed %6.2f secs.\n",
+	difftime(time(NULL), xw_starttime));      
+	exit(0);
     }
   else
     {

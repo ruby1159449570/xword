@@ -1,5 +1,9 @@
 /* /home/franx/xw_matchpuzz.c Wed21Jun2006 {fcG} */
 
+// MODIFICATION HISTORY
+// When		Who	What
+// Wed08Jul2020 {fcG}	64-bit debug code.
+
 #include <stdio.h>
 /* #define extern */
 #include "xword.h"
@@ -17,7 +21,7 @@ BOOLEAN xw_matchpuzz(PUZZHEAD *puzz1, PUZZHEAD *puzz2)
 
     WHERE, WHEN;;
     printf(" xw_matchpuzz()::");
-    PRINT2(#010x, (UINT)puzz1, (UINT)puzz2);
+    PRINT2(#018lx, (ULONG)puzz1, (ULONG)puzz2);
     PRINT2(d, (UINT)puzz1->ph_checksum, (UINT)puzz2->ph_checksum);
 #endif	/* DEBUG */
     if((puzz1->ph_numrows != puzz2->ph_numrows)
