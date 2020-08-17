@@ -5,8 +5,8 @@
 clang -g -O0 -c -o xw_buildpuzz.o xw_buildpuzz.c
 clang -g -O0 -c -o xw_createlinks.o xw_createlinks.c
 clang -g -O0 -c -o xw_matchpuzz.o xw_matchpuzz.c
-#######clang -g -O0 -c -o xw_printpuzz.o xw_printpuzz.c
-clang -g -O0 -DDEBUG=1 -c -o xw_printpuzz.o xw_printpuzz.c
+clang -g -O0 -c -o xw_printpuzz.o xw_printpuzz.c
+#######clang -g -O0 -DDEBUG=1 -c -o xw_printpuzz.o xw_printpuzz.c
 clang -g -O0 -c -o xw_listutil.o xw_listutil.c
 clang -g -O0 -c -o xw_puzzutil.o xw_puzzutil.c
 clang -g -O0 -c -o xw_tryword.o xw_tryword.c

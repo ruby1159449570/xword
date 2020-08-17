@@ -103,6 +103,22 @@ typedef	struct	wordlist
 	struct	puzzhead *wl_failpuzz;
 }	WORDLIST;
 
+typedef struct spot
+{
+  char sp_letter;
+  int  sp_pos;
+} SPOT;
+
+typedef struct wordhole
+{
+  int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
+  STATUS wh_status;
+  struct wordhole *wh_next;
+  struct spot wh_spot[WORDLENGTH];
+ 
+} WORDHOLE;
+
+
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		EXTERNS			#
 #					#
@@ -187,6 +203,7 @@ void	xw_tryword(PUZZHEAD *,WORDLIST *, int, WORDLIST *);
 void	xw_html(PUZZHEAD *);
 WORDLIST	*xw_buildpuzz(PUZZHEAD *, WORDLIST *);
 WORDLIST	*xw_poplist();
+int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr);
 
 #endif /* _XWORD_H */
 

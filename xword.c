@@ -242,10 +242,10 @@ if (failword != NULL)
 		  if (failword EQ firstfail)
 		    {
 		      static WORDLIST *newhead = NULL;
-	#ifdef DEBUG
+#ifdef DEBUG
 		      PR(s, firstfail->wl_word);
 		      PRINT2(#018lx, (ULONG)newhead, (ULONG)firstfail);
-	#endif
+#endif
 		      if (newhead EQ NULL || firstfail != newhead)
 			{   
 			  newhead = firstfail;
@@ -255,11 +255,11 @@ if (failword != NULL)
 
 			  puzzle_header = xw_initpuzz(failword);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 				printf("\033[32;40m");
 				WHERE; printf("Going to GOBACK...");
 				printf("\033[0m\n");
-	#endif /* DEBUG */
+#endif /* DEBUG */
 			  goto GOBACK;
 			}
 		    }

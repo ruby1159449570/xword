@@ -22,8 +22,9 @@
 #include "xword.h"
 
 #define	NOT_WHITE(x)	((x) != '\0' && (x) != EOWORD)
-#define	SZ_MAXRETSEARCH 30
+#define	SZ_MAXRETSEARCH 40
 
+#ifdef	SNARK
 typedef struct spot
 {
   char sp_letter;
@@ -38,6 +39,7 @@ typedef struct wordhole
   struct spot wh_spot[WORDLENGTH];
  
 } WORDHOLE;
+#endif	//SNARK
 
 WORDHOLE xw_whstart =
   {
@@ -175,7 +177,7 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 
 void xw_findgaps(PUZZHEAD *ph)
 {
-	PUZZLE *hptr, *vptr, *ptr_ptr;
+	PUZZLE *hptr, *vptr, *z_ptr;
 	register int i, j;
 
 	hptr = ph->ph_puzzle;
@@ -186,22 +188,22 @@ void xw_findgaps(PUZZHEAD *ph)
 	vptr = hptr->pz_right;
 	for(i = 0; i < ph->ph_numcols - 2; i++)
 	{
-		ptr_ptr = vptr;
+		z_ptr = vptr;
 		for(j = 0; j < ph->ph_numrows - i - 2; j++)
 		{
-			xw_searchrank(ptr_ptr, DOWN, ph->ph_numrows-j-2);
-			ptr_ptr = ptr_ptr->pz_down;
+			xw_searchrank(z_ptr, DOWN, ph->ph_numrows-j-2);
+			z_ptr = z_ptr->pz_down;
 		}
 		vptr = vptr->pz_right;
 	}
 	vptr = hptr->pz_right;
 	for(i = 0; i < ph->ph_numrows - 2; i++)
 	{
-		ptr_ptr = vptr;
+		z_ptr = vptr;
 		for(j = 0; j < ph->ph_numcols - i - 2; j++)
 		{
-			xw_searchrank(ptr_ptr, ACROSS, ph->ph_numcols-j-2);
-			ptr_ptr = ptr_ptr->pz_down;
+			xw_searchrank(z_ptr, ACROSS, ph->ph_numcols-j-2);
+			z_ptr = z_ptr->pz_down;
 		}
 		vptr = vptr->pz_down;
 	}
@@ -635,6 +637,31 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 	return search_count;
 }
 
+
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		xw_FILLHOLES		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_fillholes()
+{
+	WORDHOLE	*ref, *tmp;
+
+#ifdef DEBUG
+	printf("xw_fillholes: STARTING UP\n");
+#endif /* DEBUG */
+
+	ref = xw_whstart.wh_next;
+	while(ref != 0)
+	{
+		tmp = ref->wh_next;
+		TEST(PR(#018lx, (ULONG)ref));
+		free((char *)ref);
+		ref = tmp;
+	}
+	xw_whstart.wh_next = NULL;
+}
+	
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		XW_FILLPUZZ		#
 #					#
@@ -649,7 +676,6 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 	int	oldrownum, oldcolnum, oldlength;
 	STATUS	oldstatus;
 
-TRY_AGAIN:
 	max = 0;
 	if((max = xw_sizedict(xw_indexfile)) > WORDLENGTH)
 	{
@@ -662,8 +688,9 @@ TRY_AGAIN:
 		xw_error(SV_FATAL, "Error in Dictionary %s\n",	
 			xw_indexfile);
 	}
-	WHERE; PRINT1(d, max);
 	xw_findgaps(ph);
+TRY_AGAIN:
+	WHERE; PRINT1(d, max);
 
 	wh_ptr = &xw_whstart;
 	TEST(WHERE); TEST(PR(#010lx, wh_ptr));
@@ -794,7 +821,9 @@ TRY_AGAIN:
 			}
 			do
 			{
-				printf("\n\007xword> ");
+//				printf("\n\007xword\033[%dm[%s]\033[0m> ",
+				printf("\nxword\033[%dm[%s]\033[0m> ",
+					CYAN, DECODE(wh_ptr->wh_status));
 				i = scanf("%d", &choice);
 			}	while(i != 1 && (choice < 0
 				&& choice > num_matches));
@@ -833,7 +862,12 @@ TRY_AGAIN:
 	{
 		TEST(WHERE); xw_error(SV_FATAL,"fclose() bombed!");
 	}
-	goto TRY_AGAIN;
+	xw_fillholes();
+	xw_findgaps(ph);
+	if (xw_whstart.wh_next != NULL)
+	{
+		goto TRY_AGAIN;
+	}
 	return ph;
 }	
 
