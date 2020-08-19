@@ -24,23 +24,6 @@
 #define	NOT_WHITE(x)	((x) != '\0' && (x) != EOWORD)
 #define	SZ_MAXRETSEARCH 40
 
-#ifdef	SNARK
-typedef struct spot
-{
-  char sp_letter;
-  int  sp_pos;
-} SPOT;
-
-typedef struct wordhole
-{
-  int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
-  STATUS wh_status;
-  struct wordhole *wh_next;
-  struct spot wh_spot[WORDLENGTH];
- 
-} WORDHOLE;
-#endif	//SNARK
-
 WORDHOLE xw_whstart =
   {
     2020, UNDEFINED, UNDEFINED, 0, 0, UNUSED, NULL,
@@ -274,164 +257,134 @@ else
 
 BOOLEAN clear_word(PUZZHEAD *ph, char *buf, WORDHOLE *wh_ptr)
 {
-BOOLEAN	search;
-int	length = 0;
-register int	i, j;
-PUZZLE	*ref;
+	BOOLEAN	search;
+	int	length = 0;
+	register int	i, j;
+	PUZZLE	*ref;
 
-search = TRUE;
-length = strlen(buf);
-TEST(PRINT2(d, wh_ptr->wh_colnum,  wh_ptr->wh_rownum));
-TEST(fprintf(stderr, "Status = %s\n", DECODE(wh_ptr->wh_status)));
-ref = xw_pointpuzz(ph, wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
-if(ref EQ 0)
-{
-	TEST(WHERE);TEST(printf("xw_pointpuzz() bombed!\n"));
-	return FALSE;
-}
-if (wh_ptr->wh_status EQ ACROSS)
-{
-	if (NOT_WHITE(ref->pz_left->pz_letter))
+	search = TRUE;
+	length = strlen(buf);
+	TEST(PRINT2(d, wh_ptr->wh_colnum,  wh_ptr->wh_rownum));
+	TEST(fprintf(stderr, "Status = %s\n", DECODE(wh_ptr->wh_status)));
+	ref = xw_pointpuzz(ph, wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
+	if(ref EQ 0)
 	{
-		search = FALSE;
-	}	
-	else
+		TEST(WHERE);TEST(printf("xw_pointpuzz() bombed!\n"));
+		return FALSE;
+	}
+	if (wh_ptr->wh_status EQ ACROSS)
 	{
-		j = 0;
-		for (i = 0; i < length; i++)
+		if (NOT_WHITE(ref->pz_left->pz_letter))
 		{
-			TEST(WHERE); TEST(PRINT2(c,
-			ref->pz_up->pz_letter,
-			ref->pz_down->pz_letter));
-			TEST(WHERE); TEST(PRINT2(d,
-			wh_ptr->wh_spots,
-			wh_ptr->wh_spot[j].sp_pos));
-
-			if ((j < wh_ptr->wh_spots)
-			&& (wh_ptr->wh_spot[j].sp_pos EQ (i + 1)))
-			{
-				TEST(WHERE);
-				TEST(printf("Skipping j = %d\n",j));
-				j++;
-			}	
-			else if (NOT_WHITE(ref->pz_up->pz_letter)
-			|| NOT_WHITE(ref->pz_down->pz_letter))
-			{
-				TEST(WHERE);
-				TEST(printf("Stopping\n"));
-				search = FALSE;
-			}
-			else
-			{
-				TEST(WHERE);
-				TEST(printf("Bombing\n"));
-			}
-			ref = ref->pz_right;
-			if(ref EQ 0)
-			{
-				TEST(WHERE);
-			TEST(printf("Across bombed!\n"));
-				return FALSE;
-			}
-		}
-		if (NOT_WHITE(ref->pz_letter))
-		{
-			TEST(printf("Across end bombed\n"));
 			search = FALSE;
 		}	
-#ifdef	SNARK
-
-		if (ref->pz_right != 0)
+		else
 		{
-			TEST(WHERE); TEST(PRINT1(c,
-				ref->pz_right->pz_letter));
-			TEST(PRINT1(d, ref->pz_right->pz_letter));
-			if (NOT_WHITE(ref->pz_right->pz_letter))
+			j = 0;
+			for (i = 0; i < length; i++)
+			{
+				TEST(WHERE); TEST(PRINT2(c,
+				ref->pz_up->pz_letter,
+				ref->pz_down->pz_letter));
+				TEST(WHERE); TEST(PRINT2(d,
+				wh_ptr->wh_spots,
+				wh_ptr->wh_spot[j].sp_pos));
+
+				if ((j < wh_ptr->wh_spots)
+				&& (wh_ptr->wh_spot[j].sp_pos EQ (i + 1)))
+				{
+					TEST(WHERE);
+					TEST(printf("Skipping j = %d\n",j));
+					j++;
+				}	
+				else if (NOT_WHITE(ref->pz_up->pz_letter)
+				|| NOT_WHITE(ref->pz_down->pz_letter))
+				{
+					TEST(WHERE);
+					TEST(printf("Stopping\n"));
+					search = FALSE;
+				}
+				else
+				{
+					TEST(WHERE);
+					TEST(printf("Bombing\n"));
+				}
+				ref = ref->pz_right;
+				if(ref EQ 0)
+				{
+					TEST(WHERE);
+				TEST(printf("Across bombed!\n"));
+					return FALSE;
+				}
+			}
+			if (NOT_WHITE(ref->pz_letter))
 			{
 				TEST(printf("Across end bombed\n"));
 				search = FALSE;
 			}	
 		}	
-#endif	/* SNARK */
-
-	}	
-}
-else if (wh_ptr->wh_status EQ DOWN)
-{
-	if (NOT_WHITE(ref->pz_up->pz_letter))
+	}
+	else if (wh_ptr->wh_status EQ DOWN)
 	{
-		search = FALSE;
-	}	
-	else
-	{
-		j = 0;
-		for (i = 0; i < length; i++)
+		if (NOT_WHITE(ref->pz_up->pz_letter))
 		{
-			TEST(WHERE); TEST(PRINT2(c,
-			ref->pz_left->pz_letter,
-			ref->pz_right->pz_letter));
-			TEST(WHERE); TEST(PRINT2(d,
-			wh_ptr->wh_spots,
-			wh_ptr->wh_spot[j].sp_pos));
-
-			if ((j < wh_ptr->wh_spots)
-			&& (wh_ptr->wh_spot[j].sp_pos EQ (i + 1)))
-
-			{
-				TEST(WHERE);
-				TEST(printf("Skipping j = %d\n",j));
-				j++;
-			}	
-			else if (NOT_WHITE(ref->pz_left->pz_letter)
-			|| NOT_WHITE(ref->pz_right->pz_letter))
-			{
-				TEST(WHERE);
-				TEST(printf("Stopping\n"));
-				search = FALSE;
-			}
-			else
-			{
-				TEST(WHERE);
-				TEST(printf("Bombing\n"));
-			}
-			ref = ref->pz_down;
-			if(ref EQ 0)
-			{
-				TEST(WHERE);
-			TEST(printf("Down bombed!\n"));
-				return FALSE;
-			}
-		}
-		if (NOT_WHITE(ref->pz_letter))
-		{
-			TEST(printf("Down end bombed!\n"));
 			search = FALSE;
 		}	
-#ifdef	SNARK
-
-		if (ref->pz_down != 0)
+		else
 		{
-			TEST(WHERE); TEST(PRINT1(c,
-				ref->pz_down->pz_letter));
-			TEST(PRINT1(d, ref->pz_down->pz_letter));
-			if (NOT_WHITE(ref->pz_down->pz_letter))
+			j = 0;
+			for (i = 0; i < length; i++)
+			{
+				TEST(WHERE); TEST(PRINT2(c,
+				ref->pz_left->pz_letter,
+				ref->pz_right->pz_letter));
+				TEST(WHERE); TEST(PRINT2(d,
+				wh_ptr->wh_spots,
+				wh_ptr->wh_spot[j].sp_pos));
+
+				if ((j < wh_ptr->wh_spots)
+				&& (wh_ptr->wh_spot[j].sp_pos EQ (i + 1)))
+
+				{
+					TEST(WHERE);
+					TEST(printf("Skipping j = %d\n",j));
+					j++;
+				}	
+				else if (NOT_WHITE(ref->pz_left->pz_letter)
+				|| NOT_WHITE(ref->pz_right->pz_letter))
+				{
+					TEST(WHERE);
+					TEST(printf("Stopping\n"));
+					search = FALSE;
+				}
+				else
+				{
+					TEST(WHERE);
+					TEST(printf("Bombing\n"));
+				}
+				ref = ref->pz_down;
+				if(ref EQ 0)
+				{
+					TEST(WHERE);
+				TEST(printf("Down bombed!\n"));
+					return FALSE;
+				}
+			}
+			if (NOT_WHITE(ref->pz_letter))
 			{
 				TEST(printf("Down end bombed!\n"));
 				search = FALSE;
 			}	
 		}	
-#endif	/* SNARK */
-
 	}	
-}	
-else
-{
-	TEST(WHERE); TEST(fprintf(stderr, "Bad Status!!!\n"));
-	search = FALSE;
-}
-TEST(fprintf(stderr, "clear_word() returns %d\n", search));
-return search;
-}
+	else
+	{
+		TEST(WHERE); TEST(fprintf(stderr, "Bad Status!!!\n"));
+		search = FALSE;
+	}
+	TEST(fprintf(stderr, "clear_word() returns %d\n", search));
+	return search;
+	}
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #	XW_SEARCH_BLANKS		#
@@ -523,7 +476,7 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 			{
 				INDEXDIR(wh_ptr->wh_spot[min_count].sp_pos);
 				sprintf(buf, "%s/%c", xw_indexdir, 
-					wh_ptr->wh_spot[min_count].sp_letter);
+				wh_ptr->wh_spot[min_count].sp_letter);
 				xw_error(SV_FATAL, "Error reading %s\n",
 						buf);
 			}		
@@ -531,7 +484,7 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 			{
 				search = FALSE;
 				TEST(WHERE); TEST(PRINT1(d, min_count));
-				TEST(fprintf(stderr, "Search failed! EOF\n"));
+				TEST(fprintf(stderr,"Search failed! EOF\n"));
 				break;
 			}
 			if ((min_count =
@@ -546,11 +499,11 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 			TEST(WHERE); TEST(PRINT1(#018lx, offset[0]));
 			if (fseek(fp_dict, offset[0], SEEK_SET) != 0)
 			{
-				TEST(WHERE);xw_error(SV_ERROR, "fseek() error");
+				TEST(WHERE);xw_error(SV_ERROR,"fseek error");
 			}
 			if(!fgets(buf, sizeof(buf), fp_dict))
 			{
-				TEST(WHERE);xw_error(SV_ERROR, "fgets() error");
+				TEST(WHERE);xw_error(SV_ERROR,"fgets error");
 			}
 			clean(buf);
 			if(search_count < SZ_MAXRETSEARCH
@@ -560,11 +513,12 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 					sizeof(return_buf[0]) - 1);
 				search_count++;
 			}
-			TEST(fprintf(stderr, "\"%s\"[%#018lx]==>%s\n",xw_indexfile,
-				offset[0],buf));
+			TEST(fprintf(stderr, "\"%s\"[%#018lx]==>%s\n",
+				xw_indexfile, offset[0],buf));
 			do
 			{
-				for(count = 0; count < wh_ptr->wh_spots; count++)
+				for(count = 0; count < wh_ptr->wh_spots;
+				count++)
 				{
 					fread(&offset[count],
 					sizeof(offset[count]), 1, fp[count]);
@@ -636,7 +590,6 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 	TEST(WHERE); TEST(PRINT1(d, search_count));
 	return search_count;
 }
-
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		xw_FILLHOLES		#
@@ -864,10 +817,10 @@ TRY_AGAIN:
 	}
 	xw_fillholes();
 	xw_findgaps(ph);
-	if (xw_whstart.wh_next != NULL)
-	{
+/* 	if (num_matches != 0) */
+/* 	{ */
 		goto TRY_AGAIN;
-	}
+/* 	} */
 	return ph;
 }	
 
