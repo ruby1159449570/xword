@@ -54,7 +54,7 @@ clean:
 	rm -f ${OBJS}
 
 git:
-	git add defs.h xword.h version.h datecomp.c ${SOURCE}
+	git add Makefile defs.h xword.h version.h datecomp.c ${SOURCE}
 #######	git remote add origin https://github.com/ruby1159449570/xword.git
 print:
 	pr -f -e -n3 -l58 Makefile defs.h xword.h ${SOURCE} \
