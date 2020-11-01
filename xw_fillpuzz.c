@@ -215,7 +215,7 @@ for(i = 0; i < strlen(ptr); i++)
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
-int equivalence_check(int length, long offset[20])
+int equivalence_check(int length, long *offset)
 {
 register int i,j,k;
 long min;
@@ -461,7 +461,7 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 		else
 		{
 			if ((min_count = equivalence_check(wh_ptr->wh_spots,
-			&offset)) EQ wh_ptr->wh_spots)
+			(long *)offset)) EQ wh_ptr->wh_spots)
 			{
 				equivalent = TRUE;
 			}		
@@ -488,7 +488,7 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 				break;
 			}
 			if ((min_count =
-			equivalence_check(wh_ptr->wh_spots, &offset))
+			equivalence_check(wh_ptr->wh_spots, (long *)&offset))
 			EQ wh_ptr->wh_spots)
 			{
 				equivalent = TRUE;
@@ -540,7 +540,8 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 						break;
 					}
 				}
-				if (equivalence_check(wh_ptr->wh_spots, &offset)
+				if (equivalence_check(wh_ptr->wh_spots,
+					(long *)offset)
 				EQ wh_ptr->wh_spots && search)
 				{
 					equivalent = TRUE;
@@ -708,7 +709,7 @@ TRY_AGAIN:
 		{
 			int	choice;
 			PUZZLE	*ref, *oldref;
-			WORDLIST	word; 
+			WORDLIST	word, *new; 
 			
 			TEST(WHERE); TEST(PRINT1(d, num_matches));
 
@@ -792,12 +793,22 @@ TRY_AGAIN:
 				choice--;
 			}
 			word.wl_numchar = strlen(return_buf[choice]);
+#ifdef	SNARK
 			strncpy(&word.wl_word[0], &return_buf[choice][0],
 				sizeof(return_buf[choice]) - 1);
 			sprintf(word.wl_clue, "# %s #",return_buf[choice]);
-			word.wl_status = wh_ptr->wh_status;
+#endif	//SNARK
+			if((new = (WORDLIST *)xw_malloc(sizeof(WORDLIST)))
+			EQ NULL)
+			{
+				xw_error(SV_FATAL,"xw_malloc: OUT OF RAM!");
+			}
+			strncpy(new->wl_word, &return_buf[choice][0],
+				sizeof(return_buf[choice]) - 1);
+			sprintf(new->wl_clue, "# %s #",return_buf[choice]);
+			new->wl_status = wh_ptr->wh_status;
 
-			xw_putwordin(ph, &word, wh_ptr->wh_status,
+			xw_putwordin(ph, new, wh_ptr->wh_status,
 			wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
 			
 //			oldwh_ptr = wh_ptr;
