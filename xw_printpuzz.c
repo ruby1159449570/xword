@@ -29,15 +29,16 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	  printf("xw_printpuzz(%#018lx)\n", (ULONG)puzz_hdr);
 #endif  /*  DEBUG */
 
-	  TEST(WHEN;nL);
+/* 	  TEST(WHEN;nL); */
 	  puzz_hdr->ph_numletters = 0;
-	  hptr = puzz_hdr->ph_puzzle;
+/* 	  hptr = puzz_hdr->ph_puzzle; */
+	  hptr = vptr = puzz_hdr->ph_puzzle;
 
-	  if(puzz_hdr->ph_numwords != 1)
-	    {
-	      hptr = hptr->pz_down;
-	    }
-	  vptr = hptr->pz_right;
+/* 	  if(puzz_hdr->ph_numwords != 1) */
+/* 	    { */
+/* 	      hptr = hptr->pz_down; */
+/* 	    } */
+/* 	  vptr = hptr->pz_right; */
 #ifdef DEBUG
 	  printf("   ");
 	  while(vptr != NULL)
@@ -45,18 +46,21 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	      printf("%2d", vptr->pz_colnum);
 	      vptr = vptr->pz_right;
 	    }
-	  vptr = hptr->pz_right;
+/* 	  vptr = hptr->pz_right; */
+	  vptr = hptr;
 	  printf("\n    ");
 #endif /* DEBUG */
 	  printf("+");
-	   for(i = 0; i < puzz_hdr->ph_numcols - 2; i++)
+	   for(i = 0; i < puzz_hdr->ph_numcols; i++)
+/* 	   for(i = 0; i < puzz_hdr->ph_numcols - 2; i++) */
 	    {
 	      printf("-+");
 	    }
 	  printf("\n");
 
-	  while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
-		|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+	while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+	|| ((hptr != NULL) && (puzz_hdr->ph_numwords != 1)))
+/* 	|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1))) */
 	    {
 #ifdef DEBUG
 
@@ -66,10 +70,11 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 #endif /* DEBUG */
 	      printf("|");
 
-	      while(vptr->pz_right != NULL)
+	      while(vptr != NULL)
+/* 	      while(vptr->pz_right != NULL) */
 		{
 #ifdef DEBUG
-		  if(vptr->pz_letter == EOWORD)
+		  if(vptr->pz_letter EQ EOWORD)
 		    {
 		      printf("%c|", EOWORD);
 		    }
@@ -105,7 +110,8 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	      hptr = hptr->pz_down;
 	      if (hptr != NULL)
 		{
-		  vptr = hptr->pz_right;
+		  vptr = hptr;
+/* 		  vptr = hptr->pz_right; */
 		}
 	      else
 		{
@@ -117,7 +123,8 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	  printf("  ");
 #endif /* DEBUG */
 	  printf("+");
-	  for(i = 0; i < puzz_hdr->ph_numcols - 2; i++)
+	  for(i = 0; i < puzz_hdr->ph_numcols; i++)
+/* 	  for(i = 0; i < puzz_hdr->ph_numcols - 2; i++) */
 	    {
 	      printf("-+");
 	    }

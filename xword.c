@@ -151,7 +151,7 @@ while((word = xw_poplist()))
 	temp->ph_prevpuzz = puzzle_header;
 	puzzle_header = temp;
 	
-	while(failword = xw_buildpuzz(puzzle_header, word))
+	while((failword = xw_buildpuzz(puzzle_header, word)))
 	{
 
 		TEST(PRINT2(#018lx,
@@ -195,12 +195,12 @@ if (failword != NULL)
 		      break;
 		    }
 		  temp = xw_copypuzz(puzzle_header);
-	#ifdef DEBUG
+#ifdef DEBUG
 		  TEST(WHERE);
 		  PRINT2(#018lx, (ULONG)temp,
 			(ULONG)puzzle_header);
-		  xw_printpuzz(puzzle_header);
-	#endif /* DEBUG */
+/* 		  xw_printpuzz(puzzle_header); */
+#endif /* DEBUG */
 		      
 		  if(puzzle_header->ph_lastword != NULL)
 		    {
@@ -211,12 +211,12 @@ if (failword != NULL)
 	      while((word != NULL)
 		&& (xw_buildpuzz(puzzle_header,failword) != NULL));
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	      printf("\033[32;40m");
 	      WHERE; printf("Found a spot for %s",
 			failword->wl_word);
 	      printf("\033[0m\n");
-	#endif /* DEBUG */
+#endif /* DEBUG */
 	      do
 		{
 		  temp = xw_copypuzz(puzzle_header); 
@@ -280,10 +280,13 @@ if (failword != NULL)
 	{
 	  ;	// Do *NOTHING*
 	}
-	#endif	/* SNARK */
+#endif	/* SNARK */
 
 		if (strncmp(xw_indexfile, "", SZ_FILENAME))
 		{
+			xw_printpuzz(puzzle_header);
+			xw_makeborder(puzzle_header);
+			xw_printpuzz(puzzle_header);
 			xw_fillpuzz(puzzle_header);
 		}
 		xw_html(puzzle_header);

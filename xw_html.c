@@ -51,17 +51,25 @@ void xw_html(PUZZHEAD *puzz_hdr)
 	printf("<!-- %s Version: %#4.2f Linked: %s{fcG} -->\n",
 		xw_outputfile, version(), date_compiled());
 	printf(
-"<!-- Copyleft © 2020 Frank Charles Gallacher. All rights reserved.-->\n");
+"<!-- Copyleft © 2020 Frank Charles Gallacher. \
+All rights reserved.-->\n");
 	printf("<HTML>\n");
 	printf("<HEAD>\n");
 	/* printf(
-"<LINK REL=\"StyleSheet\" TYPE=\"text/css\" HREF=\"xword_style.css\">\n"); */
-	printf("<LINK REV=\"made\" HREF=\"mailto:franxg@gmail.com\">\n");
-	printf("<META NAME=\"Author\" CONTENT=\"Frank C.Gallacher\">\n");
-	printf("<TITLE> Franx X-word Generator. </TITLE>\n");
+"<LINK REL=\"StyleSheet\" TYPE=\"text/css\"
+ HREF=\"xword_style.css\">\n"); */
+	printf(
+	"<LINK REV=\"made\" HREF=\"mailto:franxg@gmail.com\">\n");
+	printf(
+	"<META NAME=\"Author\" CONTENT=\"Frank C.Gallacher\">\n");
+	printf(
+	"<TITLE> Franx X-word Generator. </TITLE>\n");
 	printf("</HEAD>\n");
 
 	printf("<BODY BGCOLOR=\"White\">\n");
+
+	printf("%s Version: %#4.2f Linked: %s{fcG}\n",
+		xw_outputfile, version(), date_compiled());
 
 	printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
 
@@ -79,7 +87,8 @@ void xw_html(PUZZHEAD *puzz_hdr)
 	  while(vptr->pz_right != NULL)
 	    {
 	      new_word = FALSE;
-	      if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
+	      if((vptr->pz_letter != '\0')
+		&& (vptr->pz_letter != EOWORD))
 		{
 		  if (vptr->pz_ofaccrossword != NULL)
 		    {

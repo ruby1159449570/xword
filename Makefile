@@ -7,15 +7,15 @@ CFLAGS = -g -O0
 #######CFLAGS = -include version.h -Wall
 #######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
 
-OBJS = xw_buildpuzz.o xw_createlinks.o xw_error.o xw_html.o \
-xw_initpuzz.o xw_listutil.o xw_matchpuzz.o xw_printpuzz.o \
-xw_puzzutil.o xw_readsort.o xw_sizedict.o xw_tryword.o xw_fillpuzz.o \
-xword.o
+OBJS = xword.o xw_buildpuzz.o xw_createlinks.o xw_error.o \
+xw_fillpuzz.o xw_html.o xw_initpuzz.o xw_listutil.o xw_matchpuzz.o \
+xw_makeborder.o xw_printpuzz.o xw_puzzutil.o xw_readsort.o xw_sizedict.o \
+xw_tryword.o 
 
 SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_error.c \
-xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
-xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
-xw_tryword.c xw_fillpuzz.c xwindex.c version.c
+xw_fillpuzz.c xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
+xw_makeborder.c xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
+xw_tryword.c xwindex.c version.c
 
 xword: ${OBJS}
 	${CC} ${CFLAGS} datecomp.c -o datecomp
@@ -34,9 +34,6 @@ xwindex: xwindex.o xw_error.o
 
 testfopen: testfopen.o xw_error.o 
 	${CC} ${CFLAGS} testfopen.o xw_error.o -o testfopen
-
-xw_fillpuzz: xw_fillpuzz.o xw_error.o xw_sizedict.o  
-	${CC} ${CFLAGS} xw_fillpuzz.o xw_error.o  xw_sizedict.o  -o xw_fillpuzz
 
 testindex: testindex.o xw_error.o
 	${CC} ${CFLAGS} testindex.o xw_error.o -o testindex
@@ -57,7 +54,7 @@ git:
 	git add Makefile defs.h xword.h version.h datecomp.c ${SOURCE}
 #######	git remote add origin https://github.com/ruby1159449570/xword.git
 print:
-	pr -f -e -n3 -l58 Makefile defs.h xword.h ${SOURCE} \
-> xword.txt
+	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
+defs.h xword.h ${SOURCE} > xword.txt
 
 ######## End of /home/franx/Makefile ########

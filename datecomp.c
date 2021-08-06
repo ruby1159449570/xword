@@ -68,7 +68,8 @@ int main(int argc, char *argv[])
 	{	
 /* 		PRINT1(#4.2f, ver); */
 		fprintf(fp, "#define\t_VERSION_\t%#4.2f\n", ver);
-		fprintf(fp, "#define\t_INCREMENT_\t%#4.2f\n", increment);
+		fprintf(fp, "#define\t_INCREMENT_\t%#4.2f\n",
+				increment);
 		fprintf(fp, "#define\tDATE_COMPILED\t\"%s\"\n", cbuf);
 		fclose(fp);
 	}
@@ -81,7 +82,8 @@ int main(int argc, char *argv[])
 		      (char *)strerror(errno));
 		}
 	}
-	sprintf(sbuf, "cc -DDATE_COMPILED='\"%s\"' -D_VERSION_=%4.2f %s",
+	sprintf(sbuf,
+		"cc -DDATE_COMPILED='\"%s\"' -D_VERSION_=%4.2f %s",
 		cbuf, ver, buf);
 	printf("%s\n",sbuf);
 	if (system("sync"))

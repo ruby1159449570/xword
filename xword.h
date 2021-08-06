@@ -28,8 +28,9 @@
 #define	CLUELENGTH	200
 #define	WORDLENGTH	20
 #define	NUMLETTERS	26
-#define	EOWORD		'$'
+#define	EOWORD		'#'
 #define	NUMWORDS	100
+#define	SZ_MAXRETSEARCH 100
 #define	UNDEFINED	32767
 #define	ORD(x)		((x) - 'A')
 #define	INV(x)		((x) EQ ACROSS ? DOWN : ACROSS)
@@ -193,6 +194,7 @@ void	xw_feelup(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
 void	xw_killlist();
 void	xw_killpuzz(PUZZHEAD *);
 void	*xw_malloc(size_t);
+void	xw_makeborder(PUZZHEAD *);
 void	xw_printpuzz(PUZZHEAD *);
 void	xw_pushlist(WORDLIST *);
 void	xw_putwordin(PUZZHEAD *,WORDLIST *, STATUS, int, int);
