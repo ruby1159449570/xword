@@ -23,11 +23,11 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	  PUZZLE	*hptr, *vptr;
 	  register	int i;
 
-#ifndef DEBUG
-	  printf("\033[2J\033[0;0H");
-#else
-	  printf("xw_printpuzz(%#018lx)\n", (ULONG)puzz_hdr);
-#endif  /*  DEBUG */
+// #ifndef DEBUG
+ 	  printf("\033[2J\033[0;0H");
+// #else
+//	  printf("xw_printpuzz(%#018lx)\n", (ULONG)puzz_hdr);
+// #endif  /*  DEBUG */
 
 /* 	  TEST(WHEN;nL); */
 	  puzz_hdr->ph_numletters = 0;
@@ -39,7 +39,7 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 /* 	      hptr = hptr->pz_down; */
 /* 	    } */
 /* 	  vptr = hptr->pz_right; */
-#ifdef DEBUG
+// #ifdef DEBUG
 	  printf("   ");
 	  while(vptr != NULL)
 	    {
@@ -49,7 +49,7 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 /* 	  vptr = hptr->pz_right; */
 	  vptr = hptr;
 	  printf("\n    ");
-#endif /* DEBUG */
+// #endif /* DEBUG */
 	  printf("+");
 	   for(i = 0; i < puzz_hdr->ph_numcols; i++)
 /* 	   for(i = 0; i < puzz_hdr->ph_numcols - 2; i++) */
@@ -62,47 +62,53 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	|| ((hptr != NULL) && (puzz_hdr->ph_numwords != 1)))
 /* 	|| ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1))) */
 	    {
-#ifdef DEBUG
+// #ifdef DEBUG
 
 /*            PRINT2(#018lx, (ULONG)hptr, (ULONG)vptr); */
 
 	      printf("%4d", hptr->pz_rownum);
-#endif /* DEBUG */
+// #endif /* DEBUG */
 	      printf("|");
 
 	      while(vptr != NULL)
 /* 	      while(vptr->pz_right != NULL) */
 		{
-#ifdef DEBUG
+// #ifdef DEBUG
 		  if(vptr->pz_letter EQ EOWORD)
 		    {
 		      printf("%c|", EOWORD);
 		    }
 		  else
-#endif /* DEBUG */
-		    if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
+// #endif /* DEBUG */
+		    if((vptr->pz_letter != '\0')
+			&& (vptr->pz_letter != EOWORD))
 		      {
 			puzz_hdr->ph_numletters++;
-#ifdef DEBUG
-			printf("%c|", vptr->pz_letter);
-#else
-			printf("\033[%d;4m%c|\033[0m", vptr->pz_color, vptr->pz_letter);
-#endif /* DEBUG */
+// #ifdef DEBUG
+// 			printf("%c|", vptr->pz_letter);
+// #else
+			if(vptr->pz_color EQ 0)
+				vptr->pz_color = CYAN;
+
+			printf("\033[%d;4m%c|\033[0m", 
+				vptr->pz_color, vptr->pz_letter); 
+// #endif /* DEBUG */
 		      }
 		    else
 		      {
-#if DEBUG
-			printf(" |");
-#else
-			if( vptr->pz_color )
-			{
-				printf("\033[%dm  \033[0m", vptr->pz_color );
-			}
-			else
-			{
-				printf("\033[40m  \033[0m");
-			}
-#endif /* DEBUG */
+// #if DEBUG
+			printf("|");
+// #else
+//			if( vptr->pz_color )
+//
+// 	 		{
+				printf("\033[%dm \033[0m", vptr->pz_color );
+//			}
+//			else
+//			{
+//				printf("\033[40m \033[0m");
+//			}
+// #endif /* DEBUG */
 		      }
 		  vptr = vptr->pz_right;
 		}
@@ -119,9 +125,9 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 		}
 	    }
 	  TEST(PRINT1(d, puzz_hdr->ph_numcols));
-#ifdef DEBUG
+// #ifdef DEBUG
 	  printf("  ");
-#endif /* DEBUG */
+// #endif /* DEBUG */
 	  printf("+");
 	  for(i = 0; i < puzz_hdr->ph_numcols; i++)
 /* 	  for(i = 0; i < puzz_hdr->ph_numcols - 2; i++) */

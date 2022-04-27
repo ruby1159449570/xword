@@ -46,9 +46,12 @@ static void sigint_handler()
 
 int main(int argc, char *argv[])
 {
+	char *envstring;
+	int count;
+
   if(setjmp(xw_env) EQ 0)
     {
-      int count;
+	FILE *fp1;
       PUZZHEAD *puzzle_header, *old_puzzhead;
       WORDLIST *failword, *word, *firstfail;
       
@@ -64,6 +67,46 @@ int main(int argc, char *argv[])
       printf(
 "\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
 /* 	WHEN; */
+	envstring = getenv(XWORD_SWITCH);
+	if(envstring EQ 0)
+	{	
+		xw_switch = FALSE;
+	}
+	else
+	{
+		if(!strcmp(envstring, "YES"))
+		{
+			xw_switch = TRUE;
+		}
+		else
+			{
+				xw_switch = FALSE;
+			}
+		}
+	envstring = getenv("XWORD_DEBUG");
+	if(envstring EQ 0)
+	{	
+		strncpy(xw_debugfile, "/dev/tty001", SZ_FILENAME);
+	}
+	else
+	{
+		strncpy(xw_debugfile, envstring, SZ_FILENAME);
+	}
+
+	if ((fp1 = freopen(xw_debugfile, "w", stderr)) EQ NULL)
+	{
+		printf("xword: Error opening \"%s\"", xw_debugfile);
+		exit(-1);
+	}
+
+	fprintf(stderr, "TESTING\n");
+
+	xw_error(SV_INFO, "xword: XWORD_DEBUG port is %s.",
+		xw_debugfile);
+	xw_error(SV_INFO, "xword: XWORD_INTERACTIVE mode is %s.",
+		xw_switch ? "YES" : "NO");
+
+
       if(argc < 2)
 	{
 	  char buf[10];
@@ -112,7 +155,7 @@ if ((count = xw_readsort()) > 0)
 if (xw_totwords <= 1)
 {
   xw_error(SV_FATAL,
-"Don't be a Smartarse, a xword must have at least 2 words");
+"Don't be a Smartarse, a xword must have at least 2 letters");
 }
 xw_createlinks();
 
@@ -282,9 +325,9 @@ if (failword != NULL)
 	}
 #endif	/* SNARK */
 
+//		xw_printpuzz(puzzle_header);
 		if (strncmp(xw_indexfile, "", SZ_FILENAME))
 		{
-			xw_printpuzz(puzzle_header);
 			xw_makeborder(puzzle_header);
 			xw_printpuzz(puzzle_header);
 			xw_fillpuzz(puzzle_header);

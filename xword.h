@@ -26,7 +26,7 @@
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 #define	CLUELENGTH	200
-#define	WORDLENGTH	20
+#define	WORDLENGTH	30
 #define	NUMLETTERS	26
 #define	EOWORD		'#'
 #define	NUMWORDS	100
@@ -40,6 +40,8 @@
 			"???")
 #define	INDEXDIR(x)	(sprintf(xw_indexdir,\
 			"%s.index/%06d", xw_indexfile,(x)))
+
+#define	XWORD_SWITCH	"XWORD_INTERACTIVE"
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		TYPEDEFS		#
@@ -161,12 +163,14 @@ extern	WORDLIST xw_start
 
 extern	char	xw_inputfile[SZ_FILENAME+1],
 		xw_outputfile[SZ_FILENAME+6],
+		xw_debugfile[SZ_FILENAME],
 		xw_indexfile[SZ_FILENAME+1],
 		xw_indexdir[SZ_FILENAME+1],
 		xw_sedfile[SZ_FILENAME+1];
 extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
 extern	time_t	xw_starttime;
 extern	jmp_buf	xw_env;
+extern	BOOLEAN	xw_switch;
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		FUNCTIONS		#
@@ -180,6 +184,8 @@ float	version();
 
 BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
 PUZZHEAD *xw_copypuzz(PUZZHEAD *);
+void	xw_ddebug_breakpoint();
+void	xw_debug();
 PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
 PUZZHEAD *xw_initpuzz(WORDLIST *);
 PUZZLE	*xw_pointpuzz(PUZZHEAD *, int, int);
