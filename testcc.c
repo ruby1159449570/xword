@@ -5,6 +5,7 @@
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
+#include <stdlib.h>
 #include "defs.h"
 
 int main(int argc, char *argv[])
@@ -13,7 +14,8 @@ int main(int argc, char *argv[])
 	int return_code;
 	char *ptr;
 	int one, zero;
-
+	void *nothing;
+	
 	WHERE;
 	WHEN;
 	if ( /*/**/FALSE/*/TRUE/**/ )
@@ -24,9 +26,10 @@ int main(int argc, char *argv[])
 	{
 		printf(" Comments do NOT nest\n");
 	}
-	PRINT3(d, sizeof(int),sizeof(short),sizeof(long));
+	PRINT3(ld, sizeof(int),sizeof(short),sizeof(long));
 	PR(d, MAXINT);
-	PR(d, MAXSHORT);nL;
+	PR(d, MAXSHORT);
+	nL;
 	PR(ld, MAXLONG);
 	PR(d, FILENAME_MAX);nL;
 	return_code = sprintf(testbuf, "%s", "This a test...");
@@ -36,6 +39,12 @@ int main(int argc, char *argv[])
 	PRINT1(#lx, (ULONG)ptr);
 	PRINT1(#018lX, (ULONG)ptr);
 	PRINT1(lx, (ULONG)ptr);
+	if (argc != 2)
+	{
+		free(nothing);
+	}
+	ptr = (char *)zero;
+//	*ptr = zero;
 //	one /= 0;
 	one = 1;
 	zero = 0;

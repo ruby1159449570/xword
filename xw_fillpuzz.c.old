@@ -5,8 +5,9 @@
 //
 // MODIFICATION HISTORY
 // When		Who	What
-// Sat18Jul2020 {fcG}	xw_search_blanks() implemented...
-// Fri31Jul2020 {fcG}	debugged clear_word(), changed AND(&&) to OR(||).
+// Sat18Jul2020 {fcG}	xw_search_blanks implemented...
+// Fri31Jul2020 {fcG}	debugged clear_word, changed AND(&&) to OR(||).
+// Sat23Apr2022 {fcG}	debugged xw_fillpuzz???
 
 #include <ctype.h>
 #include <errno.h>
@@ -22,27 +23,14 @@
 #include "xword.h"
 
 #define	NOT_WHITE(x)	((x) != '\0' && (x) != EOWORD)
-#define	SZ_MAXRETSEARCH 30
-
-typedef struct spot
-{
-  char sp_letter;
-  int  sp_pos;
-} SPOT;
-
-typedef struct wordhole
-{
-  int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
-  STATUS wh_status;
-  struct wordhole *wh_next;
-  struct spot wh_spot[WORDLENGTH];
- 
-} WORDHOLE;
+/* #define	SZ_MAXRETSEARCH 40 */
 
 WORDHOLE xw_whstart =
   {
     2020, UNDEFINED, UNDEFINED, 0, 0, UNUSED, NULL,
   };
+
+int	max;
 
 char buf[SZ_FILENAME+1];
 
@@ -90,69 +78,75 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 	wh_ptr->wh_rownum = pzptr->pz_rownum;
 	wh_ptr->wh_colnum = pzptr->pz_colnum;
 
-  for(i = 0; i < length; i++)
-    {
-      if (pzptr->pz_letter EQ EOWORD)
+	for(i = 0; i < MIN(max, length); i++)
 	{
-	if (numspots != 0 && numspots != numletters)
-	{
-		wh_ptr = xw_inserthole(numspots, numletters,
-		wh_ptr, pzptr, stat);
-		wh_ptr->wh_length = numletters;
-		wh_ptr->wh_spots = numspots;
-	}
-	else
-	    {
-	      register int j;
-	      
-/* 	      PRINT1(d, sizeof(SPOT)); */
-/* 	      PRINT2(d, sizeof(wh_ptr->wh_spot), SZ_TABLE(wh_ptr->wh_spot)); */
-
-	      for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot); j++)
+		if (pzptr->pz_letter EQ EOWORD)
 		{
-		  wh_ptr->wh_spot[j].sp_letter = '\0';
-		  wh_ptr->wh_spot[j].sp_pos = 0;
+			if (numspots != 0 && numspots
+			!= numletters)
+			{
+				wh_ptr = xw_inserthole(numspots,
+				numletters, wh_ptr, pzptr, stat);
+				wh_ptr->wh_length = numletters;
+				wh_ptr->wh_spots = numspots;
+// 				break;
+			}
+			else
+			{
+				register int j;
+				for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot);
+					j++)
+				{
+					wh_ptr->wh_spot[j].sp_letter
+						= '\0';
+					wh_ptr->wh_spot[j].sp_pos = 0;
+				}
+			}
+			if (stat EQ ACROSS)
+			{
+				wh_ptr->wh_rownum
+					= pzptr->pz_rownum;
+				wh_ptr->wh_colnum
+					= pzptr->pz_colnum+1;
+			}
+			else
+			{
+				wh_ptr->wh_rownum
+					= pzptr->pz_rownum+1;
+				wh_ptr->wh_colnum
+					= pzptr->pz_colnum;
+			}
+			numletters = numspots = 0;
 		}
-	    }
-	  if (stat EQ ACROSS)
-	    {
-	      wh_ptr->wh_rownum = pzptr->pz_rownum;
-	      wh_ptr->wh_colnum = pzptr->pz_colnum+1;
-	    }
-	  else
-	    {
-	      wh_ptr->wh_rownum = pzptr->pz_rownum+1;
-	      wh_ptr->wh_colnum = pzptr->pz_colnum;
-	    }
-	  numletters = numspots = 0;
-	}
-      else
-	{
-/* 	  TEST(PR(#06x,pzptr->pz_letter)); */
-/* 	  TEST(PR(c,pzptr->pz_letter)); */
+		else
+		{
 
-	  if (pzptr->pz_letter EQ '\0' || pzptr->pz_letter EQ ' ')
-	    {
-	      numletters++;
-	    }
-	  else
-	    {
-	      wh_ptr->wh_spot[numspots].sp_pos = ++numletters;
-	      wh_ptr->wh_spot[numspots++].sp_letter = pzptr->pz_letter;
+			if (pzptr->pz_letter EQ '\0'
+			|| pzptr->pz_letter EQ ' ')
+			{
+				numletters++;
+			}
+			else
+			{
+				wh_ptr->wh_spot[numspots].sp_pos
+					= ++numletters;
+				wh_ptr->
+				wh_spot[numspots++].sp_letter
+					= pzptr->pz_letter;
+			}
+		}
+		if (stat EQ ACROSS)
+		{
+			pzptr = pzptr->pz_right;
+		}
+		else
+		{
+			pzptr = pzptr->pz_down;
+		}
+	}
 
-/* 	      TEST(PR(c,pzptr->pz_letter)); */
-/* 	      TEST(PRINT2(d,numletters,numspots)); */
-	    }
-	}
-      if (stat EQ ACROSS)
-	{
-	  pzptr = pzptr->pz_right;
-	}
-      else
-	{
-	  pzptr = pzptr->pz_down;
-	}
-    }
+/* #ifdef	SNARK */
+
 	if (numspots != 0 && numspots != numletters)
 	{
 		wh_ptr = xw_inserthole(numspots, numletters,
@@ -160,10 +154,11 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 		wh_ptr->wh_length = numletters;
 		wh_ptr->wh_spots = numspots;
 	}
-	  else
+	else
 	{
 		free(wh_ptr);
 	}
+/* #endif	//SNARK */
 }
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
@@ -173,27 +168,37 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 
 void xw_findgaps(PUZZHEAD *ph)
 {
-  PUZZLE *hptr, *vptr;
-  register int i;
+	PUZZLE *hptr, *vptr, *z_ptr;
+	register int i, j;
 
-  hptr = ph->ph_puzzle;
-  if(ph->ph_numrows != 1)
-    {
-      hptr = hptr->pz_down;
-    }
-  vptr = hptr->pz_right;
-  for(i = 0; i < ph->ph_numcols - 2; i++)
-  {
-    xw_searchrank(vptr, DOWN, ph->ph_numrows-2);
-    vptr = vptr->pz_right;
-  }
-  vptr = hptr->pz_right;
-  for(i = 0; i < ph->ph_numrows - 2; i++)
-  {
-    xw_searchrank(vptr, ACROSS, ph->ph_numcols-2);
-    vptr = vptr->pz_down;
-  }
-}	
+	hptr = ph->ph_puzzle;
+	if(ph->ph_numrows != 1)
+	{
+		hptr = hptr->pz_down;
+	}
+	vptr = hptr->pz_right;
+	for(i = 0; i < ph->ph_numcols - 2; i++)
+	{
+		z_ptr = vptr;
+		for(j = 0; j < ph->ph_numrows - i - 2; j++)
+		{
+			xw_searchrank(z_ptr, DOWN, ph->ph_numrows-j-2);
+			z_ptr = z_ptr->pz_down;
+		}
+		vptr = vptr->pz_right;
+	}
+	vptr = hptr->pz_right;
+	for(i = 0; i < ph->ph_numrows - 2; i++)
+	{
+		z_ptr = vptr;
+		for(j = 0; j < ph->ph_numcols - i - 2; j++)
+		{
+			xw_searchrank(z_ptr, ACROSS, ph->ph_numcols-j-2);
+			z_ptr = z_ptr->pz_down;
+		}
+		vptr = vptr->pz_down;
+	}
+}
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		CLEAR			#
@@ -218,13 +223,13 @@ void	clean(char *ptr)
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
-int equivalence_check(int length, long offset[20])
+int equivalence_check(int length, long *offset)
 {
 	register int i,j,k;
 	long min;
 
-//	TEST(PRINT2(#018lx, offset[0], offset[1]));
-//	TEST(PRINT3(#06lx, offset[0], offset[1], offset[2]));
+	//	TEST(PRINT2(#018lx, offset[0], offset[1]));
+	//	TEST(PRINT3(#06lx, offset[0], offset[1], offset[2]));
 
 	min = MAXLONG;
 	for(i = 0; i < length; i++)
@@ -325,21 +330,6 @@ BOOLEAN clear_word(PUZZHEAD *ph, char *buf, WORDHOLE *wh_ptr)
 				TEST(printf("Across end bombed\n"));
 				search = FALSE;
 			}	
-#ifdef	SNARK
-
-			if (ref->pz_right != 0)
-			{
-				TEST(WHERE); TEST(PRINT1(c,
-					ref->pz_right->pz_letter));
-				TEST(PRINT1(d, ref->pz_right->pz_letter));
-				if (NOT_WHITE(ref->pz_right->pz_letter))
-				{
-					TEST(printf("Across end bombed\n"));
-					search = FALSE;
-				}	
-			}	
-#endif	/* SNARK */
-
 		}	
 	}
 	else if (wh_ptr->wh_status EQ DOWN)
@@ -393,21 +383,6 @@ BOOLEAN clear_word(PUZZHEAD *ph, char *buf, WORDHOLE *wh_ptr)
 				TEST(printf("Down end bombed!\n"));
 				search = FALSE;
 			}	
-#ifdef	SNARK
-
-			if (ref->pz_down != 0)
-			{
-				TEST(WHERE); TEST(PRINT1(c,
-					ref->pz_down->pz_letter));
-				TEST(PRINT1(d, ref->pz_down->pz_letter));
-				if (NOT_WHITE(ref->pz_down->pz_letter))
-				{
-					TEST(printf("Down end bombed!\n"));
-					search = FALSE;
-				}	
-			}	
-#endif	/* SNARK */
-
 		}	
 	}	
 	else
@@ -417,7 +392,7 @@ BOOLEAN clear_word(PUZZHEAD *ph, char *buf, WORDHOLE *wh_ptr)
 	}
 	TEST(fprintf(stderr, "clear_word() returns %d\n", search));
 	return search;
-}
+	}
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #	XW_SEARCH_BLANKS		#
@@ -425,13 +400,13 @@ BOOLEAN clear_word(PUZZHEAD *ph, char *buf, WORDHOLE *wh_ptr)
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 char	return_buf[SZ_MAXRETSEARCH][WORDLENGTH + 2];
- 
+
 int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 {
 	BOOLEAN	search, equivalent;
 	FILE	*fp[WORDLENGTH], *minfp, *newfp;
 	long	offset[WORDLENGTH],minoffset;
-	int	count, max, min_count, search_count;
+	int	count, min_count, search_count;
 
 	TEST(PRINT2(d, wh_ptr->wh_key, wh_ptr->wh_length));
 	TEST(PRINT3(d,wh_ptr->wh_spots,wh_ptr->wh_rownum,wh_ptr->wh_colnum));
@@ -468,9 +443,10 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 			sizeof(offset[count]), 1, fp[count]);
 			if (ferror(fp[count]))
 			{
-				INDEXDIR(wh_ptr->wh_spot[count].sp_pos);
+				INDEXDIR(wh_ptr
+				->wh_spot[count].sp_pos);
 				sprintf(buf, "%s/%c", xw_indexdir, 
-					wh_ptr->wh_spot[count].sp_letter);
+				wh_ptr->wh_spot[count].sp_letter);
 				xw_error(SV_FATAL, "Error reading %s\n",
 						buf);
 			}		
@@ -482,147 +458,182 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 				break;
 			}
 		}
-	}
-	if (wh_ptr->wh_spots < 2)
-	{
-		if (search)
-		{
-			equivalent = TRUE;
-			min_count = 0;
 		}
-	}
-	else
-	{
-		if ((min_count = equivalence_check(wh_ptr->wh_spots,
-		&offset)) EQ wh_ptr->wh_spots)
+		if (wh_ptr->wh_spots < 2)
 		{
-			equivalent = TRUE;
-		}		
-	}		
-	TEST(WHERE); TEST(PRINT2(d, min_count, wh_ptr->wh_spots));
-	while(!equivalent && search)
-	{
-
-		fread(&offset[min_count], sizeof(offset[min_count]),
-			1, fp[min_count]);
-		if (ferror(fp[min_count]))
-		{
-			INDEXDIR(wh_ptr->wh_spot[min_count].sp_pos);
-			sprintf(buf, "%s/%c", xw_indexdir, 
-				wh_ptr->wh_spot[min_count].sp_letter);
-			xw_error(SV_FATAL, "Error reading %s\n",
-					buf);
-		}		
-		if (feof(fp[min_count]))
-		{
-			search = FALSE;
-			TEST(WHERE); TEST(PRINT1(d, min_count));
-			TEST(fprintf(stderr, "Search failed! EOF\n"));
-			break;
-		}
-		if ((min_count =
-		equivalence_check(wh_ptr->wh_spots, &offset))
-		EQ wh_ptr->wh_spots)
-		{
-			equivalent = TRUE;
-		}
-	}
-	if (equivalent && search)
-	{
-		TEST(WHERE); TEST(PRINT1(#018lx, offset[0]));
-		if (fseek(fp_dict, offset[0], SEEK_SET) != 0)
-		{
-			TEST(WHERE);xw_error(SV_ERROR, "fseek() error");
-		}
-		if(!fgets(buf, sizeof(buf), fp_dict))
-		{
-			TEST(WHERE);xw_error(SV_ERROR, "fgets() error");
-		}
-		clean(buf);
-		if(search_count < SZ_MAXRETSEARCH
-		&& clear_word(ph, buf, wh_ptr))
-		{
-			strncpy(&return_buf[search_count][0], buf,
-				sizeof(return_buf[0]) - 1);
-			search_count++;
-		}
-		TEST(fprintf(stderr, "\"%s\"[%#018lx]==>%s\n",xw_indexfile,
-			offset[0],buf));
-		do
-		{
-			for(count = 0; count < wh_ptr->wh_spots; count++)
+			if (search)
 			{
-				fread(&offset[count],
-				sizeof(offset[count]), 1, fp[count]);
-				if (ferror(fp[count]))
-				{
-					TEST(WHERE); INDEXDIR
-					(wh_ptr->wh_spot[count].sp_pos);
-
-					sprintf(buf, "%s/%c", xw_indexdir, 
-					wh_ptr->wh_spot[count].sp_letter);
-					xw_error(SV_FATAL,
-					"Error reading %s\n", buf);
-				}		
-				if (feof(fp[count]))
-				{
-					search = FALSE;
-					TEST(WHERE); TEST(fprintf(stderr,
-					"Search failed! EOF\n"));
-					break;
-				}
+				equivalent = TRUE;
+				min_count = 0;
 			}
-			if (equivalence_check(wh_ptr->wh_spots, &offset)
-			EQ wh_ptr->wh_spots && search)
+		}
+		else
+		{
+			if ((min_count
+			= equivalence_check(wh_ptr->wh_spots,
+			(long *)offset)) EQ wh_ptr->wh_spots)
+			{
+				equivalent = TRUE;
+			}		
+		}		
+		TEST(WHERE); TEST(PRINT2(d, min_count, wh_ptr->wh_spots));
+		while(!equivalent && search)
+		{
+
+			fread(&offset[min_count], sizeof(offset[min_count]),
+				1, fp[min_count]);
+			if (ferror(fp[min_count]))
+			{
+				INDEXDIR(wh_ptr->wh_spot[min_count].sp_pos);
+				sprintf(buf, "%s/%c", xw_indexdir, 
+				wh_ptr->wh_spot[min_count].sp_letter);
+				xw_error(SV_FATAL, "Error reading %s\n",
+						buf);
+			}		
+			if (feof(fp[min_count]))
+			{
+				search = FALSE;
+				TEST(WHERE); TEST(PRINT1(d, min_count));
+				TEST(fprintf(stderr,"Search failed! EOF\n"));
+				break;
+			}
+			if ((min_count =
+			equivalence_check(wh_ptr->wh_spots,
+				(long *)&offset))
+			EQ wh_ptr->wh_spots)
 			{
 				equivalent = TRUE;
 			}
-			else
-			{
-				equivalent = FALSE;
-				break;
-			}
-
+		}
+		if (equivalent && search)
+		{
+			TEST(WHERE); TEST(PRINT1(#018lx, offset[0]));
 			if (fseek(fp_dict, offset[0], SEEK_SET) != 0)
 			{
-				TEST(WHERE); xw_error(SV_ERROR,
-				"fseek() error");
+				TEST(WHERE);xw_error(SV_ERROR,"fseek error");
 			}
 			if(!fgets(buf, sizeof(buf), fp_dict))
 			{
-				TEST(WHERE); xw_error(SV_ERROR,
-				"fgets() error");
+				TEST(WHERE);xw_error(SV_ERROR,"fgets error");
 			}
 			clean(buf);
-			if (search_count < SZ_MAXRETSEARCH
+			if(search_count < SZ_MAXRETSEARCH
 			&& clear_word(ph, buf, wh_ptr))
 			{
 				strncpy(&return_buf[search_count][0], buf,
 					sizeof(return_buf[0]) - 1);
 				search_count++;
 			}
-			TEST(fprintf(stderr, "\"%s\"[%#020lx]==>%s\n",
+			TEST(fprintf(stderr, "\"%s\"[%#018lx]==>%s\n",
 				xw_indexfile, offset[0],buf));
-		}	
-		while (equivalent && search);
-	}	
-	for(count = 0; count < wh_ptr->wh_spots; count++)
-	{
-		if(fp[count] != 0)
-		{	
-			TEST(WHERE); TEST(PR(d,count));
-			TEST(PRINT1(#018lx,fp[count]));
-			if(fclose(fp[count]) EQ EOF)
+			do
 			{
-				TEST(WHERE); xw_error(SV_FATAL,
-				"fclose() bombed!");
+				for(count = 0; count < wh_ptr->wh_spots;
+				count++)
+				{
+					fread(&offset[count],
+					sizeof(offset[count]), 1,
+					fp[count]);
+					if (ferror(fp[count]))
+					{
+						TEST(WHERE); INDEXDIR
+						(wh_ptr->
+						wh_spot[count].sp_pos);
+
+						sprintf(buf, "%s/%c",
+						xw_indexdir, 
+						wh_ptr->
+						wh_spot[count].sp_letter);
+						xw_error(SV_FATAL,
+						"Error reading %s\n", buf);
+					}		
+					if (feof(fp[count]))
+					{
+						search = FALSE;
+						TEST(WHERE);
+						TEST(fprintf(stderr,
+						"Search failed! EOF\n"));
+						break;
+					}
+				}
+				if (equivalence_check(wh_ptr->wh_spots,
+					(long *)offset)
+				EQ wh_ptr->wh_spots && search)
+				{
+					equivalent = TRUE;
+				}
+				else
+				{
+					equivalent = FALSE;
+					break;
+				}
+
+				if(fseek(fp_dict,offset[0],SEEK_SET) != 0)
+				{
+					TEST(WHERE); xw_error(SV_ERROR,
+					"fseek() error");
+				}
+				if(!fgets(buf, sizeof(buf), fp_dict))
+				{
+					TEST(WHERE); xw_error(SV_ERROR,
+					"fgets() error");
+				}
+				clean(buf);
+				if (search_count < SZ_MAXRETSEARCH
+				&& clear_word(ph, buf, wh_ptr))
+				{
+					strncpy(
+					&return_buf[search_count][0], buf,
+					sizeof(return_buf[0]) - 1);
+					search_count++;
+				}
+				TEST(fprintf(stderr,
+					"\"%s\"[%#020lx]==>%s\n",
+					xw_indexfile, offset[0],buf));
+			}	
+			while (equivalent && search);
+		}	
+		for(count = 0; count < wh_ptr->wh_spots; count++)
+		{
+			if(fp[count] != 0)
+			{	
+				TEST(WHERE); TEST(PR(d,count));
+				TEST(PRINT1(#018lx,fp[count]));
+				if(fclose(fp[count]) EQ EOF)
+				{
+					TEST(WHERE); xw_error(SV_FATAL,
+					"fclose() bombed!");
+				}
 			}
 		}
-	}
 	TEST(WHERE); TEST(PRINT1(d, search_count));
 	return search_count;
 }
 
+/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+#		xw_FILLHOLES		#
+#					#
+\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+
+void xw_fillholes()
+{
+	WORDHOLE	*ref, *tmp;
+
+//#ifdef DEBUG
+	fprintf(stderr, "xw_fillholes: STARTING UP\n");
+//#endif /* DEBUG */
+
+	ref = xw_whstart.wh_next;
+	while(ref != 0)
+	{
+		tmp = ref->wh_next;
+		TEST(PR(#018lx, (ULONG)ref));
+		free((char *)ref);
+		ref = tmp;
+	}
+	xw_whstart.wh_next = NULL;
+}
+	
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		XW_FILLPUZZ		#
 #					#
@@ -632,13 +643,28 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 {
 	register WORDHOLE *wh_ptr = &xw_whstart;
 	FILE *fp_dict;
-	int	count, max, min_count, num_matches;
+	int	count, min_count, num_matches;
 //	register WORDHOLE *oldwh_ptr;
 	int	oldrownum, oldcolnum, oldlength;
 	STATUS	oldstatus;
 
+	max = 0;
+	if((max = xw_sizedict(xw_indexfile)) > WORDLENGTH)
+	{
+		xw_error(SV_FATAL,
+		"Words in dictionary are too long... %d > %d\n",
+		max, WORDLENGTH);
+	}
+	if(!max)	
+	{
+		xw_error(SV_FATAL, "Error in Dictionary %s\n",	
+			xw_indexfile);
+	}
 	xw_findgaps(ph);
+TRY_AGAIN:
+	WHERE; PRINT1(d, max);
 
+	wh_ptr = &xw_whstart;
 	TEST(WHERE); TEST(PR(#010lx, wh_ptr));
 	wh_ptr = wh_ptr->wh_next;
 	while (wh_ptr != NULL)
@@ -684,20 +710,6 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 		TEST(WHERE);xw_error(SV_ERROR, "index file open error/n");
 	}
 
-	max = 0;
-	if((max = xw_sizedict(xw_indexfile)) > WORDLENGTH)
-	{
-		xw_error(SV_FATAL,
-		"Words in dictionary are too long... %d > %d\n",
-		max, WORDLENGTH);
-	}
-	if(!max)	
-	{
-		xw_error(SV_FATAL, "Error in Dictionary %s\n",	
-			xw_indexfile);
-	}
-	WHERE; PRINT1(d, max);
-
 	num_matches = 0;
 //	oldwh_ptr = 0;
 	oldcolnum = ph->ph_lastword->wl_xpos;
@@ -715,16 +727,10 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 		{
 			int	choice;
 			PUZZLE	*ref, *oldref;
-			WORDLIST	word; 
+			WORDLIST	word, *new; 
 			
 			TEST(WHERE); TEST(PRINT1(d, num_matches));
 
-			ref = xw_pointpuzz(ph, wh_ptr->wh_colnum,
-				wh_ptr->wh_rownum);
-			if(ref != 0)
-			{
-				ref->pz_color = GREEN;
-			}
 			oldref = xw_pointpuzz(ph, oldcolnum, oldrownum);
 			for (i = 0; i < oldlength; i++)
 			{
@@ -741,6 +747,12 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 					}
 	
 				}
+			}
+			ref = xw_pointpuzz(ph, wh_ptr->wh_colnum,
+				wh_ptr->wh_rownum);
+			if(ref != 0)
+			{
+				ref->pz_color = GREEN;
 			}
 			xw_printpuzz(ph);
 
@@ -767,44 +779,67 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 				}
 			}
 	
-			printf("\033[7mEnter # of the word to insert,");
-			printf("0 to skip, <CTRL-C> to save & exit\n");
-			printf("\033[0m");
-			for (i = 0; i < num_matches; i++)
+			if (xw_switch)
 			{
-//				TEST(PRINT1(s, &return_buf[i][0]));
-				printf("(%d) %s\t", i + 1, return_buf[i]);
-				if (((i + 1) % 4) EQ 0)
+				printf("\033[7mEnter # of the word to insert,");
+				printf("0 to skip, <CTRL-C> to save & exit\n");
+				printf("\033[0m");
+				for (i = 0; i < num_matches; i++)
 				{
-					nL;
+	//				TEST(PRINT1(s, &return_buf[i][0]));
+					printf("(%d) %s\t", i + 1, return_buf[i]);
+					if (((i + 1) % 4) EQ 0)
+					{
+						nL;
+					}
 				}
-			}
-			do
-			{
-				printf("\n\007xword> ");
-				i = scanf("%d", &choice);
-			}	while(i != 1 && choice < 0
-				&& choice > num_matches);
-			TEST(PRINT1(d, choice));
-			if(choice EQ 0 || choice > num_matches)
-			{
-				wh_ptr = wh_ptr->wh_next;
-				continue;
-/* 				return ph; */
+				do
+				{
+	//				printf("\n\007xword\033[%dm[%s]\033[0m> ",
+					printf("\nxword\033[%dm[%s]\033[0m> ",
+						CYAN, DECODE(wh_ptr->wh_status));
+					i = scanf("%d", &choice);
+				}	while(i != 1 && (choice < 0
+					&& choice > num_matches));
+				TEST(PRINT1(d, choice));
+				if(choice EQ 0 || choice > num_matches)
+				{
+					wh_ptr = wh_ptr->wh_next;
+					continue;
+				}
+				else
+				{
+					choice--;
+				}
 			}
 			else
 			{
-				choice--;
+				choice = 0;
 			}
 			word.wl_numchar = strlen(return_buf[choice]);
+#ifdef	SNARK
 			strncpy(&word.wl_word[0], &return_buf[choice][0],
 				sizeof(return_buf[choice]) - 1);
 			sprintf(word.wl_clue, "# %s #",return_buf[choice]);
-			word.wl_status = wh_ptr->wh_status;
-
-			xw_putwordin(ph, &word, wh_ptr->wh_status,
-			wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
+#endif	//SNARK
+			if((new = (WORDLIST *)xw_malloc(sizeof(WORDLIST)))
+			EQ NULL)
+			{
+				xw_error(SV_FATAL,"xw_malloc: OUT OF RAM!");
+			}
+			strncpy(new->wl_word, &return_buf[choice][0],
+				sizeof(return_buf[choice]) - 1);
+			sprintf(new->wl_clue, "# %s #",return_buf[choice]);
+			new->wl_status = wh_ptr->wh_status;
+			new->wl_numchar = strlen(new->wl_word);
 			
+			xw_debug(new);
+
+			xw_putwordin(ph, new, wh_ptr->wh_status,
+			wh_ptr->wh_colnum, wh_ptr->wh_rownum);
+
+//			xw_printpuzz(ph);
+				
 //			oldwh_ptr = wh_ptr;
 			oldcolnum = wh_ptr->wh_colnum,  
 			oldrownum = wh_ptr->wh_rownum;
@@ -814,11 +849,16 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 		wh_ptr = wh_ptr->wh_next;
 		TEST(PR(#010lx, wh_ptr));
 	}
-	xw_printpuzz(ph);
 
 	if(fclose(fp_dict) EQ EOF)
 	{
 		TEST(WHERE); xw_error(SV_FATAL,"fclose() bombed!");
+	}
+	xw_fillholes();
+	xw_findgaps(ph);
+	if (num_matches != 0)
+	{
+		goto TRY_AGAIN;
 	}
 	return ph;
 }	

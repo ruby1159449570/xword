@@ -1,9 +1,11 @@
 /* /home/franx/xword/xword.h Mon26Jan2004 {fcG} */
 
-/* MODIFACTION HISTORY */
-/* When		Who	What */
-/* Sun18Jun2006 {fcG}	ph_checksum&ph_failpuzz added to PUZZHEAD */
-/* Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR... */
+// MODIFACTION HISTORY
+// When		Who	What
+// Sun18Jun2006 {fcG}	ph_checksum & ph_failpuzz added to PUZZHEAD
+// Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR...
+// Sun12Jul2020 {fcG}	sed file added...
+// Sat18Jul2020 {fcG}	index file/dirs added
 
 #ifndef _XWORD_H
 #define _XWORD_H 1
@@ -26,8 +28,9 @@
 #define	CLUELENGTH	200
 #define	WORDLENGTH	20
 #define	NUMLETTERS	26
-#define	EOWORD		'$'
+#define	EOWORD		'#'
 #define	NUMWORDS	100
+#define	SZ_MAXRETSEARCH 100
 #define	UNDEFINED	32767
 #define	ORD(x)		((x) - 'A')
 #define	INV(x)		((x) EQ ACROSS ? DOWN : ACROSS)
@@ -49,6 +52,15 @@ typedef	enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL
 typedef	enum status { UNUSED = 0, ACROSS = 1, DOWN = 2
 	} STATUS;
 
+typedef	enum color {
+	RED	= 31,
+	GREEN	= 32,
+	YELLOW	= 33,
+	BLUE	= 34,
+	PURPLE	= 35,
+	CYAN	= 36
+	} COLOR;
+
 typedef	struct	cluedescriptor
 {
 	char	*cd_clue;
@@ -60,6 +72,7 @@ typedef	struct	puzzle
 {
 	char	pz_letter;
 	int	pz_rownum, pz_colnum;
+	COLOR	pz_color;
 	struct	puzzle	*pz_up, *pz_down, *pz_left, *pz_right;
 	struct	wordlist *pz_ofaccrossword, *pz_ofdownword;
 }	PUZZLE;
@@ -90,6 +103,22 @@ typedef	struct	wordlist
 	struct	wordlist *wl_prev, *wl_next, *wl_sameletter[WORDLENGTH];
 	struct	puzzhead *wl_failpuzz;
 }	WORDLIST;
+
+typedef struct spot
+{
+  char sp_letter;
+  int  sp_pos;
+} SPOT;
+
+typedef struct wordhole
+{
+  int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
+  STATUS wh_status;
+  struct wordhole *wh_next;
+  struct spot wh_spot[WORDLENGTH];
+ 
+} WORDHOLE;
+
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		EXTERNS			#
@@ -133,7 +162,8 @@ extern	WORDLIST xw_start
 extern	char	xw_inputfile[SZ_FILENAME+1],
 		xw_outputfile[SZ_FILENAME+6],
 		xw_indexfile[SZ_FILENAME+1],
-		xw_indexdir[SZ_FILENAME+1];
+		xw_indexdir[SZ_FILENAME+1],
+		xw_sedfile[SZ_FILENAME+1];
 extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
 extern	time_t	xw_starttime;
 extern	jmp_buf	xw_env;
@@ -164,15 +194,18 @@ void	xw_feelup(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
 void	xw_killlist();
 void	xw_killpuzz(PUZZHEAD *);
 void	*xw_malloc(size_t);
+void	xw_makeborder(PUZZHEAD *);
 void	xw_printpuzz(PUZZHEAD *);
 void	xw_pushlist(WORDLIST *);
 void	xw_putwordin(PUZZHEAD *,WORDLIST *, STATUS, int, int);
 int	xw_readsort();
 void	xw_restartlist();
+int	xw_sizedict(char *);
 void	xw_tryword(PUZZHEAD *,WORDLIST *, int, WORDLIST *);
 void	xw_html(PUZZHEAD *);
 WORDLIST	*xw_buildpuzz(PUZZHEAD *, WORDLIST *);
 WORDLIST	*xw_poplist();
+int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr);
 
 #endif /* _XWORD_H */
 

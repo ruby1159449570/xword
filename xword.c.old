@@ -6,6 +6,7 @@
 // MODIFICATION HISTORY
 // When		Who	What
 // Wed08Jul2020 {fcG}	64-bit debug code.
+// Sun12Jul2020 {fcG}	"Thousand island" do-do bug squashed!!!
 
 #include <errno.h>
 #include <setjmp.h>
@@ -68,8 +69,12 @@ int main(int argc, char *argv[])
 	  char buf[10];
 	  
 	  sprintf(buf, "%%%ds", SZ_FILENAME);
-	  printf("\nInput file of words? ");
+	  printf("\nxword: Input file of words? ");
 	  scanf(buf, xw_inputfile);
+
+	  sprintf(buf, "%%%ds", SZ_FILENAME);
+	  printf("\nxword: Dictionary file of words? ");
+	  scanf(buf, xw_indexfile);
 
 #ifdef SNARK
 	  fprintf(stderr, "Output file for final puzzle?\n");
@@ -83,48 +88,90 @@ int main(int argc, char *argv[])
 	}
       else
 	{
-	  PRINT1(s, argv[1]);
-	  strncpy(xw_inputfile, argv[1], SZ_FILENAME);
+		PRINT1(s, argv[1]);
+		strncpy(xw_inputfile, argv[1], SZ_FILENAME);
+
+		if(argc EQ 3)
+		{
+			PRINT1(s, argv[2]);
+			strncpy(xw_indexfile, argv[2], SZ_FILENAME);
+		}
+		else
+		{
+			strncpy(xw_indexfile, "", SZ_FILENAME);
+			
+		}
 	}
-      
-      time(&xw_starttime);
-      if ((count = xw_readsort()) > 0)
-	{
-	  xw_error(SV_ERROR,
+
+time(&xw_starttime);
+if ((count = xw_readsort()) > 0)
+{
+  xw_error(SV_ERROR,
 "%d Errors encountered in parsing %s", count, xw_inputfile);
-	}
-      if (xw_totwords <= 1)
-	{
-	  xw_error(SV_FATAL,
+}
+if (xw_totwords <= 1)
+{
+  xw_error(SV_FATAL,
 "Don't be a Smartarse, a xword must have at least 2 words");
-	}
-      xw_createlinks();
-      
-      xw_poplist(); /* pop xw_start off wordlist?! */
-      
-      word = xw_poplist();
-      puzzle_header = xw_initpuzz(word);
-      TEST(PRINT1(#018lx, (ULONG)puzzle_header));
+}
+xw_createlinks();
+
+xw_poplist(); /* pop xw_start off wordlist?! */
+
+word = xw_poplist();
+puzzle_header = xw_initpuzz(word);
+TEST(PRINT1(#018lx, (ULONG)puzzle_header));
+
+#ifdef	SNARK
 
 GOBACK:
 
-	do
+do
+{
+	PUZZHEAD *temp;
+
+	temp = xw_copypuzz(puzzle_header);
+	word = xw_poplist();
+
+	TEST(PRINT3(#018lx,
+	(ULONG)word, (ULONG)temp, (ULONG)puzzle_header));
+
+	temp->ph_prevpuzz = puzzle_header;
+	puzzle_header = temp;
+}
+while((word != NULL)
+&& (failword = xw_buildpuzz(puzzle_header, word)) EQ NULL);
+#endif	/* SNARK */
+  
+while((word = xw_poplist()))
+{
+	PUZZHEAD *temp;
+
+	temp = xw_copypuzz(puzzle_header);
+	temp->ph_prevpuzz = puzzle_header;
+	puzzle_header = temp;
+	
+	while((failword = xw_buildpuzz(puzzle_header, word)))
 	{
-		PUZZHEAD *temp;
 
-		temp = xw_copypuzz(puzzle_header);
-		word = xw_poplist();
-
-		TEST(PRINT3(#018lx,
-		(ULONG)word, (ULONG)temp, (ULONG)puzzle_header));
-
-		temp->ph_prevpuzz = puzzle_header;
-		puzzle_header = temp;
+		TEST(PRINT2(#018lx,
+		(ULONG)failword, (ULONG)puzzle_header));
+		puzzle_header->ph_failpuzz = failword->wl_failpuzz;
+		failword->wl_failpuzz = puzzle_header;
+		puzzle_header = puzzle_header->ph_prevpuzz;
+		if(!puzzle_header)
+		{
+			xw_error(SV_FATAL,
+			"Could not find spot for %s",
+			failword->wl_word);
+		}
 	}
-	while((word != NULL)
-	&& (failword = xw_buildpuzz(puzzle_header, word)) EQ NULL);
-	  
-      if (failword != NULL)
+}
+	
+#ifdef	SNARK
+
+
+if (failword != NULL)
 	{
 	  PUZZHEAD *temp;
 	      
@@ -135,7 +182,7 @@ GOBACK:
 		printf("\033[32;40m");
 		PR(#018lx, (ULONG)firstfail);
 		PR(s, firstfail->wl_word);
-		printf("\033[0m\n");
+	printf("\033[0m\n");
 #endif
 	  do
 	    {	
@@ -152,7 +199,7 @@ GOBACK:
 		  TEST(WHERE);
 		  PRINT2(#018lx, (ULONG)temp,
 			(ULONG)puzzle_header);
-		  xw_printpuzz(puzzle_header);
+/* 		  xw_printpuzz(puzzle_header); */
 #endif /* DEBUG */
 		      
 		  if(puzzle_header->ph_lastword != NULL)
@@ -219,28 +266,37 @@ GOBACK:
 	    }
 	    while((word != NULL) && (failword != NULL));
 	}
-      sigint_puzzle_header = puzzle_header;
-      if (signal(SIGINT, (void (*)(int))sigint_handler) EQ SIG_ERR)
+
+#endif	/* SNARK */
+
+	sigint_puzzle_header = puzzle_header;
+	if (signal(SIGINT, (void (*)(int))sigint_handler) EQ SIG_ERR)
 	{
-	  xw_error(SV_ERROR, "signal snarked!!!");
+		xw_error(SV_ERROR, "signal snarked!!!");
 	}
 
 #ifdef	SNARK
-      for(EVER)
+	for(EVER)
 	{
-	  ;
+	  ;	// Do *NOTHING*
 	}
 #endif	/* SNARK */
-      
-      xw_fillpuzz(puzzle_header);
-      xw_html(puzzle_header);
-      xw_killlist();
-      exit(0);
-    }
-    else
-    {
-      fprintf(stderr, "xword: aborting due to errors...\n");
-      exit(-1);
-    }
+
+		if (strncmp(xw_indexfile, "", SZ_FILENAME))
+		{
+			xw_printpuzz(puzzle_header);
+			xw_makeborder(puzzle_header);
+			xw_printpuzz(puzzle_header);
+			xw_fillpuzz(puzzle_header);
+		}
+		xw_html(puzzle_header);
+		xw_killlist();
+		exit(0);
+	}
+	else
+	{
+		fprintf(stderr, "xword: aborting due to errors...\n");
+		exit(-1);
+	}
 }
 /* End of /home/franx/xword/xword.c */

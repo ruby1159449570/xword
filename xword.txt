@@ -1,76 +1,211 @@
 
 
-21 Jul 19:41 2020 Makefile Page 1
+18 Oct 13:50 2021 version.h Page 1
 
 
-  1	
-  2	#/Users/moonpie/xword/Makefile Wed29Aug2018 {fcG}
-  3	#/home/franx/xword/Makefile Sat31Jan2004 {fcG}
-  4	
-  5	CC = clang
-  6	#######CC = gcc
-  7	CFLAGS =  -g -O0 -DDEBUG=1 
-  8	#######CFLAGS = -include version.h -Wall
-  9	#######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
- 10	
- 11	OBJS = xw_buildpuzz.o xw_createlinks.o xw_error.o xw_html.o \
- 12	xw_initpuzz.o xw_listutil.o xw_matchpuzz.o xw_printpuzz.o \
- 13	xw_puzzutil.o xw_readsort.o xw_sizedict.o xw_tryword.o xw_fillpuzz.o \
- 14	xword.o
- 15	
- 16	SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_error.c \
- 17	xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
- 18	xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
- 19	xw_tryword.c xw_fillpuzz.c xwindex.c version.c
- 20	
- 21	xword: ${OBJS}
- 22	        ${CC} ${CFLAGS} datecomp.c -o datecomp
- 23	        ./datecomp ${CFLAGS} -c version.c -o version.o 
- 24	        ${CC} ${CFLAGS} ${OBJS} version.o -o xword
- 25	####### mv version2.h version1.h
- 26	####### diff version1.h version2.h 
- 27	####### rm -f version.o; sync
- 28	
- 29	datecomp: datecomp.c
- 30	        ${CC} ${CFLAGS} datecomp.c -o datecomp
- 31	
- 32	testdate:
- 33	        ./datecomp -E ${CFLAGS} version.c
- 34	####### ./datecomp -E ${CFLAGS} -include version2.h version.c
- 35	
- 36	xwindex: xwindex.o xw_error.o
- 37	        ${CC} ${CFLAGS} xwindex.o xw_error.o  -o xwindex
- 38	
- 39	xw_fillpuzz: xw_fillpuzz.o xw_error.o xw_sizedict.o  
- 40	        ${CC} ${CFLAGS} xw_fillpuzz.o xw_error.o  xw_sizedict.o  -o xw_fillpuzz
- 41	
- 42	testindex: testindex.o xw_error.o
- 43	        ${CC} ${CFLAGS} testindex.o xw_error.o -o testindex
- 44	
- 45	strip_punc: strip_punc.o
- 46	        ${CC} ${CFLAGS} strip_punc.c -o strip_punc
- 47	
- 48	${OBJS} xwindex.o: ../source/defs.h xword.h
+  1	#define _VERSION_       7.77
+  2	#define _INCREMENT_     0.01
+  3	#define DATE_COMPILED   "Mon Oct 18 13:50:25 2021 "
 
 
-21 Jul 19:41 2020 Makefile Page 2
+27 May 12:17 2021 datecomp.c Page 1
+
+
+  1	/* /home/franx/source/datecomp.c Thu20Jul2006 {fcG} */
+  2	
+  3	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+  4	#               DATECOMP                #
+  5	#       date compiled executive         #
+  6	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+  7	
+  8	#include <stdlib.h>
+  9	#include <string.h>
+ 10	#include <sys/time.h>
+ 11	#include <unistd.h>
+ 12	#include <errno.h>
+ 13	#include "defs.h"
+ 14	/* #include "version.h" */
+ 15	#include "version.h"
+ 16	
+ 17	/* #define      _INCREMENT_     0.001 */
+ 18	
+ 19	void    clean(char *ptr)
+ 20	{
+ 21	        register        int     i;
+ 22	
+ 23	        for(i = 0; i < strlen(ptr); i++)
+ 24	        {
+ 25	                if ( ptr[i] EQ '\n' || ptr[i] EQ '\r' )
+ 26	                {       
+ 27	                        ptr[i] = ' ';
+ 28	                }
+ 29	        }
+ 30	}
+ 31	
+ 32	char    buf[SZ_FILENAME], cbuf[SZ_FILENAME], sbuf[SZ_FILENAME];
+ 33	
+ 34	int main(int argc, char *argv[])
+ 35	{
+ 36	        FILE    *fp;
+ 37	        time_t  clock;
+ 38	        float   ver, increment;
+ 39	        register        char    *ptr;
+ 40	        register        int     i;
+ 41	
+ 42	/*      PRINT2(f,_VERSION_,_INCREMENT_); */
+ 43	        increment = _INCREMENT_;
+ 44	        ver = _VERSION_;
+ 45	        PRINT2(f,ver,increment);
+ 46	        ver += increment;
+ 47	
+ 48	#undef  DATE_COMPILED
+
+
+27 May 12:17 2021 datecomp.c Page 2
+
+
+ 49	#undef  _VERSION_
+ 50	#undef  _INCREMENT_
+ 51	
+ 52	        time(&clock);
+ 53	/*      PRINT1(s, ctime(&clock)); */
+ 54	        ptr=buf;
+ 55	        for(i = 1; i < argc; i++)
+ 56	        {
+ 57	/*              PRINT1(010x, ptr); */
+ 58	/*              PRINT1(s, argv[i]); */
+ 59	                strncat(buf, argv[i], sizeof(buf) - strlen(buf) - 1);
+ 60	                ptr += strlen(argv[i]);
+ 61	                *ptr++ = ' ';
+ 62	        }
+ 63	        strncpy(cbuf, ctime(&clock), sizeof(cbuf));
+ 64	/*      printf("%s\n",cbuf); */
+ 65	        clean(cbuf);
+ 66	        fp = fopen("version.h", "w");
+ 67	        if (fp != NULL)
+ 68	        {       
+ 69	/*              PRINT1(#4.2f, ver); */
+ 70	                fprintf(fp, "#define\t_VERSION_\t%#4.2f\n", ver);
+ 71	                fprintf(fp, "#define\t_INCREMENT_\t%#4.2f\n",
+ 72	                                increment);
+ 73	                fprintf(fp, "#define\tDATE_COMPILED\t\"%s\"\n", cbuf);
+ 74	                fclose(fp);
+ 75	        }
+ 76	        else
+ 77	        {       
+ 78	                fprintf(stderr, "Version file open stuffed\n");
+ 79	                if (errno != 0)
+ 80	                {
+ 81	                fprintf(stderr, "errno = %d (%s)\n", errno,
+ 82	                      (char *)strerror(errno));
+ 83	                }
+ 84	        }
+ 85	        sprintf(sbuf,
+ 86	                "cc -DDATE_COMPILED='\"%s\"' -D_VERSION_=%4.2f %s",
+ 87	                cbuf, ver, buf);
+ 88	        printf("%s\n",sbuf);
+ 89	        if (system("sync"))
+ 90	        {       
+ 91	                fprintf(stderr,"sync stuffed!!!\n");
+ 92	                if (errno != 0)
+ 93	                {
+ 94	                fprintf(stderr, "errno = %d (%s)\n", errno,
+ 95	                      (char *)strerror(errno));
+ 96	                }
+
+
+27 May 12:17 2021 datecomp.c Page 3
+
+
+ 97	        }       
+ 98	        if (system(sbuf))
+ 99	        {       
+100	                fprintf(stderr,"System stuffed!!!\n");
+101	                if (errno != 0)
+102	                {
+103	                fprintf(stderr, "errno = %d (%s)\n", errno,
+104	                      (char *)strerror(errno));
+105	                }
+106	        }
+107	}
+108	
+109	/* End of /home/franx/source/datecomp.c */
+
+
+ 9 Oct 21:55 2021 Makefile Page 1
+
+
+  1	#/Users/moonpie/xword/Makefile Wed29Aug2018 {fcG}
+  2	#/home/franx/xword/Makefile Sat31Jan2004 {fcG}
+  3	
+  4	CC = clang
+  5	#######CC = gcc
+  6	CFLAGS = -g -O0
+  7	#######CFLAGS = -include version.h -Wall
+  8	#######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
+  9	
+ 10	OBJS = xword.o xw_buildpuzz.o xw_createlinks.o  xw_debug.o xw_error.o \
+ 11	xw_fillpuzz.o xw_html.o xw_initpuzz.o xw_listutil.o xw_matchpuzz.o \
+ 12	xw_makeborder.o xw_printpuzz.o xw_puzzutil.o xw_readsort.o xw_sizedict.o \
+ 13	xw_tryword.o 
+ 14	
+ 15	SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_debug.c xw_error.c \
+ 16	xw_fillpuzz.c xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
+ 17	xw_makeborder.c xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
+ 18	xw_tryword.c xwindex.c version.c
+ 19	
+ 20	xword: ${OBJS}
+ 21	        ${CC} ${CFLAGS} datecomp.c -o datecomp
+ 22	        ./datecomp ${CFLAGS} -c version.c -o version.o 
+ 23	        ${CC} ${CFLAGS} ${OBJS} version.o -o xword
+ 24	
+ 25	datecomp: datecomp.c
+ 26	        ${CC} ${CFLAGS} datecomp.c -o datecomp
+ 27	
+ 28	testdate:
+ 29	        ./datecomp -E ${CFLAGS} version.c
+ 30	####### ./datecomp -E ${CFLAGS} -include version2.h version.c
+ 31	
+ 32	xwindex: xwindex.o xw_error.o
+ 33	        ${CC} ${CFLAGS} xwindex.o xw_error.o  -o xwindex
+ 34	
+ 35	testfopen: testfopen.o xw_error.o 
+ 36	        ${CC} ${CFLAGS} testfopen.o xw_error.o -o testfopen
+ 37	
+ 38	testfreopen: testfreopen.o 
+ 39	        ${CC} ${CFLAGS} testfreopen.o -o testfreopen
+ 40	
+ 41	testindex: testindex.o xw_error.o
+ 42	        ${CC} ${CFLAGS} testindex.o xw_error.o -o testindex
+ 43	
+ 44	testgetenvcc: testgetenvcc.o
+ 45	        ${CC} ${CFLAGS} testgetenvcc.o -o testgetenvcc
+ 46	
+ 47	strip_punc: strip_punc.o
+ 48	        ${CC} ${CFLAGS} strip_punc.c -o strip_punc
+
+
+ 9 Oct 21:55 2021 Makefile Page 2
 
 
  49	
- 50	bakup:
- 51	        mcopy -t -o Makefile xw*.h xw*.c a:
- 52	        mdir a:
- 53	
- 54	clean:
- 55	        rm -f ${OBJS}
- 56	
- 57	git:
- 58	        git add xword.h ${SOURCE} 
- 59	print:
- 60	        pr -f -e -n3 -l58 Makefile defs.h xword.h ${SOURCE} \
- 61	> xword.txt
- 62	
- 63	######## End of /home/franx/Makefile ########
+ 50	${OBJS} xwindex.o: ../source/defs.h xword.h
+ 51	
+ 52	bakup:
+ 53	        mcopy -t -o Makefile xw*.h xw*.c a:
+ 54	        mdir a:
+ 55	
+ 56	clean:
+ 57	        rm -f ${OBJS}
+ 58	
+ 59	git:
+ 60	        git add Makefile defs.h xword.h version.h datecomp.c ${SOURCE}
+ 61	####### git remote add origin https://github.com/ruby1159449570/xword.git
+ 62	print:
+ 63	        pr -f -e -n3 -l58 version.h datecomp.c Makefile \
+ 64	defs.h xword.h ${SOURCE} > xword.txt
+ 65	
+ 66	######## End of /home/franx/Makefile ########
 
 
  6 Jul 20:27 2020 defs.h Page 1
@@ -151,7 +286,7 @@
  68	/* End of /home/franx/defs.h */
 
 
-18 Jul 20:16 2020 xword.h Page 1
+ 9 Oct 22:12 2021 xword.h Page 1
 
 
   1	/* /home/franx/xword/xword.h Mon26Jan2004 {fcG} */
@@ -184,177 +319,217 @@
  28	#define CLUELENGTH      200
  29	#define WORDLENGTH      20
  30	#define NUMLETTERS      26
- 31	#define EOWORD          '$'
+ 31	#define EOWORD          '#'
  32	#define NUMWORDS        100
- 33	#define UNDEFINED       32767
- 34	#define ORD(x)          ((x) - 'A')
- 35	#define INV(x)          ((x) EQ ACROSS ? DOWN : ACROSS)
- 36	#define DECODE(x)       ((x) EQ UNUSED ? "UNUSED"  : \
- 37	                        (x) EQ ACROSS ? "ACROSS" : \
- 38	                        (x) EQ DOWN ? "DOWN"       : \
- 39	                        "???")
- 40	#define INDEXDIR(x)     (sprintf(xw_indexdir,\
- 41	                        "%s.index/%06d", xw_indexfile,(x)))
- 42	
- 43	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
- 44	#               TYPEDEFS                #
- 45	#                                       #
- 46	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
- 47	
- 48	typedef enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL
+ 33	#define SZ_MAXRETSEARCH 100
+ 34	#define UNDEFINED       32767
+ 35	#define ORD(x)          ((x) - 'A')
+ 36	#define INV(x)          ((x) EQ ACROSS ? DOWN : ACROSS)
+ 37	#define DECODE(x)       ((x) EQ UNUSED ? "UNUSED"  : \
+ 38	                        (x) EQ ACROSS ? "ACROSS" : \
+ 39	                        (x) EQ DOWN ? "DOWN"       : \
+ 40	                        "???")
+ 41	#define INDEXDIR(x)     (sprintf(xw_indexdir,\
+ 42	                        "%s.index/%06d", xw_indexfile,(x)))
+ 43	
+ 44	#define XWORD_SWITCH    "XWORD_INTERACTIVE"
+ 45	
+ 46	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 47	#               TYPEDEFS                #
+ 48	#                                       #
 
 
-18 Jul 20:16 2020 xword.h Page 2
+ 9 Oct 22:12 2021 xword.h Page 2
 
 
- 49	        } SEVERITY;
+ 49	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
  50	
- 51	typedef enum status { UNUSED = 0, ACROSS = 1, DOWN = 2
- 52	        } STATUS;
+ 51	typedef enum severity { SV_INFO, SV_WARNING, SV_ERROR, SV_FATAL
+ 52	        } SEVERITY;
  53	
- 54	typedef struct  cluedescriptor
- 55	{
- 56	        char    *cd_clue;
- 57	        char    *cd_word;
- 58	        UINT    cd_number;
- 59	}       CLUEDESCRIPTOR;
- 60	
- 61	typedef struct  puzzle
- 62	{
- 63	        char    pz_letter;
- 64	        int     pz_rownum, pz_colnum;
- 65	        struct  puzzle  *pz_up, *pz_down, *pz_left, *pz_right;
- 66	        struct  wordlist *pz_ofaccrossword, *pz_ofdownword;
- 67	}       PUZZLE;
- 68	
- 69	typedef struct  puzzhead
- 70	{
- 71	        struct puzzhead *ph_prevpuzz, *ph_failpuzz;
- 72	        struct puzzle   *ph_puzzle;
- 73	        struct wordlist *ph_lastword;
- 74	        UINT            ph_numcols, ph_numrows,
- 75	                        ph_numwords, ph_numletters;
- 76	        float           ph_compact;
- 77	        ULONG           ph_checksum;
- 78	}       PUZZHEAD;
- 79	
- 80	typedef  struct wordfit
- 81	{
- 82	        int     wf_size, wf_x, wf_y;
- 83	        STATUS  wf_status;
- 84	}       WORDFIT;
- 85	
- 86	typedef struct  wordlist
- 87	{
- 88	        int wl_numchar;
- 89	        char    wl_word[WORDLENGTH+1], wl_clue[CLUELENGTH+1];
- 90	        STATUS  wl_status;
- 91	        int     wl_xpos, wl_ypos;
- 92	        struct  wordlist *wl_prev, *wl_next, *wl_sameletter[WORDLENGTH];
- 93	        struct  puzzhead *wl_failpuzz;
- 94	}       WORDLIST;
- 95	
- 96	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 54	typedef enum status { UNUSED = 0, ACROSS = 1, DOWN = 2
+ 55	        } STATUS;
+ 56	
+ 57	typedef enum color {
+ 58	        RED     = 31,
+ 59	        GREEN   = 32,
+ 60	        YELLOW  = 33,
+ 61	        BLUE    = 34,
+ 62	        PURPLE  = 35,
+ 63	        CYAN    = 36
+ 64	        } COLOR;
+ 65	
+ 66	typedef struct  cluedescriptor
+ 67	{
+ 68	        char    *cd_clue;
+ 69	        char    *cd_word;
+ 70	        UINT    cd_number;
+ 71	}       CLUEDESCRIPTOR;
+ 72	
+ 73	typedef struct  puzzle
+ 74	{
+ 75	        char    pz_letter;
+ 76	        int     pz_rownum, pz_colnum;
+ 77	        COLOR   pz_color;
+ 78	        struct  puzzle  *pz_up, *pz_down, *pz_left, *pz_right;
+ 79	        struct  wordlist *pz_ofaccrossword, *pz_ofdownword;
+ 80	}       PUZZLE;
+ 81	
+ 82	typedef struct  puzzhead
+ 83	{
+ 84	        struct puzzhead *ph_prevpuzz, *ph_failpuzz;
+ 85	        struct puzzle   *ph_puzzle;
+ 86	        struct wordlist *ph_lastword;
+ 87	        UINT            ph_numcols, ph_numrows,
+ 88	                        ph_numwords, ph_numletters;
+ 89	        float           ph_compact;
+ 90	        ULONG           ph_checksum;
+ 91	}       PUZZHEAD;
+ 92	
+ 93	typedef  struct wordfit
+ 94	{
+ 95	        int     wf_size, wf_x, wf_y;
+ 96	        STATUS  wf_status;
 
 
-18 Jul 20:16 2020 xword.h Page 3
+ 9 Oct 22:12 2021 xword.h Page 3
 
 
- 97	#               EXTERNS                 #
- 98	#                                       #
- 99	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
-100	
-101	/*  extern      PUZZHEAD *header; */
-102	extern  WORDFIT xw_best
-103	#ifdef  extern
-104	=
-105	{
-106	        0, 0, 0, UNUSED
-107	};
-108	#else
-109	        ;
-110	#endif
-111	
-112	extern  WORDFIT xw_ret
-113	#ifdef  extern
-114	=
-115	{
-116	        0, 0, 0, UNUSED
-117	};
-118	#else
-119	
-120	        ;
-121	#endif
-122	
-123	extern  WORDLIST xw_start
-124	#ifdef  extern
-125	=
-126	{
-127	  WORDLENGTH+1, "", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, {NULL}
-128	/* {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, */
-129	/*  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
-130	};
-131	#else
-132	        ;
-133	#endif
-134	
-135	extern  char    xw_inputfile[SZ_FILENAME+1],
-136	                xw_outputfile[SZ_FILENAME+6],
-137	                xw_indexfile[SZ_FILENAME+1],
-138	                xw_indexdir[SZ_FILENAME+1],
-139	                xw_sedfile[SZ_FILENAME+1];
-140	extern  int     xw_puzz_compact_req, xw_totletters, xw_totwords;
-141	extern  time_t  xw_starttime;
-142	extern  jmp_buf xw_env;
-143	
-144	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 97	}       WORDFIT;
+ 98	
+ 99	typedef struct  wordlist
+100	{
+101	        int wl_numchar;
+102	        char    wl_word[WORDLENGTH+1], wl_clue[CLUELENGTH+1];
+103	        STATUS  wl_status;
+104	        int     wl_xpos, wl_ypos;
+105	        struct  wordlist *wl_prev, *wl_next, *wl_sameletter[WORDLENGTH];
+106	        struct  puzzhead *wl_failpuzz;
+107	}       WORDLIST;
+108	
+109	typedef struct spot
+110	{
+111	  char sp_letter;
+112	  int  sp_pos;
+113	} SPOT;
+114	
+115	typedef struct wordhole
+116	{
+117	  int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
+118	  STATUS wh_status;
+119	  struct wordhole *wh_next;
+120	  struct spot wh_spot[WORDLENGTH];
+121	 
+122	} WORDHOLE;
+123	
+124	
+125	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+126	#               EXTERNS                 #
+127	#                                       #
+128	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+129	
+130	/*  extern      PUZZHEAD *header; */
+131	extern  WORDFIT xw_best
+132	#ifdef  extern
+133	=
+134	{
+135	        0, 0, 0, UNUSED
+136	};
+137	#else
+138	        ;
+139	#endif
+140	
+141	extern  WORDFIT xw_ret
+142	#ifdef  extern
+143	=
+144	{
 
 
-18 Jul 20:16 2020 xword.h Page 4
+ 9 Oct 22:12 2021 xword.h Page 4
 
 
-145	#               FUNCTIONS               #
-146	#                                       #
-147	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+145	        0, 0, 0, UNUSED
+146	};
+147	#else
 148	
-149	int     main(int, char*[]);
-150	
-151	char    *date_compiled();
-152	float   version();
-153	
-154	BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
-155	PUZZHEAD *xw_copypuzz(PUZZHEAD *);
-156	PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
-157	PUZZHEAD *xw_initpuzz(WORDLIST *);
-158	PUZZLE  *xw_pointpuzz(PUZZHEAD *, int, int);
-159	void    xw_createcolumn(PUZZHEAD *, int);
-160	void    xw_createlinks();
-161	void    xw_createrow(PUZZHEAD *, int);
-162	void    xw_error(SEVERITY, char *, ...);
-163	void    xw_feeldown(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
-164	void    xw_feelleft(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
-165	void    xw_feelright(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
-166	void    xw_feelup(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
-167	void    xw_killlist();
-168	void    xw_killpuzz(PUZZHEAD *);
-169	void    *xw_malloc(size_t);
-170	void    xw_printpuzz(PUZZHEAD *);
-171	void    xw_pushlist(WORDLIST *);
-172	void    xw_putwordin(PUZZHEAD *,WORDLIST *, STATUS, int, int);
-173	int     xw_readsort();
-174	void    xw_restartlist();
-175	int     xw_sizedict(char *);
-176	void    xw_tryword(PUZZHEAD *,WORDLIST *, int, WORDLIST *);
-177	void    xw_html(PUZZHEAD *);
-178	WORDLIST        *xw_buildpuzz(PUZZHEAD *, WORDLIST *);
-179	WORDLIST        *xw_poplist();
-180	
-181	#endif /* _XWORD_H */
-182	
-183	/* End of /home/franx/xword/xword.h */
+149	        ;
+150	#endif
+151	
+152	extern  WORDLIST xw_start
+153	#ifdef  extern
+154	=
+155	{
+156	  WORDLENGTH+1, "", "", UNUSED, UNDEFINED, UNDEFINED, 0, 0, {NULL}
+157	/* {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, */
+158	/*  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
+159	};
+160	#else
+161	        ;
+162	#endif
+163	
+164	extern  char    xw_inputfile[SZ_FILENAME+1],
+165	                xw_outputfile[SZ_FILENAME+6],
+166	                xw_debugfile[SZ_FILENAME],
+167	                xw_indexfile[SZ_FILENAME+1],
+168	                xw_indexdir[SZ_FILENAME+1],
+169	                xw_sedfile[SZ_FILENAME+1];
+170	extern  int     xw_puzz_compact_req, xw_totletters, xw_totwords;
+171	extern  time_t  xw_starttime;
+172	extern  jmp_buf xw_env;
+173	extern  BOOLEAN xw_switch;
+174	
+175	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+176	#               FUNCTIONS               #
+177	#                                       #
+178	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+179	
+180	int     main(int, char*[]);
+181	
+182	char    *date_compiled();
+183	float   version();
+184	
+185	BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
+186	PUZZHEAD *xw_copypuzz(PUZZHEAD *);
+187	void    xw_ddebug_breakpoint();
+188	void    xw_debug(WORDHOLE *wh);
+189	PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
+190	PUZZHEAD *xw_initpuzz(WORDLIST *);
+191	PUZZLE  *xw_pointpuzz(PUZZHEAD *, int, int);
+192	void    xw_createcolumn(PUZZHEAD *, int);
 
 
-19 Jul 14:50 2020 xword.c Page 1
+ 9 Oct 22:12 2021 xword.h Page 5
+
+
+193	void    xw_createlinks();
+194	void    xw_createrow(PUZZHEAD *, int);
+195	void    xw_error(SEVERITY, char *, ...);
+196	void    xw_feeldown(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+197	void    xw_feelleft(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+198	void    xw_feelright(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+199	void    xw_feelup(PUZZHEAD *, WORDLIST *, int, PUZZLE *);
+200	void    xw_killlist();
+201	void    xw_killpuzz(PUZZHEAD *);
+202	void    *xw_malloc(size_t);
+203	void    xw_makeborder(PUZZHEAD *);
+204	void    xw_printpuzz(PUZZHEAD *);
+205	void    xw_pushlist(WORDLIST *);
+206	void    xw_putwordin(PUZZHEAD *,WORDLIST *, STATUS, int, int);
+207	int     xw_readsort();
+208	void    xw_restartlist();
+209	int     xw_sizedict(char *);
+210	void    xw_tryword(PUZZHEAD *,WORDLIST *, int, WORDLIST *);
+211	void    xw_html(PUZZHEAD *);
+212	WORDLIST        *xw_buildpuzz(PUZZHEAD *, WORDLIST *);
+213	WORDLIST        *xw_poplist();
+214	int     xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr);
+215	
+216	#endif /* _XWORD_H */
+217	
+218	/* End of /home/franx/xword/xword.h */
+
+
+18 Oct 13:50 2021 xword.c Page 1
 
 
   1	/* /home/franx/xword/xword.c Mon26Jan2004 {fcG} */
@@ -407,288 +582,339 @@
  48	{
 
 
-19 Jul 14:50 2020 xword.c Page 2
+18 Oct 13:50 2021 xword.c Page 2
 
 
- 49	  if(setjmp(xw_env) EQ 0)
- 50	    {
- 51	      int count;
- 52	      PUZZHEAD *puzzle_header, *old_puzzhead;
- 53	      WORDLIST *failword, *word, *firstfail;
- 54	      
- 55	      printf(
- 56	"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
- 57	      printf(
- 58	"\033[7m#  Welcome to Franx X-word Generator! #\033[0m\n");
- 59	      printf(
- 60	"\033[7m#             Version: %#4.2f           #\033[0m\n",
- 61	        version());
+ 49	        char *envstring;
+ 50	        int count;
+ 51	
+ 52	  if(setjmp(xw_env) EQ 0)
+ 53	    {
+ 54	        FILE *fp1;
+ 55	      PUZZHEAD *puzzle_header, *old_puzzhead;
+ 56	      WORDLIST *failword, *word, *firstfail;
+ 57	      
+ 58	      printf(
+ 59	"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+ 60	      printf(
+ 61	"\033[7m#  Welcome to Franx X-word Generator! #\033[0m\n");
  62	      printf(
- 63	"\033[7m# Link Date: %s#\033[0m\n", date_compiled());
- 64	      printf(
- 65	"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
- 66	/*      WHEN; */
- 67	      if(argc < 2)
- 68	        {
- 69	          char buf[10];
- 70	          
- 71	          sprintf(buf, "%%%ds", SZ_FILENAME);
- 72	          printf("\nInput file of words? ");
- 73	          scanf(buf, xw_inputfile);
- 74	          
- 75	          sprintf(buf, "%%%ds", SZ_FILENAME);
- 76	          printf("\nDictionary file of words? ");
- 77	          scanf(buf, xw_indexfile);
- 78	
- 79	#ifdef SNARK
- 80	          fprintf(stderr, "Output file for final puzzle?\n");
- 81	          scanf(buf, xw_outputfile);
- 82	          fprintf(stderr, "Puzzle compactness?\n");
- 83	          scanf("%2d", &xw_puzz_compact_req);
- 84	          TEST(PR(d, xw_puzz_compact_req));
- 85	          TEST(PRINT2(s, xw_inputfile, xw_outputfile));
- 86	#endif /* SNARK */
- 87	 
- 88	        }
- 89	      else
- 90	        {
- 91	                PRINT1(s, argv[1]);
- 92	                strncpy(xw_inputfile, argv[1], SZ_FILENAME);
- 93	
- 94	                if(argc EQ 3)
- 95	                {
- 96	                        PRINT1(s, argv[2]);
+ 63	"\033[7m#             Version: %#4.2f           #\033[0m\n",
+ 64	        version());
+ 65	      printf(
+ 66	"\033[7m# Link Date: %s#\033[0m\n", date_compiled());
+ 67	      printf(
+ 68	"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+ 69	/*      WHEN; */
+ 70	        envstring = getenv(XWORD_SWITCH);
+ 71	        if(envstring EQ 0)
+ 72	        {       
+ 73	                xw_switch = FALSE;
+ 74	        }
+ 75	        else
+ 76	        {
+ 77	                if(!strcmp(envstring, "YES"))
+ 78	                {
+ 79	                        xw_switch = TRUE;
+ 80	                }
+ 81	                else
+ 82	                        {
+ 83	                                xw_switch = FALSE;
+ 84	                        }
+ 85	                }
+ 86	        envstring = getenv("XWORD_DEBUG");
+ 87	        if(envstring EQ 0)
+ 88	        {       
+ 89	                strncpy(xw_debugfile, "/dev/tty001", SZ_FILENAME);
+ 90	        }
+ 91	        else
+ 92	        {
+ 93	                strncpy(xw_debugfile, envstring, SZ_FILENAME);
+ 94	        }
+ 95	
+ 96	        if ((fp1 = freopen(xw_debugfile, "w", stderr)) EQ NULL)
 
 
-19 Jul 14:50 2020 xword.c Page 3
+18 Oct 13:50 2021 xword.c Page 3
 
 
- 97	                        strncpy(xw_indexfile, argv[2], SZ_FILENAME);
- 98	                }
- 99	                else
-100	                {
-101	                        strncpy(xw_indexfile, "", SZ_FILENAME);
-102	                        
-103	                }
-104	        }
-105	
-106	time(&xw_starttime);
-107	if ((count = xw_readsort()) > 0)
-108	{
-109	  xw_error(SV_ERROR,
-110	"%d Errors encountered in parsing %s", count, xw_inputfile);
-111	}
-112	if (xw_totwords <= 1)
-113	{
-114	  xw_error(SV_FATAL,
-115	"Don't be a Smartarse, a xword must have at least 2 words");
-116	}
-117	xw_createlinks();
-118	
-119	xw_poplist(); /* pop xw_start off wordlist?! */
-120	
-121	word = xw_poplist();
-122	puzzle_header = xw_initpuzz(word);
-123	TEST(PRINT1(#018lx, (ULONG)puzzle_header));
-124	
-125	#ifdef  SNARK
-126	
-127	GOBACK:
-128	
-129	do
-130	{
-131	        PUZZHEAD *temp;
-132	
-133	        temp = xw_copypuzz(puzzle_header);
-134	        word = xw_poplist();
-135	
-136	        TEST(PRINT3(#018lx,
-137	        (ULONG)word, (ULONG)temp, (ULONG)puzzle_header));
-138	
-139	        temp->ph_prevpuzz = puzzle_header;
-140	        puzzle_header = temp;
-141	}
-142	while((word != NULL)
-143	&& (failword = xw_buildpuzz(puzzle_header, word)) EQ NULL);
-144	#endif  /* SNARK */
+ 97	        {
+ 98	                printf("xword: Error opening \"%s\"", xw_debugfile);
+ 99	                exit(-1);
+100	        }
+101	
+102	        fprintf(stderr, "TESTING\n");
+103	
+104	        xw_error(SV_INFO, "xword: XWORD_DEBUG port is %s.",
+105	                xw_debugfile);
+106	        xw_error(SV_INFO, "xword: XWORD_INTERACTIVE mode is %s.",
+107	                xw_switch ? "YES" : "NO");
+108	
+109	
+110	      if(argc < 2)
+111	        {
+112	          char buf[10];
+113	          
+114	          sprintf(buf, "%%%ds", SZ_FILENAME);
+115	          printf("\nxword: Input file of words? ");
+116	          scanf(buf, xw_inputfile);
+117	
+118	          sprintf(buf, "%%%ds", SZ_FILENAME);
+119	          printf("\nxword: Dictionary file of words? ");
+120	          scanf(buf, xw_indexfile);
+121	
+122	#ifdef SNARK
+123	          fprintf(stderr, "Output file for final puzzle?\n");
+124	          scanf(buf, xw_outputfile);
+125	          fprintf(stderr, "Puzzle compactness?\n");
+126	          scanf("%2d", &xw_puzz_compact_req);
+127	          TEST(PR(d, xw_puzz_compact_req));
+128	          TEST(PRINT2(s, xw_inputfile, xw_outputfile));
+129	#endif /* SNARK */
+130	 
+131	        }
+132	      else
+133	        {
+134	                PRINT1(s, argv[1]);
+135	                strncpy(xw_inputfile, argv[1], SZ_FILENAME);
+136	
+137	                if(argc EQ 3)
+138	                {
+139	                        PRINT1(s, argv[2]);
+140	                        strncpy(xw_indexfile, argv[2], SZ_FILENAME);
+141	                }
+142	                else
+143	                {
+144	                        strncpy(xw_indexfile, "", SZ_FILENAME);
 
 
-19 Jul 14:50 2020 xword.c Page 4
+18 Oct 13:50 2021 xword.c Page 4
 
 
-145	  
-146	while((word = xw_poplist()))
-147	{
-148	        PUZZHEAD *temp;
-149	
-150	        temp = xw_copypuzz(puzzle_header);
-151	        temp->ph_prevpuzz = puzzle_header;
-152	        puzzle_header = temp;
-153	        
-154	        while(failword = xw_buildpuzz(puzzle_header, word))
-155	        {
-156	
-157	                TEST(PRINT2(#018lx,
-158	                (ULONG)failword, (ULONG)puzzle_header));
-159	                puzzle_header->ph_failpuzz = failword->wl_failpuzz;
-160	                failword->wl_failpuzz = puzzle_header;
-161	                puzzle_header = puzzle_header->ph_prevpuzz;
-162	                if(!puzzle_header)
-163	                {
-164	                        xw_error(SV_FATAL,
-165	                        "Could not find spot for %s",
-166	                        failword->wl_word);
-167	                }
-168	        }
-169	}
-170	        
-171	#ifdef  SNARK
-172	
-173	
-174	if (failword != NULL)
-175	        {
-176	          PUZZHEAD *temp;
-177	              
-178	          firstfail = failword;
-179	          puzzle_header->ph_failpuzz = failword->wl_failpuzz;
-180	          failword->wl_failpuzz = puzzle_header;
-181	#ifdef DEBUG
-182	                printf("\033[32;40m");
-183	                PR(#018lx, (ULONG)firstfail);
-184	                PR(s, firstfail->wl_word);
-185	        printf("\033[0m\n");
-186	#endif
-187	          do
-188	            {   
-189	              do
-190	                {
-191	                  puzzle_header = puzzle_header->ph_prevpuzz;
-192	                  if (puzzle_header EQ NULL)
+145	                        
+146	                }
+147	        }
+148	
+149	time(&xw_starttime);
+150	if ((count = xw_readsort()) > 0)
+151	{
+152	  xw_error(SV_ERROR,
+153	"%d Errors encountered in parsing %s", count, xw_inputfile);
+154	}
+155	if (xw_totwords <= 1)
+156	{
+157	  xw_error(SV_FATAL,
+158	"Don't be a Smartarse, a xword must have at least 2 letters");
+159	}
+160	xw_createlinks();
+161	
+162	xw_poplist(); /* pop xw_start off wordlist?! */
+163	
+164	word = xw_poplist();
+165	puzzle_header = xw_initpuzz(word);
+166	TEST(PRINT1(#018lx, (ULONG)puzzle_header));
+167	
+168	#ifdef  SNARK
+169	
+170	GOBACK:
+171	
+172	do
+173	{
+174	        PUZZHEAD *temp;
+175	
+176	        temp = xw_copypuzz(puzzle_header);
+177	        word = xw_poplist();
+178	
+179	        TEST(PRINT3(#018lx,
+180	        (ULONG)word, (ULONG)temp, (ULONG)puzzle_header));
+181	
+182	        temp->ph_prevpuzz = puzzle_header;
+183	        puzzle_header = temp;
+184	}
+185	while((word != NULL)
+186	&& (failword = xw_buildpuzz(puzzle_header, word)) EQ NULL);
+187	#endif  /* SNARK */
+188	  
+189	while((word = xw_poplist()))
+190	{
+191	        PUZZHEAD *temp;
+192	
 
 
-19 Jul 14:50 2020 xword.c Page 5
+18 Oct 13:50 2021 xword.c Page 5
 
 
-193	                    {
-194	                      puzzle_header = xw_initpuzz(failword);
-195	                      break;
-196	                    }
-197	                  temp = xw_copypuzz(puzzle_header);
-198	        #ifdef DEBUG
-199	                  TEST(WHERE);
-200	                  PRINT2(#018lx, (ULONG)temp,
-201	                        (ULONG)puzzle_header);
-202	                  xw_printpuzz(puzzle_header);
-203	        #endif /* DEBUG */
-204	                      
-205	                  if(puzzle_header->ph_lastword != NULL)
-206	                    {
-207	                      xw_pushlist(puzzle_header->ph_lastword);
-208	                    }
-209	                  puzzle_header = temp;
+193	        temp = xw_copypuzz(puzzle_header);
+194	        temp->ph_prevpuzz = puzzle_header;
+195	        puzzle_header = temp;
+196	        
+197	        while((failword = xw_buildpuzz(puzzle_header, word)))
+198	        {
+199	
+200	                TEST(PRINT2(#018lx,
+201	                (ULONG)failword, (ULONG)puzzle_header));
+202	                puzzle_header->ph_failpuzz = failword->wl_failpuzz;
+203	                failword->wl_failpuzz = puzzle_header;
+204	                puzzle_header = puzzle_header->ph_prevpuzz;
+205	                if(!puzzle_header)
+206	                {
+207	                        xw_error(SV_FATAL,
+208	                        "Could not find spot for %s",
+209	                        failword->wl_word);
 210	                }
-211	              while((word != NULL)
-212	                && (xw_buildpuzz(puzzle_header,failword) != NULL));
-213	
-214	        #ifdef DEBUG
-215	              printf("\033[32;40m");
-216	              WHERE; printf("Found a spot for %s",
-217	                        failword->wl_word);
-218	              printf("\033[0m\n");
-219	        #endif /* DEBUG */
-220	              do
-221	                {
-222	                  temp = xw_copypuzz(puzzle_header); 
-223	                  temp->ph_prevpuzz = puzzle_header;
-224	                  puzzle_header = temp;
-225	                  word = xw_poplist();
-226	                }
-227	              while((word != NULL)
-228	                && (failword = xw_buildpuzz(puzzle_header,word)) EQ NULL);
-229	              if (failword != NULL)
-230	                {
-231	                  old_puzzhead = failword->wl_failpuzz;
-232	                  while(old_puzzhead != NULL)
-233	                    {
-234	                      if (xw_matchpuzz(old_puzzhead, puzzle_header))
-235	                        
-236	                        
-237	                        xw_error(SV_FATAL, "Could not find spot for %s",
-238	                        failword->wl_word);
-239	                        }
-240	                      old_puzzhead = old_puzzhead->ph_failpuzz;
+211	        }
+212	}
+213	        
+214	#ifdef  SNARK
+215	
+216	
+217	if (failword != NULL)
+218	        {
+219	          PUZZHEAD *temp;
+220	              
+221	          firstfail = failword;
+222	          puzzle_header->ph_failpuzz = failword->wl_failpuzz;
+223	          failword->wl_failpuzz = puzzle_header;
+224	#ifdef DEBUG
+225	                printf("\033[32;40m");
+226	                PR(#018lx, (ULONG)firstfail);
+227	                PR(s, firstfail->wl_word);
+228	        printf("\033[0m\n");
+229	#endif
+230	          do
+231	            {   
+232	              do
+233	                {
+234	                  puzzle_header = puzzle_header->ph_prevpuzz;
+235	                  if (puzzle_header EQ NULL)
+236	                    {
+237	                      puzzle_header = xw_initpuzz(failword);
+238	                      break;
+239	                    }
+240	                  temp = xw_copypuzz(puzzle_header);
 
 
-19 Jul 14:50 2020 xword.c Page 6
+18 Oct 13:50 2021 xword.c Page 6
 
 
-241	                    }
-242	                  if (failword EQ firstfail)
-243	                    {
-244	                      static WORDLIST *newhead = NULL;
-245	        #ifdef DEBUG
-246	                      PR(s, firstfail->wl_word);
-247	                      PRINT2(#018lx, (ULONG)newhead, (ULONG)firstfail);
-248	        #endif
-249	                      if (newhead EQ NULL || firstfail != newhead)
-250	                        {   
-251	                          newhead = firstfail;
-252	
-253	                          xw_restartlist();
-254	                          xw_poplist(); /* pop xw_start off wordlist?! */
-255	
-256	                          puzzle_header = xw_initpuzz(failword);
-257	
-258	        #ifdef DEBUG
-259	                                printf("\033[32;40m");
-260	                                WHERE; printf("Going to GOBACK...");
-261	                                printf("\033[0m\n");
-262	        #endif /* DEBUG */
-263	                          goto GOBACK;
-264	                        }
-265	                    }
-266	            }
-267	            while((word != NULL) && (failword != NULL));
-268	        }
-269	
-270	#endif  /* SNARK */
-271	
-272	        sigint_puzzle_header = puzzle_header;
-273	        if (signal(SIGINT, (void (*)(int))sigint_handler) EQ SIG_ERR)
-274	        {
-275	                xw_error(SV_ERROR, "signal snarked!!!");
-276	        }
-277	
-278	#ifdef  SNARK
-279	for(EVER)
-280	{
-281	  ;
-282	}
-283	#endif  /* SNARK */
-284	
-285	        if (strncmp(xw_indexfile, "", SZ_FILENAME))
-286	        {
-287	                xw_fillpuzz(puzzle_header);
-288	        }
+241	#ifdef DEBUG
+242	                  TEST(WHERE);
+243	                  PRINT2(#018lx, (ULONG)temp,
+244	                        (ULONG)puzzle_header);
+245	/*                xw_printpuzz(puzzle_header); */
+246	#endif /* DEBUG */
+247	                      
+248	                  if(puzzle_header->ph_lastword != NULL)
+249	                    {
+250	                      xw_pushlist(puzzle_header->ph_lastword);
+251	                    }
+252	                  puzzle_header = temp;
+253	                }
+254	              while((word != NULL)
+255	                && (xw_buildpuzz(puzzle_header,failword) != NULL));
+256	
+257	#ifdef DEBUG
+258	              printf("\033[32;40m");
+259	              WHERE; printf("Found a spot for %s",
+260	                        failword->wl_word);
+261	              printf("\033[0m\n");
+262	#endif /* DEBUG */
+263	              do
+264	                {
+265	                  temp = xw_copypuzz(puzzle_header); 
+266	                  temp->ph_prevpuzz = puzzle_header;
+267	                  puzzle_header = temp;
+268	                  word = xw_poplist();
+269	                }
+270	              while((word != NULL)
+271	                && (failword = xw_buildpuzz(puzzle_header,word)) EQ NULL);
+272	              if (failword != NULL)
+273	                {
+274	                  old_puzzhead = failword->wl_failpuzz;
+275	                  while(old_puzzhead != NULL)
+276	                    {
+277	                      if (xw_matchpuzz(old_puzzhead, puzzle_header))
+278	                        
+279	                        
+280	                        xw_error(SV_FATAL, "Could not find spot for %s",
+281	                        failword->wl_word);
+282	                        }
+283	                      old_puzzhead = old_puzzhead->ph_failpuzz;
+284	                    }
+285	                  if (failword EQ firstfail)
+286	                    {
+287	                      static WORDLIST *newhead = NULL;
+288	#ifdef DEBUG
 
 
-19 Jul 14:50 2020 xword.c Page 7
+18 Oct 13:50 2021 xword.c Page 7
 
 
-289	        xw_html(puzzle_header);
-290	        xw_killlist();
-291	        exit(0);
-292	}
-293	else
-294	        {
-295	                fprintf(stderr, "xword: aborting due to errors...\n");
-296	                exit(-1);
-297	        }
-298	}
-299	/* End of /home/franx/xword/xword.c */
+289	                      PR(s, firstfail->wl_word);
+290	                      PRINT2(#018lx, (ULONG)newhead, (ULONG)firstfail);
+291	#endif
+292	                      if (newhead EQ NULL || firstfail != newhead)
+293	                        {   
+294	                          newhead = firstfail;
+295	
+296	                          xw_restartlist();
+297	                          xw_poplist(); /* pop xw_start off wordlist?! */
+298	
+299	                          puzzle_header = xw_initpuzz(failword);
+300	
+301	#ifdef DEBUG
+302	                                printf("\033[32;40m");
+303	                                WHERE; printf("Going to GOBACK...");
+304	                                printf("\033[0m\n");
+305	#endif /* DEBUG */
+306	                          goto GOBACK;
+307	                        }
+308	                    }
+309	            }
+310	            while((word != NULL) && (failword != NULL));
+311	        }
+312	
+313	#endif  /* SNARK */
+314	
+315	        sigint_puzzle_header = puzzle_header;
+316	        if (signal(SIGINT, (void (*)(int))sigint_handler) EQ SIG_ERR)
+317	        {
+318	                xw_error(SV_ERROR, "signal snarked!!!");
+319	        }
+320	
+321	#ifdef  SNARK
+322	        for(EVER)
+323	        {
+324	          ;     // Do *NOTHING*
+325	        }
+326	#endif  /* SNARK */
+327	
+328	                xw_printpuzz(puzzle_header);
+329	                if (strncmp(xw_indexfile, "", SZ_FILENAME))
+330	                {
+331	                        xw_makeborder(puzzle_header);
+332	                        xw_printpuzz(puzzle_header);
+333	                        xw_fillpuzz(puzzle_header);
+334	                }
+335	                xw_html(puzzle_header);
+336	                xw_killlist();
 
 
- 8 Jul 23:39 2020 xw_buildpuzz.c Page 1
+18 Oct 13:50 2021 xword.c Page 8
+
+
+337	                exit(0);
+338	        }
+339	        else
+340	        {
+341	                fprintf(stderr, "xword: aborting due to errors...\n");
+342	                exit(-1);
+343	        }
+344	}
+345	/* End of /home/franx/xword/xword.c */
+
+
+10 Jul 22:18 2021 xw_buildpuzz.c Page 1
 
 
   1	/* /home/franx/xword/xw_buildpuzz.c Wed04Feb2004 {fcG} */
@@ -741,7 +967,7 @@
  48	                  }
 
 
- 8 Jul 23:39 2020 xw_buildpuzz.c Page 2
+10 Jul 22:18 2021 xw_buildpuzz.c Page 2
 
 
  49	              }
@@ -771,7 +997,7 @@
  73	              {
  74	                xw_putwordin(ph, word, xw_best.wf_status,
  75	                        xw_best.wf_x, xw_best.wf_y);
- 76	                xw_printpuzz(ph);
+ 76	/*              xw_printpuzz(ph); */
  77	          
  78	              }
  79	          }
@@ -794,7 +1020,7 @@
  96	#ifdef DEBUG
 
 
- 8 Jul 23:39 2020 xw_buildpuzz.c Page 3
+10 Jul 22:18 2021 xw_buildpuzz.c Page 3
 
 
  97	          printf("Success!!!\n");
@@ -814,60 +1040,61 @@
 111	        PUZZLE  *ref;
 112	
 113	#ifdef  DEBUG
-114	        printf("xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
-115	                w->wl_word, s, DECODE(s), x, y);
-116	#endif  /* DEBUG*/
-117	
-118	        if (s EQ ACROSS)
-119	        {
-120	                xw_createcolumn(p, x-1);
-121	                xw_createcolumn(p, x+w->wl_numchar);
-122	                ref = xw_pointpuzz(p, x-1, y);
-123	                ref->pz_letter = EOWORD;
-124	                ref = ref->pz_right;
-125	                ref->pz_ofaccrossword = w;
-126	        }
-127	        else
-128	        {
-129	                xw_createrow(p, y-1);
-130	                xw_createrow(p, y+w->wl_numchar);
-131	                ref = xw_pointpuzz(p, x, y-1);
-132	                ref->pz_letter = EOWORD;
-133	                ref = ref->pz_down;
-134	                ref->pz_ofdownword = w;
-135	        }
-136	        for (i=0; i<w->wl_numchar; i++)
-137	        {
-138	                if (ref->pz_letter EQ '\0')
-139	                {
-140	                  TEST(PR(c, w->wl_word[i]));
-141	                  TEST(PRINT1(d, w->wl_word[i]));
-142	                  p->ph_checksum += w->wl_word[i];
-143	                }
-144	                ref->pz_letter = w->wl_word[i];
+114	        printf(
+115	"xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
+116	                w->wl_word, s, DECODE(s), x, y);
+117	#endif  /* DEBUG*/
+118	
+119	        if (s EQ ACROSS)
+120	        {
+121	                xw_createcolumn(p, x-1);
+122	                xw_createcolumn(p, x+w->wl_numchar);
+123	                ref = xw_pointpuzz(p, x-1, y);
+124	                ref->pz_letter = EOWORD;
+125	                ref = ref->pz_right;
+126	                ref->pz_ofaccrossword = w;
+127	        }
+128	        else
+129	        {
+130	                xw_createrow(p, y-1);
+131	                xw_createrow(p, y+w->wl_numchar);
+132	                ref = xw_pointpuzz(p, x, y-1);
+133	                ref->pz_letter = EOWORD;
+134	                ref = ref->pz_down;
+135	                ref->pz_ofdownword = w;
+136	        }
+137	        for (i=0; i<w->wl_numchar; i++)
+138	        {
+139	                if (ref->pz_letter EQ '\0')
+140	                {
+141	                  TEST(PR(c, w->wl_word[i]));
+142	                  TEST(PRINT1(d, w->wl_word[i]));
+143	                  p->ph_checksum += w->wl_word[i];
+144	                }
 
 
- 8 Jul 23:39 2020 xw_buildpuzz.c Page 4
+10 Jul 22:18 2021 xw_buildpuzz.c Page 4
 
 
-145	                if (s EQ ACROSS)
-146	                {
-147	                        ref = ref->pz_right;
-148	                }
-149	                else
-150	                {
-151	                        ref = ref->pz_down;
-152	                }
-153	        }
-154	        p->ph_numwords++;
-155	        p->ph_lastword = w;
-156	        ref->pz_letter = EOWORD;
-157	        w->wl_status = s;
-158	        w->wl_xpos = x;
-159	        w->wl_ypos = y;
-160	}
-161	
-162	/* End of /home/franx/xword/xw_buildpuzz.c */
+145	                ref->pz_letter = w->wl_word[i];
+146	                if (s EQ ACROSS)
+147	                {
+148	                        ref = ref->pz_right;
+149	                }
+150	                else
+151	                {
+152	                        ref = ref->pz_down;
+153	                }
+154	        }
+155	        p->ph_numwords++;
+156	        p->ph_lastword = w;
+157	        ref->pz_letter = EOWORD;
+158	        w->wl_status = s;
+159	        w->wl_xpos = x;
+160	        w->wl_ypos = y;
+161	}
+162	
+163	/* End of /home/franx/xword/xw_buildpuzz.c */
 
 
  8 Jul 21:51 2020 xw_createlinks.c Page 1
@@ -991,7 +1218,87 @@
 106	/* End of /home/franx/xword/xw_createlinks.c */
 
 
- 8 Jul 21:52 2020 xw_error.c Page 1
+12 Oct 21:26 2021 xw_debug.c Page 1
+
+
+  1	/* /Users/moonpie/xword/xw_debug.c Sat09Oct2021 {fcG} */
+  2	
+  3	#include <ctype.h>
+  4	#include <errno.h>
+  5	#include <setjmp.h>
+  6	#include <stdarg.h>
+  7	#include <stdio.h>
+  8	#include <stdlib.h>
+  9	#include <string.h>
+ 10	#include <time.h>
+ 11	#include <unistd.h>
+ 12	#include "defs.h"
+ 13	#include "xword.h"
+ 14	
+ 15	#undef  nL
+ 16	#undef  PR
+ 17	#undef  PRINT1
+ 18	#undef  PRINT2
+ 19	#undef  PRINT3
+ 20	#undef  PRINT4
+ 21	
+ 22	#ifdef  __STDC__
+ 23	#define PR(fmt,value)   fprintf(stderr, #value " = %" #fmt "\t", (value))
+ 24	#else
+ 25	#define PR(fmt,value)   fprintf(stderr,"value = %fmt\t", (value))
+ 26	#endif  /* __STDC__ */
+ 27	#define nL                      fprintf(stderr,"\n")
+ 28	#define PRINT1(f,x1)            PR(f,x1),nL
+ 29	#define PRINT2(f,x1,x2)         PR(f,x1),PRINT1(f,x2)
+ 30	#define PRINT3(f,x1,x2,x3)      PR(f,x1),PRINT2(f,x2,x3)
+ 31	#define PRINT4(f,x1,x2,x3,x4)   PR(f,x1),PRINT3(f,x2,x3,x4)
+ 32	
+ 33	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 34	#       XW_DEBUG_BREAKPOINT             #
+ 35	#                                       #
+ 36	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+ 37	
+ 38	void    xw_ddebug_breakpoint()
+ 39	{
+ 40	        fprintf(stderr,"<<<<<<<< EXITING  DEBUG >>>>>>>>\n");
+ 41	}
+ 42	
+ 43	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 44	#       XW_DEBUG                        #
+ 45	#                                       #
+ 46	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+ 47	
+ 48	void xw_debug(WORDHOLE *wh)
+
+
+12 Oct 21:26 2021 xw_debug.c Page 2
+
+
+ 49	{
+ 50	        register long i;
+ 51	
+ 52	/*      do */
+ 53	        fprintf(stderr,"<<<<<<<< ENTERING DEBUG >>>>>>>>\n");
+ 54	        xw_ddebug_breakpoint();
+ 55	        while (wh != 0)
+ 56	        {
+ 57	        PRINT4(d,wh->wh_key,wh->wh_rownum,wh->wh_colnum,wh->wh_length);
+ 58	                PRINT1(d,wh->wh_spot);
+ 59	        fprintf(stderr,"wh->wh_status = %s\n",DECODE(wh->wh_status));
+ 60	                PRINT1(#018lx,wh->wh_next);
+ 61	                for(i=0; i<wh->wh_spots; i++)
+ 62	                {
+ 63	                        PRINT1(c,wh->wh_spot[i].sp_letter);
+ 64	                        PRINT1(d,wh->wh_spot[i].sp_pos);
+ 65	                }
+ 66	                wh = wh->wh_next;
+ 67	        }
+ 68	
+ 69	}
+ 70	/* End of /Users/moonpie/xword/xw_debug.c */
+
+
+28 Jul 16:40 2020 xw_error.c Page 1
 
 
   1	/* /home/franx/xword/xw_error.c Sat31Jan2004 {fcG} */
@@ -1040,11 +1347,11 @@
  44	  fprintf(stderr,"\033[0m\n");
  45	  va_end(ap);
  46	/*perror("xw_error()");  */
- 47	  if (errno != 0)
+ 47	  if (errno != 0 && errno != ENOENT)
  48	    {
 
 
- 8 Jul 21:52 2020 xw_error.c Page 2
+28 Jul 16:40 2020 xw_error.c Page 2
 
 
  49	      fprintf(stderr, "errno = %d (%s)\n", errno,
@@ -1086,7 +1393,1024 @@
  85	
 
 
-14 Jul 22:17 2020 xw_html.c Page 1
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 1
+
+
+  1	/* /home/franx/xword/xw_fillpuzz.c Fri28Jul2006 {fcG} */
+  2	//
+  3	//  Created by Frank Charles Gallacher on 22/5/20.
+  4	//  Copyleft © 2020 Frank Charles Gallacher. All rights reserved.
+  5	//
+  6	// MODIFICATION HISTORY
+  7	// When         Who     What
+  8	// Sat18Jul2020 {fcG}   xw_search_blanks() implemented...
+  9	// Fri31Jul2020 {fcG}   debugged clear_word(), changed AND(&&) to OR(||).
+ 10	
+ 11	#include <ctype.h>
+ 12	#include <errno.h>
+ 13	#include <setjmp.h>
+ 14	#include <signal.h>
+ 15	#include <stdarg.h>
+ 16	#include <stdio.h>
+ 17	#include <stdlib.h>
+ 18	#include <string.h>
+ 19	#include <time.h>
+ 20	#include <unistd.h>
+ 21	//#define       extern
+ 22	#include "xword.h"
+ 23	
+ 24	#define NOT_WHITE(x)    ((x) != '\0' && (x) != EOWORD)
+ 25	/* #define      SZ_MAXRETSEARCH 40 */
+ 26	
+ 27	WORDHOLE xw_whstart =
+ 28	  {
+ 29	    2020, UNDEFINED, UNDEFINED, 0, 0, UNUSED, NULL,
+ 30	  };
+ 31	
+ 32	int     max;
+ 33	
+ 34	char buf[SZ_FILENAME+1];
+ 35	
+ 36	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 37	#               xw_INSERTHOLE           #
+ 38	#                                       #
+ 39	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+ 40	
+ 41	WORDHOLE *xw_inserthole(int spots, int letters,
+ 42	WORDHOLE *wh, PUZZLE *pzptr, STATUS stat) 
+ 43	{
+ 44	        register WORDHOLE *wh_ptr = &xw_whstart;
+ 45	
+ 46	        wh->wh_key = (spots * 100) + letters;
+ 47	        wh->wh_status = stat;
+ 48	        for(EVER)
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 2
+
+
+ 49	        {
+ 50	                if((wh_ptr->wh_next EQ NULL)
+ 51	                || (wh_ptr->wh_next->wh_key < wh->wh_key))
+ 52	                {
+ 53	                        wh->wh_next = wh_ptr->wh_next;
+ 54	                        wh_ptr->wh_next = wh;
+ 55	                        break;
+ 56	                }
+ 57	                else
+ 58	                {
+ 59	                        wh_ptr = wh_ptr->wh_next;
+ 60	                }
+ 61	        }
+ 62	        return (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
+ 63	}
+ 64	
+ 65	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 66	#               XW_SEARCHRANK           #
+ 67	#                                       #
+ 68	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+ 69	
+ 70	void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
+ 71	{
+ 72	        register int i, numletters, numspots;
+ 73	        WORDHOLE *wh_ptr;
+ 74	
+ 75	        numletters = numspots = 0;
+ 76	        wh_ptr = (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
+ 77	        wh_ptr->wh_rownum = pzptr->pz_rownum;
+ 78	        wh_ptr->wh_colnum = pzptr->pz_colnum;
+ 79	
+ 80	        for(i = 0; i < MIN(max, length); i++)
+ 81	        {
+ 82	                if (pzptr->pz_letter EQ EOWORD)
+ 83	                {
+ 84	                        if (numspots != 0 && numspots
+ 85	                        != numletters)
+ 86	                        {
+ 87	                                wh_ptr = xw_inserthole(numspots,
+ 88	                                numletters, wh_ptr, pzptr, stat);
+ 89	                                wh_ptr->wh_length = numletters;
+ 90	                                wh_ptr->wh_spots = numspots;
+ 91	//                              break;
+ 92	                        }
+ 93	                        else
+ 94	                        {
+ 95	                                register int j;
+ 96	                                for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot);
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 3
+
+
+ 97	                                        j++)
+ 98	                                {
+ 99	                                        wh_ptr->wh_spot[j].sp_letter
+100	                                                = '\0';
+101	                                        wh_ptr->wh_spot[j].sp_pos = 0;
+102	                                }
+103	                        }
+104	                        if (stat EQ ACROSS)
+105	                        {
+106	                                wh_ptr->wh_rownum
+107	                                        = pzptr->pz_rownum;
+108	                                wh_ptr->wh_colnum
+109	                                        = pzptr->pz_colnum+1;
+110	                        }
+111	                        else
+112	                        {
+113	                                wh_ptr->wh_rownum
+114	                                        = pzptr->pz_rownum+1;
+115	                                wh_ptr->wh_colnum
+116	                                        = pzptr->pz_colnum;
+117	                        }
+118	                        numletters = numspots = 0;
+119	                }
+120	                else
+121	                {
+122	
+123	                        if (pzptr->pz_letter EQ '\0'
+124	                        || pzptr->pz_letter EQ ' ')
+125	                        {
+126	                                numletters++;
+127	                        }
+128	                        else
+129	                        {
+130	                                wh_ptr->wh_spot[numspots].sp_pos
+131	                                        = ++numletters;
+132	                                wh_ptr->
+133	                                wh_spot[numspots++].sp_letter
+134	                                        = pzptr->pz_letter;
+135	                        }
+136	                }
+137	                if (stat EQ ACROSS)
+138	                {
+139	                        pzptr = pzptr->pz_right;
+140	                }
+141	                else
+142	                {
+143	                        pzptr = pzptr->pz_down;
+144	                }
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 4
+
+
+145	        }
+146	
+147	/* #ifdef       SNARK */
+148	
+149	        if (numspots != 0 && numspots != numletters)
+150	        {
+151	                wh_ptr = xw_inserthole(numspots, numletters,
+152	                        wh_ptr, pzptr, stat);
+153	                wh_ptr->wh_length = numletters;
+154	                wh_ptr->wh_spots = numspots;
+155	        }
+156	        else
+157	        {
+158	                free(wh_ptr);
+159	        }
+160	/* #endif       //SNARK */
+161	}
+162	
+163	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+164	#               XW_FINDGAPS             #
+165	#                                       #
+166	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+167	
+168	void xw_findgaps(PUZZHEAD *ph)
+169	{
+170	        PUZZLE *hptr, *vptr, *z_ptr;
+171	        register int i, j;
+172	
+173	        hptr = ph->ph_puzzle;
+174	        if(ph->ph_numrows != 1)
+175	        {
+176	                hptr = hptr->pz_down;
+177	        }
+178	        vptr = hptr->pz_right;
+179	        for(i = 0; i < ph->ph_numcols - 2; i++)
+180	        {
+181	                z_ptr = vptr;
+182	                for(j = 0; j < ph->ph_numrows - i - 2; j++)
+183	                {
+184	                        xw_searchrank(z_ptr, DOWN, ph->ph_numrows-j-2);
+185	                        z_ptr = z_ptr->pz_down;
+186	                }
+187	                vptr = vptr->pz_right;
+188	        }
+189	        vptr = hptr->pz_right;
+190	        for(i = 0; i < ph->ph_numrows - 2; i++)
+191	        {
+192	                z_ptr = vptr;
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 5
+
+
+193	                for(j = 0; j < ph->ph_numcols - i - 2; j++)
+194	                {
+195	                        xw_searchrank(z_ptr, ACROSS, ph->ph_numcols-j-2);
+196	                        z_ptr = z_ptr->pz_down;
+197	                }
+198	                vptr = vptr->pz_down;
+199	        }
+200	}
+201	
+202	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+203	#               CLEAR                   #
+204	#       Strips out trailing newlines.   #
+205	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+206	
+207	void    clean(char *ptr)
+208	{
+209	register        int     i;
+210	
+211	for(i = 0; i < strlen(ptr); i++)
+212	{
+213	        if ( ptr[i] EQ '\n' || ptr[i] EQ '\r' )
+214	        {       
+215	                ptr[i] = '\0';
+216	        }
+217	}
+218	}
+219	
+220	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+221	#       EQUIVALENCE_CHECK               #
+222	#                                       #
+223	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+224	
+225	int equivalence_check(int length, long *offset)
+226	{
+227	register int i,j,k;
+228	long min;
+229	
+230	//      TEST(PRINT2(#018lx, offset[0], offset[1]));
+231	//      TEST(PRINT3(#06lx, offset[0], offset[1], offset[2]));
+232	
+233	min = MAXLONG;
+234	for(i = 0; i < length; i++)
+235	{
+236	        if (offset[i] < min)
+237	        {
+238	                min = offset[i];
+239	                k = i;
+240	        }
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 6
+
+
+241	}
+242	j = 0;
+243	for(i = 0; i < length; i++)
+244	{
+245	        if (offset[i] EQ min)
+246	        {
+247	                j++;
+248	        }
+249	}
+250	if (j EQ length)
+251	{
+252	        return j;
+253	}
+254	else
+255	{
+256	        return k;
+257	}
+258	}
+259	
+260	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+261	#               CLEAR_WORD              #
+262	#                                       #
+263	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+264	
+265	BOOLEAN clear_word(PUZZHEAD *ph, char *buf, WORDHOLE *wh_ptr)
+266	{
+267	        BOOLEAN search;
+268	        int     length = 0;
+269	        register int    i, j;
+270	        PUZZLE  *ref;
+271	
+272	        search = TRUE;
+273	        length = strlen(buf);
+274	        TEST(PRINT2(d, wh_ptr->wh_colnum,  wh_ptr->wh_rownum));
+275	        TEST(fprintf(stderr, "Status = %s\n", DECODE(wh_ptr->wh_status)));
+276	        ref = xw_pointpuzz(ph, wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
+277	        if(ref EQ 0)
+278	        {
+279	                TEST(WHERE);TEST(printf("xw_pointpuzz() bombed!\n"));
+280	                return FALSE;
+281	        }
+282	        if (wh_ptr->wh_status EQ ACROSS)
+283	        {
+284	                if (NOT_WHITE(ref->pz_left->pz_letter))
+285	                {
+286	                        search = FALSE;
+287	                }       
+288	                else
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 7
+
+
+289	                {
+290	                        j = 0;
+291	                        for (i = 0; i < length; i++)
+292	                        {
+293	                                TEST(WHERE); TEST(PRINT2(c,
+294	                                ref->pz_up->pz_letter,
+295	                                ref->pz_down->pz_letter));
+296	                                TEST(WHERE); TEST(PRINT2(d,
+297	                                wh_ptr->wh_spots,
+298	                                wh_ptr->wh_spot[j].sp_pos));
+299	
+300	                                if ((j < wh_ptr->wh_spots)
+301	                                && (wh_ptr->wh_spot[j].sp_pos EQ (i + 1)))
+302	                                {
+303	                                        TEST(WHERE);
+304	                                        TEST(printf("Skipping j = %d\n",j));
+305	                                        j++;
+306	                                }       
+307	                                else if (NOT_WHITE(ref->pz_up->pz_letter)
+308	                                || NOT_WHITE(ref->pz_down->pz_letter))
+309	                                {
+310	                                        TEST(WHERE);
+311	                                        TEST(printf("Stopping\n"));
+312	                                        search = FALSE;
+313	                                }
+314	                                else
+315	                                {
+316	                                        TEST(WHERE);
+317	                                        TEST(printf("Bombing\n"));
+318	                                }
+319	                                ref = ref->pz_right;
+320	                                if(ref EQ 0)
+321	                                {
+322	                                        TEST(WHERE);
+323	                                TEST(printf("Across bombed!\n"));
+324	                                        return FALSE;
+325	                                }
+326	                        }
+327	                        if (NOT_WHITE(ref->pz_letter))
+328	                        {
+329	                                TEST(printf("Across end bombed\n"));
+330	                                search = FALSE;
+331	                        }       
+332	                }       
+333	        }
+334	        else if (wh_ptr->wh_status EQ DOWN)
+335	        {
+336	                if (NOT_WHITE(ref->pz_up->pz_letter))
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 8
+
+
+337	                {
+338	                        search = FALSE;
+339	                }       
+340	                else
+341	                {
+342	                        j = 0;
+343	                        for (i = 0; i < length; i++)
+344	                        {
+345	                                TEST(WHERE); TEST(PRINT2(c,
+346	                                ref->pz_left->pz_letter,
+347	                                ref->pz_right->pz_letter));
+348	                                TEST(WHERE); TEST(PRINT2(d,
+349	                                wh_ptr->wh_spots,
+350	                                wh_ptr->wh_spot[j].sp_pos));
+351	
+352	                                if ((j < wh_ptr->wh_spots)
+353	                                && (wh_ptr->wh_spot[j].sp_pos EQ (i + 1)))
+354	
+355	                                {
+356	                                        TEST(WHERE);
+357	                                        TEST(printf("Skipping j = %d\n",j));
+358	                                        j++;
+359	                                }       
+360	                                else if (NOT_WHITE(ref->pz_left->pz_letter)
+361	                                || NOT_WHITE(ref->pz_right->pz_letter))
+362	                                {
+363	                                        TEST(WHERE);
+364	                                        TEST(printf("Stopping\n"));
+365	                                        search = FALSE;
+366	                                }
+367	                                else
+368	                                {
+369	                                        TEST(WHERE);
+370	                                        TEST(printf("Bombing\n"));
+371	                                }
+372	                                ref = ref->pz_down;
+373	                                if(ref EQ 0)
+374	                                {
+375	                                        TEST(WHERE);
+376	                                TEST(printf("Down bombed!\n"));
+377	                                        return FALSE;
+378	                                }
+379	                        }
+380	                        if (NOT_WHITE(ref->pz_letter))
+381	                        {
+382	                                TEST(printf("Down end bombed!\n"));
+383	                                search = FALSE;
+384	                        }       
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 9
+
+
+385	                }       
+386	        }       
+387	        else
+388	        {
+389	                TEST(WHERE); TEST(fprintf(stderr, "Bad Status!!!\n"));
+390	                search = FALSE;
+391	        }
+392	        TEST(fprintf(stderr, "clear_word() returns %d\n", search));
+393	        return search;
+394	        }
+395	
+396	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+397	#       XW_SEARCH_BLANKS                #
+398	#       "All thats print to fit"        #
+399	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+400	
+401	char    return_buf[SZ_MAXRETSEARCH][WORDLENGTH + 2];
+402	
+403	int     xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
+404	{
+405	        BOOLEAN search, equivalent;
+406	        FILE    *fp[WORDLENGTH], *minfp, *newfp;
+407	        long    offset[WORDLENGTH],minoffset;
+408	        int     count, min_count, search_count;
+409	
+410	        TEST(PRINT2(d, wh_ptr->wh_key, wh_ptr->wh_length));
+411	        TEST(PRINT3(d,wh_ptr->wh_spots,wh_ptr->wh_rownum,wh_ptr->wh_colnum));
+412	        minoffset = MAXLONG;
+413	        equivalent = FALSE;
+414	        search = TRUE;
+415	        search_count = 0;
+416	
+417	        for(count = 0; count < wh_ptr->wh_spots; count++)
+418	        {
+419	                INDEXDIR(wh_ptr->wh_spot[count].sp_pos);
+420	                sprintf(buf, "%s/%c", xw_indexdir, 
+421	                        wh_ptr->wh_spot[count].sp_letter);
+422	                TEST(WHERE); TEST(PRINT1(s,buf));
+423	                if (!(fp[count] = fopen(buf,"rb")))
+424	                {
+425	                        if(errno EQ ENOENT)
+426	                        {
+427	                                search = FALSE;
+428	                        }
+429	                        else
+430	                        {
+431	                                TEST(WHERE); xw_error(SV_FATAL,
+432	                                "Error opening %s\n", buf);
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 10
+
+
+433	                        }
+434	                }
+435	        }
+436	
+437	        if (search)
+438	        {
+439	                for(count = 0; count < wh_ptr->wh_spots; count++)
+440	                {
+441	                        fread(&offset[count],
+442	                        sizeof(offset[count]), 1, fp[count]);
+443	                        if (ferror(fp[count]))
+444	                        {
+445	                                INDEXDIR(wh_ptr
+446	                                ->wh_spot[count].sp_pos);
+447	                                sprintf(buf, "%s/%c", xw_indexdir, 
+448	                                wh_ptr->wh_spot[count].sp_letter);
+449	                                xw_error(SV_FATAL, "Error reading %s\n",
+450	                                                buf);
+451	                        }               
+452	                        if (feof(fp[count]))
+453	                        {
+454	                                search = FALSE;
+455	                                TEST(WHERE); TEST(fprintf(stderr,
+456	                                "Search failed! EOF\n"));
+457	                                break;
+458	                        }
+459	                }
+460	                }
+461	                if (wh_ptr->wh_spots < 2)
+462	                {
+463	                        if (search)
+464	                        {
+465	                                equivalent = TRUE;
+466	                                min_count = 0;
+467	                        }
+468	                }
+469	                else
+470	                {
+471	                        if ((min_count
+472	                        = equivalence_check(wh_ptr->wh_spots,
+473	                        (long *)offset)) EQ wh_ptr->wh_spots)
+474	                        {
+475	                                equivalent = TRUE;
+476	                        }               
+477	                }               
+478	                TEST(WHERE); TEST(PRINT2(d, min_count, wh_ptr->wh_spots));
+479	                while(!equivalent && search)
+480	                {
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 11
+
+
+481	
+482	                        fread(&offset[min_count], sizeof(offset[min_count]),
+483	                                1, fp[min_count]);
+484	                        if (ferror(fp[min_count]))
+485	                        {
+486	                                INDEXDIR(wh_ptr->wh_spot[min_count].sp_pos);
+487	                                sprintf(buf, "%s/%c", xw_indexdir, 
+488	                                wh_ptr->wh_spot[min_count].sp_letter);
+489	                                xw_error(SV_FATAL, "Error reading %s\n",
+490	                                                buf);
+491	                        }               
+492	                        if (feof(fp[min_count]))
+493	                        {
+494	                                search = FALSE;
+495	                                TEST(WHERE); TEST(PRINT1(d, min_count));
+496	                                TEST(fprintf(stderr,"Search failed! EOF\n"));
+497	                                break;
+498	                        }
+499	                        if ((min_count =
+500	                        equivalence_check(wh_ptr->wh_spots,
+501	                                (long *)&offset))
+502	                        EQ wh_ptr->wh_spots)
+503	                        {
+504	                                equivalent = TRUE;
+505	                        }
+506	                }
+507	                if (equivalent && search)
+508	                {
+509	                        TEST(WHERE); TEST(PRINT1(#018lx, offset[0]));
+510	                        if (fseek(fp_dict, offset[0], SEEK_SET) != 0)
+511	                        {
+512	                                TEST(WHERE);xw_error(SV_ERROR,"fseek error");
+513	                        }
+514	                        if(!fgets(buf, sizeof(buf), fp_dict))
+515	                        {
+516	                                TEST(WHERE);xw_error(SV_ERROR,"fgets error");
+517	                        }
+518	                        clean(buf);
+519	                        if(search_count < SZ_MAXRETSEARCH
+520	                        && clear_word(ph, buf, wh_ptr))
+521	                        {
+522	                                strncpy(&return_buf[search_count][0], buf,
+523	                                        sizeof(return_buf[0]) - 1);
+524	                                search_count++;
+525	                        }
+526	                        TEST(fprintf(stderr, "\"%s\"[%#018lx]==>%s\n",
+527	                                xw_indexfile, offset[0],buf));
+528	                        do
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 12
+
+
+529	                        {
+530	                                for(count = 0; count < wh_ptr->wh_spots;
+531	                                count++)
+532	                                {
+533	                                        fread(&offset[count],
+534	                                        sizeof(offset[count]), 1,
+535	                                        fp[count]);
+536	                                        if (ferror(fp[count]))
+537	                                        {
+538	                                                TEST(WHERE); INDEXDIR
+539	                                                (wh_ptr->
+540	                                                wh_spot[count].sp_pos);
+541	
+542	                                                sprintf(buf, "%s/%c",
+543	                                                xw_indexdir, 
+544	                                                wh_ptr->
+545	                                                wh_spot[count].sp_letter);
+546	                                                xw_error(SV_FATAL,
+547	                                                "Error reading %s\n", buf);
+548	                                        }               
+549	                                        if (feof(fp[count]))
+550	                                        {
+551	                                                search = FALSE;
+552	                                                TEST(WHERE);
+553	                                                TEST(fprintf(stderr,
+554	                                                "Search failed! EOF\n"));
+555	                                                break;
+556	                                        }
+557	                                }
+558	                                if (equivalence_check(wh_ptr->wh_spots,
+559	                                        (long *)offset)
+560	                                EQ wh_ptr->wh_spots && search)
+561	                                {
+562	                                        equivalent = TRUE;
+563	                                }
+564	                                else
+565	                                {
+566	                                        equivalent = FALSE;
+567	                                        break;
+568	                                }
+569	
+570	                                if(fseek(fp_dict,offset[0],SEEK_SET) != 0)
+571	                                {
+572	                                        TEST(WHERE); xw_error(SV_ERROR,
+573	                                        "fseek() error");
+574	                                }
+575	                                if(!fgets(buf, sizeof(buf), fp_dict))
+576	                                {
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 13
+
+
+577	                                        TEST(WHERE); xw_error(SV_ERROR,
+578	                                        "fgets() error");
+579	                                }
+580	                                clean(buf);
+581	                                if (search_count < SZ_MAXRETSEARCH
+582	                                && clear_word(ph, buf, wh_ptr))
+583	                                {
+584	                                        strncpy(
+585	                                        &return_buf[search_count][0], buf,
+586	                                        sizeof(return_buf[0]) - 1);
+587	                                        search_count++;
+588	                                }
+589	                                TEST(fprintf(stderr,
+590	                                        "\"%s\"[%#020lx]==>%s\n",
+591	                                        xw_indexfile, offset[0],buf));
+592	                        }       
+593	                        while (equivalent && search);
+594	                }       
+595	                for(count = 0; count < wh_ptr->wh_spots; count++)
+596	                {
+597	                        if(fp[count] != 0)
+598	                        {       
+599	                                TEST(WHERE); TEST(PR(d,count));
+600	                                TEST(PRINT1(#018lx,fp[count]));
+601	                                if(fclose(fp[count]) EQ EOF)
+602	                                {
+603	                                        TEST(WHERE); xw_error(SV_FATAL,
+604	                                        "fclose() bombed!");
+605	                                }
+606	                        }
+607	                }
+608	        TEST(WHERE); TEST(PRINT1(d, search_count));
+609	        return search_count;
+610	}
+611	
+612	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+613	#               xw_FILLHOLES            #
+614	#                                       #
+615	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+616	
+617	void xw_fillholes()
+618	{
+619	        WORDHOLE        *ref, *tmp;
+620	
+621	#ifdef DEBUG
+622	        printf("xw_fillholes: STARTING UP\n");
+623	#endif /* DEBUG */
+624	
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 14
+
+
+625	        ref = xw_whstart.wh_next;
+626	        while(ref != 0)
+627	        {
+628	                tmp = ref->wh_next;
+629	                TEST(PR(#018lx, (ULONG)ref));
+630	                free((char *)ref);
+631	                ref = tmp;
+632	        }
+633	        xw_whstart.wh_next = NULL;
+634	}
+635	        
+636	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+637	#               XW_FILLPUZZ             #
+638	#                                       #
+639	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+640	
+641	PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
+642	{
+643	        register WORDHOLE *wh_ptr = &xw_whstart;
+644	        FILE *fp_dict;
+645	        int     count, min_count, num_matches;
+646	//      register WORDHOLE *oldwh_ptr;
+647	        int     oldrownum, oldcolnum, oldlength;
+648	        STATUS  oldstatus;
+649	
+650	        max = 0;
+651	        if((max = xw_sizedict(xw_indexfile)) > WORDLENGTH)
+652	        {
+653	                xw_error(SV_FATAL,
+654	                "Words in dictionary are too long... %d > %d\n",
+655	                max, WORDLENGTH);
+656	        }
+657	        if(!max)        
+658	        {
+659	                xw_error(SV_FATAL, "Error in Dictionary %s\n",  
+660	                        xw_indexfile);
+661	        }
+662	        xw_findgaps(ph);
+663	TRY_AGAIN:
+664	        WHERE; PRINT1(d, max);
+665	
+666	        wh_ptr = &xw_whstart;
+667	        TEST(WHERE); TEST(PR(#010lx, wh_ptr));
+668	        wh_ptr = wh_ptr->wh_next;
+669	        while (wh_ptr != NULL)
+670	        {
+671	                register int i,j, k;
+672	
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 15
+
+
+673	                TEST(printf("%d %s (%d,%d) ", wh_ptr->wh_key,
+674	                DECODE(wh_ptr->wh_status), wh_ptr->wh_colnum,
+675	                wh_ptr->wh_rownum));
+676	
+677	                for(i=0; i < wh_ptr->wh_key / 100; i++)
+678	                {
+679	                        TEST(printf("\"%c\"[%#04x]->%d ",
+680	                        wh_ptr->wh_spot[i].sp_letter,
+681	                        wh_ptr->wh_spot[i].sp_letter,
+682	                        wh_ptr->wh_spot[i].sp_pos));
+683	                }
+684	                for(j = k = 0; j < wh_ptr->wh_key % 100; j++)
+685	                {
+686	                        if (wh_ptr->wh_spot[k].sp_pos - 1 EQ j)
+687	                        {
+688	                                buf[j] = wh_ptr->wh_spot[k++].sp_letter;
+689	                        }
+690	                        else
+691	                        {
+692	                          buf[j] = '?';
+693	                        }
+694	                }
+695	                buf[j] = '\0';
+696	                TEST(printf("%s\n", buf));
+697	
+698	                wh_ptr->wh_spots = k;
+699	                wh_ptr->wh_length = j;
+700	                TEST(PRINT2(d, wh_ptr->wh_spots, wh_ptr->wh_length));
+701	                wh_ptr = wh_ptr->wh_next;
+702	        }
+703	
+704	        wh_ptr = &xw_whstart;
+705	        wh_ptr = wh_ptr->wh_next;
+706	        TEST(WHERE); TEST(PR(#010lx, wh_ptr));
+707	        if (!(fp_dict = fopen(xw_indexfile,"rb")))
+708	        {
+709	                TEST(WHERE);xw_error(SV_ERROR, "index file open error/n");
+710	        }
+711	
+712	        num_matches = 0;
+713	//      oldwh_ptr = 0;
+714	        oldcolnum = ph->ph_lastword->wl_xpos;
+715	        oldrownum = ph->ph_lastword->wl_ypos;
+716	        oldlength = 0;
+717	//      oldlength = ph->ph_lastword->wl_numchar;
+718	//      xw_printpuzz(ph);
+719	        while (wh_ptr != NULL)
+720	//      while (num_matches EQ 0)
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 16
+
+
+721	        {
+722	                register int    i;
+723	
+724	                if((num_matches
+725	                = xw_search_blanks(ph, fp_dict, wh_ptr)) > 0)
+726	                {
+727	                        int     choice;
+728	                        PUZZLE  *ref, *oldref;
+729	                        WORDLIST        word, *new; 
+730	                        
+731	                        TEST(WHERE); TEST(PRINT1(d, num_matches));
+732	
+733	                        oldref = xw_pointpuzz(ph, oldcolnum, oldrownum);
+734	                        for (i = 0; i < oldlength; i++)
+735	                        {
+736	                                if (oldref != 0)
+737	                                {
+738	                                        oldref->pz_color = RED;
+739	                                        if (oldstatus EQ ACROSS)
+740	                                        {
+741	                                                oldref = oldref->pz_right;
+742	                                        }
+743	                                        else
+744	                                        {
+745	                                                oldref = oldref->pz_down;
+746	                                        }
+747	        
+748	                                }
+749	                        }
+750	                        ref = xw_pointpuzz(ph, wh_ptr->wh_colnum,
+751	                                wh_ptr->wh_rownum);
+752	                        if(ref != 0)
+753	                        {
+754	                                ref->pz_color = GREEN;
+755	                        }
+756	                        xw_printpuzz(ph);
+757	
+758	                        ref = xw_pointpuzz(ph, wh_ptr->wh_colnum,
+759	                                wh_ptr->wh_rownum);
+760	                        if(ref != 0)
+761	                        {
+762	                                ref->pz_color = 0;
+763	                        }
+764	                        oldref = xw_pointpuzz(ph, oldcolnum, oldrownum);
+765	                        for (i = 0; i < oldlength; i++)
+766	                        {
+767	                                if (oldref != 0)
+768	                                {
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 17
+
+
+769	                                        oldref->pz_color = 0;
+770	                                        if (oldstatus EQ ACROSS)
+771	                                        {
+772	                                                oldref = oldref->pz_right;
+773	                                        }
+774	                                        else
+775	                                        {
+776	                                                oldref = oldref->pz_down;
+777	                                        }
+778	                                }
+779	                        }
+780	        
+781	                        if (xw_switch)
+782	                        {
+783	                                printf("\033[7mEnter # of the word to insert,");
+784	                                printf("0 to skip, <CTRL-C> to save & exit\n");
+785	                                printf("\033[0m");
+786	                                for (i = 0; i < num_matches; i++)
+787	                                {
+788	        //                              TEST(PRINT1(s, &return_buf[i][0]));
+789	                                        printf("(%d) %s\t", i + 1, return_buf[i]);
+790	                                        if (((i + 1) % 4) EQ 0)
+791	                                        {
+792	                                                nL;
+793	                                        }
+794	                                }
+795	                                do
+796	                                {
+797	        //                              printf("\n\007xword\033[%dm[%s]\033[0m> ",
+798	                                        printf("\nxword\033[%dm[%s]\033[0m> ",
+799	                                                CYAN, DECODE(wh_ptr->wh_status));
+800	                                        i = scanf("%d", &choice);
+801	                                }       while(i != 1 && (choice < 0
+802	                                        && choice > num_matches));
+803	                                TEST(PRINT1(d, choice));
+804	                                if(choice EQ 0 || choice > num_matches)
+805	                                {
+806	                                        wh_ptr = wh_ptr->wh_next;
+807	                                        continue;
+808	        /*                              return ph; */
+809	                                }
+810	                                else
+811	                                {
+812	                                        choice--;
+813	                                }
+814	                        }
+815	                        word.wl_numchar = strlen(return_buf[choice]);
+816	#ifdef  SNARK
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 18
+
+
+817	                        strncpy(&word.wl_word[0], &return_buf[choice][0],
+818	                                sizeof(return_buf[choice]) - 1);
+819	                        sprintf(word.wl_clue, "# %s #",return_buf[choice]);
+820	#endif  //SNARK
+821	                        if((new = (WORDLIST *)xw_malloc(sizeof(WORDLIST)))
+822	                        EQ NULL)
+823	                        {
+824	                                xw_error(SV_FATAL,"xw_malloc: OUT OF RAM!");
+825	                        }
+826	                        strncpy(new->wl_word, &return_buf[choice][0],
+827	                                sizeof(return_buf[choice]) - 1);
+828	                        sprintf(new->wl_clue, "# %s #",return_buf[choice]);
+829	                        new->wl_status = wh_ptr->wh_status;
+830	                        new->wl_numchar = strlen(new->wl_word);
+831	                        
+832	                        xw_debug(new);
+833	
+834	                        xw_putwordin(ph, new, wh_ptr->wh_status,
+835	                        wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
+836	                                
+837	//                      oldwh_ptr = wh_ptr;
+838	                        oldcolnum = wh_ptr->wh_colnum,  
+839	                        oldrownum = wh_ptr->wh_rownum;
+840	                        oldlength = word.wl_numchar;
+841	                        oldstatus = wh_ptr->wh_status;
+842	                }
+843	                wh_ptr = wh_ptr->wh_next;
+844	                TEST(PR(#010lx, wh_ptr));
+845	        }
+846	        xw_printpuzz(ph);
+847	
+848	        if(fclose(fp_dict) EQ EOF)
+849	        {
+850	                TEST(WHERE); xw_error(SV_FATAL,"fclose() bombed!");
+851	        }
+852	        xw_fillholes();
+853	        xw_findgaps(ph);
+854	/*      if (num_matches != 0) */
+855	/*      { */
+856	                goto TRY_AGAIN;
+857	/*      } */
+858	        return ph;
+859	}       
+860	
+861	#ifdef  SNARK
+862	main()
+863	{
+864	        BOOLEAN james;
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 19
+
+
+865	        FILE    *fp_dict;
+866	        long    offset[WORDLENGTH],minoffset;
+867	        PUZZHEAD        puzzle_header;
+868	        WORDHOLE testdata;
+869	        register WORDHOLE *wh_ptr = &xw_whstart;
+870	
+871	        offset[0] = 4;
+872	        offset[1] = 3;
+873	        offset[2] = 2;
+874	        offset[3] = 4;
+875	        PRINT1(d, equivalence_check(4, &offset));
+876	
+877	        offset[0] = 5;
+878	        offset[1] = 5;
+879	        offset[2] = 5;
+880	        offset[3] = 5;
+881	        PRINT1(d, equivalence_check(4, &offset));
+882	
+883	        wh_ptr = &xw_whstart;
+884	        wh_ptr->wh_next = &testdata;
+885	        testdata.wh_key = 1010;
+886	        testdata.wh_rownum = testdata.wh_colnum = 10;
+887	        testdata.wh_status = ACROSS;
+888	        testdata.wh_next = NULL;
+889	
+890	        testdata.wh_spots = 1;
+891	        testdata.wh_length = testdata.wh_colnum = 10;
+892	        testdata.wh_status = ACROSS;
+893	        testdata.wh_spot[0].sp_pos = 1;
+894	        testdata.wh_spot[0].sp_letter = 'B';
+895	        testdata.wh_spot[1].sp_pos = 2;
+896	        testdata.wh_spot[1].sp_letter = 'C';
+897	        testdata.wh_spot[2].sp_pos = 3;
+898	        testdata.wh_spot[2].sp_letter = 'C';
+899	
+900	        strncpy(xw_indexfile, "john.sort", 16);
+901	
+902	        if (!(fp_dict = fopen(xw_indexfile,"rb")))
+903	        {
+904	                TEST(WHERE);xw_error(SV_ERROR, "index file open error/n");
+905	        }
+906	
+907	        wh_ptr = wh_ptr->wh_next;
+908	        james = xw_search_blanks(&puzzle_header, fp_dict, wh_ptr);
+909	
+910	        if(fclose(fp_dict) EQ EOF)
+911	        {
+912	                TEST(WHERE); xw_error(SV_FATAL,"fclose() bombed!");
+
+
+ 9 Oct 22:07 2021 xw_fillpuzz.c Page 20
+
+
+913	        }
+914	}
+915	#endif  /* SNARK */ 
+916	
+917	/* End of /home/franx/xword/xw_fillpuzz.c */
+
+
+28 May 23:08 2021 xw_html.c Page 1
 
 
   1	/* /home/franx/xword/xw_html.c Mon24May2004 {fcG} */
@@ -1139,7 +2463,7 @@
  48	
 
 
-14 Jul 22:17 2020 xw_html.c Page 2
+28 May 23:08 2021 xw_html.c Page 2
 
 
  49	        printf(
@@ -1147,214 +2471,223 @@
  51	        printf("<!-- %s Version: %#4.2f Linked: %s{fcG} -->\n",
  52	                xw_outputfile, version(), date_compiled());
  53	        printf(
- 54	"<!-- Copyleft © 2020 Frank Charles Gallacher. All rights reserved.-->\n");
- 55	        printf("<HTML>\n");
- 56	        printf("<HEAD>\n");
- 57	        /* printf(
- 58	"<LINK REL=\"StyleSheet\" TYPE=\"text/css\" HREF=\"xword_style.css\">\n"); */
- 59	        printf("<LINK REV=\"made\" HREF=\"mailto:franxg@gmail.com\">\n");
- 60	        printf("<META NAME=\"Author\" CONTENT=\"Frank C.Gallacher\">\n");
- 61	        printf("<TITLE> Franx X-word Generator. </TITLE>\n");
- 62	        printf("</HEAD>\n");
- 63	
- 64	        printf("<BODY BGCOLOR=\"White\">\n");
- 65	
- 66	        printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
- 67	
- 68	        hptr = puzz_hdr->ph_puzzle;
- 69	
- 70	        if(puzz_hdr->ph_numwords != 1)
- 71	        {
- 72	                hptr = hptr->pz_down;
- 73	        }
- 74	        vptr = hptr->pz_right;
- 75	        while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
- 76	        || ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
- 77	        {
- 78	          printf("<TR>\n");
- 79	          while(vptr->pz_right != NULL)
- 80	            {
- 81	              new_word = FALSE;
- 82	              if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
- 83	                {
- 84	                  if (vptr->pz_ofaccrossword != NULL)
- 85	                    {
- 86	                      accrosslist[j].cd_clue =
- 87	                                vptr->pz_ofaccrossword->wl_clue;
- 88	                        accrosslist[j].cd_word
- 89	                                = vptr->pz_ofaccrossword->wl_word;
- 90	                      accrosslist[j++].cd_number = ++numword;
- 91	                      new_word = TRUE;
- 92	                    }
- 93	                  if (vptr->pz_ofdownword != NULL)
+ 54	"<!-- Copyleft © 2020 Frank Charles Gallacher. \
+ 55	All rights reserved.-->\n");
+ 56	        printf("<HTML>\n");
+ 57	        printf("<HEAD>\n");
+ 58	        /* printf(
+ 59	"<LINK REL=\"StyleSheet\" TYPE=\"text/css\"
+ 60	 HREF=\"xword_style.css\">\n"); */
+ 61	        printf(
+ 62	        "<LINK REV=\"made\" HREF=\"mailto:franxg@gmail.com\">\n");
+ 63	        printf(
+ 64	        "<META NAME=\"Author\" CONTENT=\"Frank C.Gallacher\">\n");
+ 65	        printf(
+ 66	        "<TITLE> Franx X-word Generator. </TITLE>\n");
+ 67	        printf("</HEAD>\n");
+ 68	
+ 69	        printf("<BODY BGCOLOR=\"White\">\n");
+ 70	
+ 71	        printf("%s Version: %#4.2f Linked: %s{fcG}\n",
+ 72	                xw_outputfile, version(), date_compiled());
+ 73	
+ 74	        printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
+ 75	
+ 76	        hptr = puzz_hdr->ph_puzzle;
+ 77	
+ 78	        if(puzz_hdr->ph_numwords != 1)
+ 79	        {
+ 80	                hptr = hptr->pz_down;
+ 81	        }
+ 82	        vptr = hptr->pz_right;
+ 83	        while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+ 84	        || ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+ 85	        {
+ 86	          printf("<TR>\n");
+ 87	          while(vptr->pz_right != NULL)
+ 88	            {
+ 89	              new_word = FALSE;
+ 90	              if((vptr->pz_letter != '\0')
+ 91	                && (vptr->pz_letter != EOWORD))
+ 92	                {
+ 93	                  if (vptr->pz_ofaccrossword != NULL)
  94	                    {
- 95	                      if (!new_word)
- 96	                        {
+ 95	                      accrosslist[j].cd_clue =
+ 96	                                vptr->pz_ofaccrossword->wl_clue;
 
 
-14 Jul 22:17 2020 xw_html.c Page 3
+28 May 23:08 2021 xw_html.c Page 3
 
 
- 97	                          numword++;
- 98	                        }
- 99	                      downlist[k].cd_clue = vptr->pz_ofdownword->wl_clue;
-100	                        downlist[k].cd_word = vptr->pz_ofdownword->wl_word;
-101	                      downlist[k++].cd_number = numword;
-102	                      new_word = TRUE;
-103	                    }
-104	                  
-105	                  printf("<TD BGCOLOR=\"White\" ");
-106	                  
-107	                  printf(
-108	                "<FONT COLOR=\"Black\" FACE=\"Courier\" SIZE=\"2\">");
-109	                  if (new_word)
-110	                    {
-111	                      printf("%d<BR>&nbsp;&nbsp;&nbsp;&nbsp;", numword);
+ 97	                        accrosslist[j].cd_word
+ 98	                                = vptr->pz_ofaccrossword->wl_word;
+ 99	                      accrosslist[j++].cd_number = ++numword;
+100	                      new_word = TRUE;
+101	                    }
+102	                  if (vptr->pz_ofdownword != NULL)
+103	                    {
+104	                      if (!new_word)
+105	                        {
+106	                          numword++;
+107	                        }
+108	                      downlist[k].cd_clue = vptr->pz_ofdownword->wl_clue;
+109	                        downlist[k].cd_word = vptr->pz_ofdownword->wl_word;
+110	                      downlist[k++].cd_number = numword;
+111	                      new_word = TRUE;
 112	                    }
-113	                  else
-114	                    {
-115	                      printf("&nbsp;&nbsp;&nbsp;&nbsp;<BR>&nbsp;&nbsp;&nbsp;&nbsp;");
-116	                    }
-117	                  printf("</FONT>\n");
-118	                  
-119	                  
-120	                  printf("</TD>");
-121	                }
-122	              else
-123	                {
-124	                  printf("<TD>");
-125	                  printf("&nbsp;");
-126	                  printf("</TD>");
-127	                }
-128	              vptr = vptr->pz_right;
-129	            }
-130	          printf("</TR>\n");
-131	          hptr = hptr->pz_down;
-132	          if (hptr != NULL)
-133	            {
-134	              vptr = hptr->pz_right;
-135	            }
-136	          else
-137	            {
-138	              break;
-139	            }
-140	        }
-141	        printf("\n");
-142	
-143	        printf("</TABLE>\n");
-144	
+113	                  
+114	                  printf("<TD BGCOLOR=\"White\" ");
+115	                  
+116	                  printf(
+117	                "<FONT COLOR=\"Black\" FACE=\"Courier\" SIZE=\"2\">");
+118	                  if (new_word)
+119	                    {
+120	                      printf("%d<BR>&nbsp;&nbsp;&nbsp;&nbsp;", numword);
+121	                    }
+122	                  else
+123	                    {
+124	                      printf("&nbsp;&nbsp;&nbsp;&nbsp;<BR>&nbsp;&nbsp;&nbsp;&nbsp;");
+125	                    }
+126	                  printf("</FONT>\n");
+127	                  
+128	                  
+129	                  printf("</TD>");
+130	                }
+131	              else
+132	                {
+133	                  printf("<TD>");
+134	                  printf("&nbsp;");
+135	                  printf("</TD>");
+136	                }
+137	              vptr = vptr->pz_right;
+138	            }
+139	          printf("</TR>\n");
+140	          hptr = hptr->pz_down;
+141	          if (hptr != NULL)
+142	            {
+143	              vptr = hptr->pz_right;
+144	            }
 
 
-14 Jul 22:17 2020 xw_html.c Page 4
+28 May 23:08 2021 xw_html.c Page 4
 
 
-145	        printf("<TABLE BORDER=\"0\" BGCOLOR=\"White\">");
-146	        printf("<TH> Across </TH>\n");
-147	        printf("<TH> Down </TH>\n");
-148	        
-149	        for (i=0;i<MAX(j,k); i++)
-150	        {
-151	          printf("<TR>\n");
-152	          
-153	          if (i < j)
-154	            {
-155	              printf("<TD>%d.%s</TD>", accrosslist[i].cd_number, accrosslist[i].cd_clue);
-156	                fprintf(fp2, "1,$s/%s/%dA/g\n", 
-157	                        accrosslist[i].cd_word,
-158	                        accrosslist[i].cd_number);
-159	            }
-160	          else
-161	            {
-162	              printf("<TD>&nbsp;</TD>\n");
-163	            }
-164	
-165	          if (i < k)
-166	            {
-167	              printf("<TD>%d.%s</TD>",
-168	                downlist[i].cd_number, downlist[i].cd_clue );
-169	                fprintf(fp2, "1,$s/%s/%dD/g\n", 
-170	                        downlist[i].cd_word,
-171	                        downlist[i].cd_number);
+145	          else
+146	            {
+147	              break;
+148	            }
+149	        }
+150	        printf("\n");
+151	
+152	        printf("</TABLE>\n");
+153	
+154	        printf("<TABLE BORDER=\"0\" BGCOLOR=\"White\">");
+155	        printf("<TH> Across </TH>\n");
+156	        printf("<TH> Down </TH>\n");
+157	        
+158	        for (i=0;i<MAX(j,k); i++)
+159	        {
+160	          printf("<TR>\n");
+161	          
+162	          if (i < j)
+163	            {
+164	              printf("<TD>%d.%s</TD>", accrosslist[i].cd_number, accrosslist[i].cd_clue);
+165	                fprintf(fp2, "1,$s/%s/%dA/g\n", 
+166	                        accrosslist[i].cd_word,
+167	                        accrosslist[i].cd_number);
+168	            }
+169	          else
+170	            {
+171	              printf("<TD>&nbsp;</TD>\n");
 172	            }
-173	          else
-174	            {
-175	              printf("<TD>&nbsp;</TD>\n");
-176	            }
-177	          printf("</TR>\n");
-178	        }
-179	
-180	                     
-181	        printf("</TABLE>\n");
-182	
-183	        printf("<HR>\n");
-184	
-185	
-186	        printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
-187	        hptr = puzz_hdr->ph_puzzle;
+173	
+174	          if (i < k)
+175	            {
+176	              printf("<TD>%d.%s</TD>",
+177	                downlist[i].cd_number, downlist[i].cd_clue );
+178	                fprintf(fp2, "1,$s/%s/%dD/g\n", 
+179	                        downlist[i].cd_word,
+180	                        downlist[i].cd_number);
+181	            }
+182	          else
+183	            {
+184	              printf("<TD>&nbsp;</TD>\n");
+185	            }
+186	          printf("</TR>\n");
+187	        }
 188	
-189	        if(puzz_hdr->ph_numwords != 1)
-190	        {
-191	                hptr = hptr->pz_down;
-192	        }
+189	                     
+190	        printf("</TABLE>\n");
+191	
+192	        printf("<HR>\n");
 
 
-14 Jul 22:17 2020 xw_html.c Page 5
+28 May 23:08 2021 xw_html.c Page 5
 
 
-193	        vptr = hptr->pz_right;
-194	        while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
-195	        || ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
-196	        {
-197	          printf("<TR>\n");
-198	          while(vptr->pz_right != NULL)
-199	            {
-200	              if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
-201	                {
-202	                  printf("<TD BGCOLOR=\"White\" ");
-203	                  
-204	          printf("<FONT COLOR=\"Black\" FACE=\"Arial\" SIZE=\"2\">");
-205	                  
-206	                  printf("%c", vptr->pz_letter);
-207	                  printf("</FONT>\n");
-208	                  
-209	                  
-210	                  printf("</TD>");
-211	                }
-212	              else
-213	                {
-214	                  printf("<TD>");
-215	                  printf("&nbsp;");
-216	                  printf("</TD>");
-217	                }
-218	              vptr = vptr->pz_right;
-219	            }
-220	          printf("</TR>\n");
-221	          hptr = hptr->pz_down;
-222	          if (hptr != NULL)
-223	            {
-224	              vptr = hptr->pz_right;
-225	            }
-226	          else
-227	            {
-228	              break;
-229	            }
-230	        }
-231	        printf("\n");
-232	
-233	        printf("</TABLE>\n");
-234	
-235	        printf("</BODY>\n");
-236	        printf("</HTML>\n");
-237	        fclose(fp1);
-238	        fclose(fp2);
-239	}
-240	
+193	
+194	
+195	        printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
+196	        hptr = puzz_hdr->ph_puzzle;
+197	
+198	        if(puzz_hdr->ph_numwords != 1)
+199	        {
+200	                hptr = hptr->pz_down;
+201	        }
+202	        vptr = hptr->pz_right;
+203	        while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+204	        || ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
+205	        {
+206	          printf("<TR>\n");
+207	          while(vptr->pz_right != NULL)
+208	            {
+209	              if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
+210	                {
+211	                  printf("<TD BGCOLOR=\"White\" ");
+212	                  
+213	          printf("<FONT COLOR=\"Black\" FACE=\"Arial\" SIZE=\"2\">");
+214	                  
+215	                  printf("%c", vptr->pz_letter);
+216	                  printf("</FONT>\n");
+217	                  
+218	                  
+219	                  printf("</TD>");
+220	                }
+221	              else
+222	                {
+223	                  printf("<TD>");
+224	                  printf("&nbsp;");
+225	                  printf("</TD>");
+226	                }
+227	              vptr = vptr->pz_right;
+228	            }
+229	          printf("</TR>\n");
+230	          hptr = hptr->pz_down;
+231	          if (hptr != NULL)
+232	            {
+233	              vptr = hptr->pz_right;
+234	            }
+235	          else
+236	            {
+237	              break;
+238	            }
+239	        }
+240	        printf("\n");
 
 
-14 Jul 22:17 2020 xw_html.c Page 6
+28 May 23:08 2021 xw_html.c Page 6
 
 
-241	/* End of /home/franx/xword/xw_html.c */
+241	
+242	        printf("</TABLE>\n");
+243	
+244	        printf("</BODY>\n");
+245	        printf("</HTML>\n");
+246	        fclose(fp1);
+247	        fclose(fp2);
+248	}
+249	
+250	/* End of /home/franx/xword/xw_html.c */
 
 
  8 Jul 21:53 2020 xw_initpuzz.c Page 1
@@ -1882,7 +3215,87 @@
 112	/* End of /home/franx/xw_matchpuzz.c  */
 
 
- 8 Jul 22:47 2020 xw_printpuzz.c Page 1
+21 Jul 11:50 2021 xw_makeborder.c Page 1
+
+
+  1	/* /Users/moonpie/xword/xw_makeborder.c Sat10Jul2021 {fcG} */
+  2	//
+  3	//  Created by Frank Charles Gallacher on 10/7/21.
+  4	//  Copyleft © 2020 Frank Charles Gallacher. All rights reserved.
+  5	//
+  6	// MODIFICATION HISTORY
+  7	// When         Who     What
+  8	
+  9	#include <ctype.h>
+ 10	#include <errno.h>
+ 11	#include <setjmp.h>
+ 12	#include <signal.h>
+ 13	#include <stdarg.h>
+ 14	#include <stdio.h>
+ 15	#include <stdlib.h>
+ 16	#include <string.h>
+ 17	#include <time.h>
+ 18	#include <unistd.h>
+ 19	//#define       extern
+ 20	#include "xword.h"
+ 21	 
+ 22	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 23	#       XW_MAKEBORDER                   #
+ 24	#                                       #
+ 25	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+ 26	
+ 27	void xw_makeborder(PUZZHEAD *ph)
+ 28	{  
+ 29	        int     x1, x2, y1, y2;
+ 30	        PUZZLE  *ptr1, *ptr2;
+ 31	
+ 32	        ptr1 = ptr2 = ph->ph_puzzle;
+ 33	        x1 = ph->ph_puzzle->pz_rownum;
+ 34	        x2 = ph->ph_numrows;
+ 35	        y1 = ph->ph_puzzle->pz_colnum;
+ 36	        y2 = ph->ph_numcols;
+ 37	
+ 38	        WHERE, PRINT3(#018lx, (ULONG)ph, (ULONG)ptr1, (ULONG)ptr2);
+ 39	        WHERE, PRINT4(d, ph->ph_numrows, ph->ph_numcols, ph->ph_puzzle->pz_rownum,ph->ph_puzzle->pz_colnum);
+ 40	        WHERE, PRINT4(d, x1, x2, y1, y2);
+ 41	
+ 42	        ptr2 = ph->ph_puzzle;
+ 43	        while(ptr2->pz_right != NULL)
+ 44	        {
+ 45	                ptr2->pz_letter = EOWORD;
+ 46	                ptr2 = ptr2->pz_right;
+ 47	        }
+ 48	        while (ptr1->pz_down != NULL)
+
+
+21 Jul 11:50 2021 xw_makeborder.c Page 2
+
+
+ 49	        {
+ 50	                ptr1->pz_letter = ptr2->pz_letter = EOWORD;
+ 51	                ptr1 = ptr1->pz_down;
+ 52	                ptr2 = ptr2->pz_down;
+ 53	        }
+ 54	        
+ 55	        while(ptr1->pz_right != NULL)
+ 56	        {
+ 57	                ptr1->pz_letter = EOWORD;
+ 58	                ptr1 = ptr1->pz_right;
+ 59	                x1++;
+ 60	        }
+ 61	}
+ 62	
+ 63	#ifdef  SNARK
+ 64	
+ 65	main()
+ 66	{
+ 67	}
+ 68	#endif  /* SNARK */ 
+ 69	
+ 70	/* End of /Users/moonpie/xword/xw_makeborder.c */
+
+
+29 Sep 00:44 2021 xw_printpuzz.c Page 1
 
 
   1	/* /home/franx/xword/xw_printpuzz.c Tue03Feb2004 {fcG} */
@@ -1890,149 +3303,175 @@
   3	// MODIFICATION HISTORY
   4	// When         Who     What
   5	// Wed08Jul2020 {fcG}   64-bit debug code.
-  6	
-  7	#include <stdio.h>
-  8	#include <stdarg.h>
-  9	#include <stdlib.h>
- 10	#include <errno.h>
- 11	#include <setjmp.h>
- 12	#include "defs.h"
- 13	#include "xword.h"
- 14	
- 15	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
- 16	#               XW_PRINTPUZZ            #
- 17	#                                       #
- 18	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
- 19	
- 20	void xw_printpuzz(PUZZHEAD *puzz_hdr)
- 21	{
- 22	          PUZZLE        *hptr, *vptr;
- 23	          register      int i;
- 24	
- 25	#ifndef DEBUG
- 26	          printf("\033[2J\033[0;0H");
- 27	#else
- 28	          printf("xw_printpuzz(%#018lx)\n", (ULONG)puzz_hdr);
- 29	#endif  /*  DEBUG */
- 30	
- 31	          TEST(WHEN;nL);
- 32	          puzz_hdr->ph_numletters = 0;
- 33	          hptr = puzz_hdr->ph_puzzle;
- 34	
- 35	          if(puzz_hdr->ph_numwords != 1)
- 36	            {
- 37	              hptr = hptr->pz_down;
- 38	            }
- 39	          vptr = hptr->pz_right;
- 40	#ifdef DEBUG
- 41	          printf("   ");
- 42	          while(vptr != NULL)
- 43	            {
- 44	              printf("%2d", vptr->pz_colnum);
- 45	              vptr = vptr->pz_right;
- 46	            }
- 47	          vptr = hptr->pz_right;
- 48	          printf("\n    ");
+  6	// Fri31Jul2020 {fcG}   Coloring added.
+  7	
+  8	#include <stdio.h>
+  9	#include <stdarg.h>
+ 10	#include <stdlib.h>
+ 11	#include <errno.h>
+ 12	#include <setjmp.h>
+ 13	#include "defs.h"
+ 14	#include "xword.h"
+ 15	
+ 16	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
+ 17	#               XW_PRINTPUZZ            #
+ 18	#                                       #
+ 19	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
+ 20	
+ 21	void xw_printpuzz(PUZZHEAD *puzz_hdr)
+ 22	{
+ 23	          PUZZLE        *hptr, *vptr;
+ 24	          register      int i;
+ 25	
+ 26	// #ifndef DEBUG
+ 27	          printf("\033[2J\033[0;0H");
+ 28	// #else
+ 29	//        printf("xw_printpuzz(%#018lx)\n", (ULONG)puzz_hdr);
+ 30	// #endif  /*  DEBUG */
+ 31	
+ 32	/*        TEST(WHEN;nL); */
+ 33	          puzz_hdr->ph_numletters = 0;
+ 34	/*        hptr = puzz_hdr->ph_puzzle; */
+ 35	          hptr = vptr = puzz_hdr->ph_puzzle;
+ 36	
+ 37	/*        if(puzz_hdr->ph_numwords != 1) */
+ 38	/*          { */
+ 39	/*            hptr = hptr->pz_down; */
+ 40	/*          } */
+ 41	/*        vptr = hptr->pz_right; */
+ 42	// #ifdef DEBUG
+ 43	          printf("   ");
+ 44	          while(vptr != NULL)
+ 45	            {
+ 46	              printf("%2d", vptr->pz_colnum);
+ 47	              vptr = vptr->pz_right;
+ 48	            }
 
 
- 8 Jul 22:47 2020 xw_printpuzz.c Page 2
+29 Sep 00:44 2021 xw_printpuzz.c Page 2
 
 
- 49	#endif /* DEBUG */
- 50	          printf("+");
- 51	           for(i = 0; i < puzz_hdr->ph_numcols - 2; i++)
- 52	            {
- 53	              printf("-+");
- 54	            }
- 55	          printf("\n");
- 56	
- 57	          while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
- 58	                || ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1)))
- 59	            {
- 60	#ifdef DEBUG
- 61	
- 62	/*            PRINT2(#018lx, (ULONG)hptr, (ULONG)vptr); */
- 63	
- 64	              printf("%4d", hptr->pz_rownum);
- 65	#endif /* DEBUG */
- 66	              printf("|");
- 67	
- 68	              while(vptr->pz_right != NULL)
- 69	                {
- 70	#ifdef DEBUG
- 71	                  if(vptr->pz_letter == EOWORD)
- 72	                    {
- 73	                      printf("%c|", EOWORD);
- 74	                    }
- 75	                  else
- 76	#endif /* DEBUG */
- 77	                    if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
- 78	                      {
- 79	                        puzz_hdr->ph_numletters++;
- 80	#ifdef DEBUG
- 81	                        printf("%c|", vptr->pz_letter);
- 82	#else
- 83	                        printf("\033[0;4m%c|\033[0m", vptr->pz_letter);
- 84	#endif /* DEBUG */
- 85	                      }
- 86	                    else
- 87	                      {
- 88	#if DEBUG
- 89	                        printf(" |");
- 90	#else
- 91	                        printf("\033[40m  \033[0m");
- 92	#endif /* DEBUG */
- 93	                      }
- 94	                  vptr = vptr->pz_right;
- 95	                }
- 96	              printf("\n");
+ 49	/*        vptr = hptr->pz_right; */
+ 50	          vptr = hptr;
+ 51	          printf("\n    ");
+ 52	// #endif /* DEBUG */
+ 53	          printf("+");
+ 54	           for(i = 0; i < puzz_hdr->ph_numcols; i++)
+ 55	/*         for(i = 0; i < puzz_hdr->ph_numcols - 2; i++) */
+ 56	            {
+ 57	              printf("-+");
+ 58	            }
+ 59	          printf("\n");
+ 60	
+ 61	        while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+ 62	        || ((hptr != NULL) && (puzz_hdr->ph_numwords != 1)))
+ 63	/*      || ((hptr->pz_down != NULL) && (puzz_hdr->ph_numwords != 1))) */
+ 64	            {
+ 65	// #ifdef DEBUG
+ 66	
+ 67	/*            PRINT2(#018lx, (ULONG)hptr, (ULONG)vptr); */
+ 68	
+ 69	              printf("%4d", hptr->pz_rownum);
+ 70	// #endif /* DEBUG */
+ 71	              printf("|");
+ 72	
+ 73	              while(vptr != NULL)
+ 74	/*            while(vptr->pz_right != NULL) */
+ 75	                {
+ 76	// #ifdef DEBUG
+ 77	                  if(vptr->pz_letter EQ EOWORD)
+ 78	                    {
+ 79	                      printf("%c|", EOWORD);
+ 80	                    }
+ 81	                  else
+ 82	// #endif /* DEBUG */
+ 83	                    if((vptr->pz_letter != '\0')
+ 84	                        && (vptr->pz_letter != EOWORD))
+ 85	                      {
+ 86	                        puzz_hdr->ph_numletters++;
+ 87	// #ifdef DEBUG
+ 88	//                      printf("%c|", vptr->pz_letter);
+ 89	// #else
+ 90	                        if(vptr->pz_color EQ 0)
+ 91	                                vptr->pz_color = CYAN;
+ 92	
+ 93	                        printf("\033[%d;4m%c|\033[0m", 
+ 94	                                vptr->pz_color, vptr->pz_letter); 
+ 95	// #endif /* DEBUG */
+ 96	                      }
 
 
- 8 Jul 22:47 2020 xw_printpuzz.c Page 3
+29 Sep 00:44 2021 xw_printpuzz.c Page 3
 
 
- 97	              hptr = hptr->pz_down;
- 98	              if (hptr != NULL)
- 99	                {
-100	                  vptr = hptr->pz_right;
-101	                }
-102	              else
-103	                {
-104	                  break;
-105	                }
-106	            }
-107	          TEST(PRINT1(d, puzz_hdr->ph_numcols));
-108	#ifdef DEBUG
-109	          printf("  ");
-110	#endif /* DEBUG */
-111	          printf("+");
-112	          for(i = 0; i < puzz_hdr->ph_numcols - 2; i++)
-113	            {
-114	              printf("-+");
-115	            }
-116	          printf("\n");
-117	
-118	          if (puzz_hdr->ph_numwords != 1)
-119	            {
-120	                puzz_hdr->ph_compact = puzz_hdr->ph_numletters
-121	                /(((float)puzz_hdr->ph_numrows-2.0)
-122	                * ((float)puzz_hdr->ph_numcols - 2.0)) * 100.0;
-123	                printf("Puzzle Compactness: %6.2f%%\n",
-124	                puzz_hdr->ph_compact);
-125	            }
-126	          printf("Time taken to insert %d words: %6.2f secs.\n",
-127	                 puzz_hdr->ph_numwords, difftime(time(NULL), xw_starttime));
-128	#if DEBUG
-129	          PR(s, puzz_hdr->ph_lastword->wl_word);
-130	          PRINT2(#018lx, (ULONG)puzz_hdr->ph_lastword, (ULONG)puzz_hdr->ph_prevpuzz);
-131	#endif /* DEBUG */
-132	
-133	}
-134	
-135	/* End of /home/franx/xword/xw_printpuzz.c */
+ 97	                    else
+ 98	                      {
+ 99	// #if DEBUG
+100	                        printf("|");
+101	// #else
+102	//                      if( vptr->pz_color )
+103	//
+104	//                      {
+105	                                printf("\033[%dm \033[0m", vptr->pz_color );
+106	//                      }
+107	//                      else
+108	//                      {
+109	//                              printf("\033[40m \033[0m");
+110	//                      }
+111	// #endif /* DEBUG */
+112	                      }
+113	                  vptr = vptr->pz_right;
+114	                }
+115	              printf("\n");
+116	              hptr = hptr->pz_down;
+117	              if (hptr != NULL)
+118	                {
+119	                  vptr = hptr;
+120	/*                vptr = hptr->pz_right; */
+121	                }
+122	              else
+123	                {
+124	                  break;
+125	                }
+126	            }
+127	          TEST(PRINT1(d, puzz_hdr->ph_numcols));
+128	// #ifdef DEBUG
+129	          printf("  ");
+130	// #endif /* DEBUG */
+131	          printf("+");
+132	          for(i = 0; i < puzz_hdr->ph_numcols; i++)
+133	/*        for(i = 0; i < puzz_hdr->ph_numcols - 2; i++) */
+134	            {
+135	              printf("-+");
+136	            }
+137	          printf("\n");
+138	
+139	          if (puzz_hdr->ph_numwords != 1)
+140	            {
+141	                puzz_hdr->ph_compact = puzz_hdr->ph_numletters
+142	                /(((float)puzz_hdr->ph_numrows-2.0)
+143	                * ((float)puzz_hdr->ph_numcols - 2.0)) * 100.0;
+144	                printf("Puzzle Compactness: %6.2f%%\n",
 
 
- 8 Jul 21:55 2020 xw_puzzutil.c Page 1
+29 Sep 00:44 2021 xw_printpuzz.c Page 4
+
+
+145	                puzz_hdr->ph_compact);
+146	            }
+147	          printf("Time taken to insert %d words: %6.2f secs.\n",
+148	                 puzz_hdr->ph_numwords, difftime(time(NULL), xw_starttime));
+149	// #if DEBUG
+150	          PR(s, puzz_hdr->ph_lastword->wl_word);
+151	          PRINT2(#018lx, (ULONG)puzz_hdr->ph_lastword, (ULONG)puzz_hdr->ph_prevpuzz);
+152	// #endif /* DEBUG */
+153	
+154	}
+155	
+156	/* End of /home/franx/xword/xw_printpuzz.c */
+
+
+29 Jul 13:38 2020 xw_puzzutil.c Page 1
 
 
   1	/* /home/franx/xword/xw_puzzutil.c Tue10Feb2004 {fcG} */
@@ -2085,7 +3524,7 @@
  48	                prevrow = edge;
 
 
- 8 Jul 21:55 2020 xw_puzzutil.c Page 2
+29 Jul 13:38 2020 xw_puzzutil.c Page 2
 
 
  49	              }
@@ -2138,7 +3577,7 @@
  96	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 
- 8 Jul 21:55 2020 xw_puzzutil.c Page 3
+29 Jul 13:38 2020 xw_puzzutil.c Page 3
 
 
  97	
@@ -2191,7 +3630,7 @@
 144	            prevcol = ph->ph_puzzle;
 
 
- 8 Jul 21:55 2020 xw_puzzutil.c Page 4
+29 Jul 13:38 2020 xw_puzzutil.c Page 4
 
 
 145	            while(prevcol->pz_right != NULL)
@@ -2244,7 +3683,7 @@
 192	#endif /* DEBUG */
 
 
- 8 Jul 21:55 2020 xw_puzzutil.c Page 5
+29 Jul 13:38 2020 xw_puzzutil.c Page 5
 
 
 193	        ref = ph->ph_puzzle;
@@ -2499,7 +3938,7 @@
 201	/* End of /home/franx/xword/xw_readsort.c */
 
 
-21 Jul 19:39 2020 xw_sizedict.c Page 1
+28 May 22:26 2021 xw_sizedict.c Page 1
 
 
   1	/* /home/franxg/debianstuff/xword/xw_sizedict.c Wed06Jul2016 {fcG} */
@@ -2531,52 +3970,44 @@
  27	        for(EVER)
  28	        {
  29	#ifdef  DEBUG
- 30	                PRINT2(#018lx, xw_indexfile, index);
- 31	                PRINT2(s, xw_indexfile, index);
- 32	#endif  /* DEBUG */
- 33	
- 34	/*              strncpy(xw_indexfile, index, sizeof(xw_indexfile)); */
- 35	                INDEXDIR(++count);
- 36	/*              sprintf(sysbuf, "[ -d  %s ]", xw_index); */
- 37	                sprintf(sysbuf, "test -d  %s", xw_indexdir);
- 38	
- 39	// #ifdef       DEBUG
- 40	                PR(s, sysbuf);
- 41	                PRINT1(d, count);
- 42	// #endif       /* DEBUG */
- 43	                if (system(sysbuf) != 0)
- 44	                {
- 45	                        break;
- 46	                }
- 47	                else
- 48	                {
+ 30	                PRINT2(s, xw_indexfile, index);
+ 31	#endif  /* DEBUG */
+ 32	
+ 33	                INDEXDIR(++count);
+ 34	/*              sprintf(sysbuf, "[ -d  %s ]", xw_index); */
+ 35	                sprintf(sysbuf, "test -d  %s", xw_indexdir);
+ 36	
+ 37	#ifdef  DEBUG
+ 38	                PR(s, sysbuf);
+ 39	                PRINT1(d, count);
+ 40	#endif  /* DEBUG */
+ 41	
+ 42	                if (system(sysbuf) != 0)
+ 43	                {
+ 44	                        break;
+ 45	                }
+ 46	                else
+ 47	                {
+ 48	                        TEST(PR(s, sysbuf));
 
 
-21 Jul 19:39 2020 xw_sizedict.c Page 2
+28 May 22:26 2021 xw_sizedict.c Page 2
 
 
- 49	#ifdef  DEBUG
- 50	
- 51	                        PR(s, sysbuf);
- 52	                        PRINT1(d, count);
- 53	#endif  /* DEBUG */
- 54	                        ; // Do Nothing...
+ 49	                        TEST(PRINT1(d, count));
+ 50	                }
+ 51	        }
+ 52	        TEST(PR(s,fprintf(stderr,"xw_sizedict: returning %d\n",count-1)));
+ 53	        return count - 1;
+ 54	}
  55	
- 56	
- 57	                }
- 58	        }
- 59	        fprintf(stderr, "xw_sizedict: returning %d\n", count-1);
- 60	        return count - 1;
- 61	}
- 62	
- 63	#ifdef  SNARK
- 64	int main(int argc, char *argv[])
- 65	{
- 66	        xw_sizedict("john.sort");
- 67	}
- 68	#endif  /* SNARK */
- 69	        
- 70	/* /End of /home/franxg/debianstuff/xword/xw_sizedict.c */
+ 56	#ifdef  SNARK
+ 57	int main(int argc, char *argv[])
+ 58	{
+ 59	        xw_sizedict("john.sort");
+ 60	}
+ 61	#endif  /* SNARK */
+ 62	/* /End of /home/franxg/debianstuff/xword/xw_sizedict.c */
 
 
  8 Jul 21:56 2020 xw_tryword.c Page 1
@@ -2867,582 +4298,7 @@
 258	/* End of /home/franx/xword/xw_tryword.c  */
 
 
-22 Jul 22:07 2020 xw_fillpuzz.c Page 1
-
-
-  1	/* /home/franx/xword/xw_fillpuzz.c Fri28Jul2006 {fcG} */
-  2	//
-  3	//  Created by Frank Charles Gallacher on 22/5/20.
-  4	//  Copyleft © 2020 Frank Charles Gallacher. All rights reserved.
-  5	//
-  6	// MODIFICATION HISTORY
-  7	// When         Who     What
-  8	// Sat18Jul2020 {fcG}   xw_searchblanks() implemented...
-  9	
- 10	#include <ctype.h>
- 11	#include <errno.h>
- 12	#include <setjmp.h>
- 13	#include <signal.h>
- 14	#include <stdarg.h>
- 15	#include <stdio.h>
- 16	#include <stdlib.h>
- 17	#include <string.h>
- 18	#include <time.h>
- 19	#include <unistd.h>
- 20	//#define       extern
- 21	#include "xword.h"
- 22	
- 23	typedef struct spot
- 24	{
- 25	  char sp_letter;
- 26	  int  sp_pos;
- 27	} SPOT;
- 28	
- 29	typedef struct wordhole
- 30	{
- 31	  int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
- 32	  STATUS wh_status;
- 33	  struct wordhole *wh_next;
- 34	  struct spot wh_spot[WORDLENGTH];
- 35	 
- 36	} WORDHOLE;
- 37	
- 38	WORDHOLE xw_whstart =
- 39	  {
- 40	    2020, UNDEFINED, UNDEFINED, 0, 0, UNUSED, NULL,
- 41	  };
- 42	
- 43	char buf[SZ_FILENAME+1];
- 44	
- 45	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
- 46	#               xw_INSERTHOLE           #
- 47	#                                       #
- 48	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 2
-
-
- 49	
- 50	WORDHOLE *xw_inserthole(int spots, int letters, WORDHOLE *wh, PUZZLE *pzptr, STATUS stat) 
- 51	{
- 52	        register WORDHOLE *wh_ptr = &xw_whstart;
- 53	
- 54	        wh->wh_key = (spots * 100) + letters;
- 55	        wh->wh_status = stat;
- 56	        for(EVER)
- 57	        {
- 58	                if((wh_ptr->wh_next EQ NULL)
- 59	                || (wh_ptr->wh_next->wh_key < wh->wh_key))
- 60	                {
- 61	                        wh->wh_next = wh_ptr->wh_next;
- 62	                        wh_ptr->wh_next = wh;
- 63	                        break;
- 64	                }
- 65	                else
- 66	                {
- 67	                        wh_ptr = wh_ptr->wh_next;
- 68	                }
- 69	        }
- 70	        return (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
- 71	}
- 72	
- 73	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
- 74	#               XW_SEARCHRANK           #
- 75	#                                       #
- 76	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
- 77	
- 78	void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
- 79	{
- 80	        register int i, numletters, numspots;
- 81	        WORDHOLE *wh_ptr;
- 82	
- 83	        numletters = numspots = 0;
- 84	        wh_ptr = (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
- 85	        wh_ptr->wh_rownum = pzptr->pz_rownum;
- 86	        wh_ptr->wh_colnum = pzptr->pz_colnum;
- 87	
- 88	  for(i = 0; i < length; i++)
- 89	    {
- 90	      if (pzptr->pz_letter EQ EOWORD)
- 91	        {
- 92	        if (numspots != 0 && numspots != numletters)
- 93	        {
- 94	                wh_ptr = xw_inserthole(numspots, numletters,
- 95	                wh_ptr, pzptr, stat);
- 96	                wh_ptr->wh_length = numletters;
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 3
-
-
- 97	                wh_ptr->wh_spots = numspots;
- 98	        }
- 99	        else
-100	            {
-101	              register int j;
-102	              
-103	/*            PRINT1(d, sizeof(SPOT)); */
-104	/*            PRINT2(d, sizeof(wh_ptr->wh_spot), SZ_TABLE(wh_ptr->wh_spot)); */
-105	
-106	              for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot); j++)
-107	                {
-108	                  wh_ptr->wh_spot[j].sp_letter = '\0';
-109	                  wh_ptr->wh_spot[j].sp_pos = 0;
-110	                }
-111	            }
-112	          if (stat EQ ACROSS)
-113	            {
-114	              wh_ptr->wh_rownum = pzptr->pz_rownum;
-115	              wh_ptr->wh_colnum = pzptr->pz_colnum+1;
-116	            }
-117	          else
-118	            {
-119	              wh_ptr->wh_rownum = pzptr->pz_rownum+1;
-120	              wh_ptr->wh_colnum = pzptr->pz_colnum;
-121	            }
-122	          numletters = numspots = 0;
-123	        }
-124	      else
-125	        {
-126	/*        TEST(PR(#06x,pzptr->pz_letter)); */
-127	/*        TEST(PR(c,pzptr->pz_letter)); */
-128	
-129	          if (pzptr->pz_letter EQ '\0' || pzptr->pz_letter EQ ' ')
-130	            {
-131	              numletters++;
-132	            }
-133	          else
-134	            {
-135	              wh_ptr->wh_spot[numspots].sp_pos = ++numletters;
-136	              wh_ptr->wh_spot[numspots++].sp_letter = pzptr->pz_letter;
-137	
-138	/*            TEST(PR(c,pzptr->pz_letter)); */
-139	/*            TEST(PRINT2(d,numletters,numspots)); */
-140	            }
-141	        }
-142	      if (stat EQ ACROSS)
-143	        {
-144	          pzptr = pzptr->pz_right;
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 4
-
-
-145	        }
-146	      else
-147	        {
-148	          pzptr = pzptr->pz_down;
-149	        }
-150	    }
-151	        if (numspots != 0 && numspots != numletters)
-152	        {
-153	                wh_ptr = xw_inserthole(numspots, numletters,
-154	                        wh_ptr, pzptr, stat);
-155	                wh_ptr->wh_length = numletters;
-156	                wh_ptr->wh_spots = numspots;
-157	        }
-158	          else
-159	        {
-160	                free(wh_ptr);
-161	        }
-162	}
-163	
-164	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
-165	#               XW_FINDGAPS             #
-166	#                                       #
-167	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
-168	
-169	void xw_findgaps(PUZZHEAD *ph)
-170	{
-171	  PUZZLE *hptr, *vptr;
-172	  register int i;
-173	
-174	  hptr = ph->ph_puzzle;
-175	  if(ph->ph_numrows != 1)
-176	    {
-177	      hptr = hptr->pz_down;
-178	    }
-179	  vptr = hptr->pz_right;
-180	  for(i = 0; i < ph->ph_numcols - 2; i++)
-181	  {
-182	    xw_searchrank(vptr, DOWN, ph->ph_numrows-2);
-183	    vptr = vptr->pz_right;
-184	  }
-185	  vptr = hptr->pz_right;
-186	  for(i = 0; i < ph->ph_numrows - 2; i++)
-187	  {
-188	    xw_searchrank(vptr, ACROSS, ph->ph_numcols-2);
-189	    vptr = vptr->pz_down;
-190	  }
-191	}       
-192	
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 5
-
-
-193	
-194	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
-195	#       EQUIVALENCE_CHECK               #
-196	#                                       #
-197	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
-198	
-199	int equivalence_check(int length, long offset[])
-200	{
-201	        register int i,j,k;
-202	        long min;
-203	
-204	        TEST(PRINT3(#06lx, offset[0], offset[1], offset[2]));
-205	//      TEST(PRINT2(#018lx, offset[0], offset[1]));
-206	
-207	        min = MAXLONG;
-208	        for(i = 0; i < length; i++)
-209	        {
-210	                if (offset[i] < min)
-211	                {
-212	                        min = offset[i];
-213	                        k = i;
-214	                }
-215	        }
-216	        j = 0;
-217	        for(i = 0; i < length; i++)
-218	        {
-219	                if (offset[i] EQ min)
-220	                {
-221	                        j++;
-222	                }
-223	        }
-224	        if (j EQ length)
-225	        {
-226	                return j;
-227	        }
-228	        else
-229	        {
-230	                return k;
-231	        }
-232	}
-233	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
-234	#       XW_SEARCH_BLANKS                #
-235	#                                       #
-236	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
-237	
-238	BOOLEAN xw_search_blanks(PUZZHEAD *ph)
-239	{
-240	        BOOLEAN search, equivalent;
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 6
-
-
-241	        FILE    *fp[WORDLENGTH], *minfp, *newfp;
-242	        long    offset[WORDLENGTH],minoffset;
-243	        int     count, max, min_count;
-244	        register WORDHOLE *wh_ptr = &xw_whstart;
-245	
-246	        wh_ptr = &xw_whstart;
-247	        wh_ptr = wh_ptr->wh_next;
-248	        max = 0;
-249	        if((max = xw_sizedict(xw_indexfile)) > WORDLENGTH)
-250	        {
-251	                xw_error(SV_FATAL,
-252	                "Words in dictionary are too long... %d > %d\n",
-253	                max, WORDLENGTH);
-254	        }
-255	        if(!max)        
-256	        {
-257	                xw_error(SV_FATAL, "Error in Dictionary %s\n",  
-258	                        xw_indexfile);
-259	        }
-260	        WHERE; PRINT1(d, max);
-261	        PRINT2(d, wh_ptr->wh_key, wh_ptr->wh_length);
-262	        PRINT3(d, wh_ptr->wh_spots, wh_ptr->wh_rownum, wh_ptr->wh_colnum);
-263	        for(count = 0; count < wh_ptr->wh_spots; count++)
-264	        {
-265	                INDEXDIR(wh_ptr->wh_spot[count].sp_pos);
-266	                sprintf(buf, "%s/%c", xw_indexdir, 
-267	                        wh_ptr->wh_spot[count].sp_letter);
-268	                TEST(WHERE); TEST(PRINT1(s,buf));
-269	                if (!(fp[count] = fopen(buf,"rb")))
-270	                {
-271	                        TEST(WHERE); xw_error(SV_FATAL,
-272	                        "Error opening %s\n", buf);
-273	                }
-274	        }
-275	        minoffset = MAXLONG;
-276	        equivalent = FALSE;
-277	        search = TRUE;
-278	
-279	        for(count = 0; count < wh_ptr->wh_spots; count++)
-280	        {
-281	                fread(&offset[count], sizeof(offset[count]), 1, fp[count]);
-282	                if (ferror(fp[count]))
-283	                {
-284	                        INDEXDIR(wh_ptr->wh_spot[count].sp_pos);
-285	                        sprintf(buf, "%s/%c", xw_indexdir, 
-286	                                wh_ptr->wh_spot[count].sp_letter);
-287	                        xw_error(SV_FATAL, "Error reading %s\n",
-288	                                        buf);
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 7
-
-
-289	                }               
-290	                if (feof(fp[count]))
-291	                {
-292	                        search = FALSE;
-293	                        TEST(WHERE); TEST(fprintf(stderr, "Search failed!\n"));
-294	                        break;
-295	                }
-296	        }
-297	        if (wh_ptr->wh_spots < 2)
-298	        {
-299	                if (search)
-300	                {
-301	                        equivalent = TRUE;
-302	                        min_count = 0;
-303	                }
-304	        }
-305	
-306	        if ((min_count = equivalence_check(wh_ptr->wh_spots, &offset))
-307	        EQ wh_ptr->wh_spots)
-308	        {
-309	                equivalent = TRUE;
-310	        }               
-311	        TEST(WHERE); TEST(PRINT2(d, min_count, wh_ptr->wh_spots));
-312	        while(!equivalent && search)
-313	        {
-314	
-315	                fread(&offset[min_count], sizeof(offset[min_count]),
-316	                        1, fp[min_count]);
-317	                if (ferror(fp[min_count]))
-318	                {
-319	                        INDEXDIR(wh_ptr->wh_spot[min_count].sp_pos);
-320	                        sprintf(buf, "%s/%c", xw_indexdir, 
-321	                                wh_ptr->wh_spot[min_count].sp_letter);
-322	                        xw_error(SV_FATAL, "Error reading %s\n",
-323	                                        buf);
-324	                }               
-325	                if (feof(fp[min_count]))
-326	                {
-327	                        search = FALSE;
-328	                        TEST(WHERE); TEST(PRINT1(d, min_count));
-329	                        fprintf(stderr, "Search failed!\n");
-330	                        break;
-331	                }
-332	                if ((min_count =
-333	                equivalence_check(wh_ptr->wh_spots, &offset))
-334	                EQ wh_ptr->wh_spots)
-335	                {
-336	                        equivalent = TRUE;
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 8
-
-
-337	                }
-338	        }
-339	        
-340	        if (equivalent && search)
-341	        {
-342	                FILE *fp_dict;
-343	
-344	                if (!(fp_dict = fopen(xw_indexfile,"rb")))
-345	                {
-346	                        TEST(WHERE);xw_error(SV_ERROR, "index file open error/n");
-347	                }
-348	                TEST(WHERE); TEST(PRINT1(#018lx, offset[0]));
-349	                if (fseek(fp_dict, offset[0], SEEK_SET) != 0)
-350	                {
-351	                        TEST(WHERE);xw_error(SV_ERROR, "fseek() error");
-352	                }
-353	                if(!fgets(buf, sizeof(buf), fp_dict))
-354	                {
-355	                        TEST(WHERE);xw_error(SV_ERROR, "fgets() error");
-356	                }
-357	                fprintf(stderr, "\"%s\"[%#018lx]==>%s",xw_indexfile,
-358	                        offset[0],buf);
-359	
-360	                do
-361	                {
-362	                        for(count = 0; count < wh_ptr->wh_spots; count++)
-363	                        {
-364	                                fread(&offset[count],
-365	                                sizeof(offset[count]), 1, fp[count]);
-366	                                if (ferror(fp[count]))
-367	                                {
-368	                                        TEST(WHERE); INDEXDIR
-369	                                        (wh_ptr->wh_spot[count].sp_pos);
-370	
-371	                                        sprintf(buf, "%s/%c", xw_indexdir, 
-372	                                        wh_ptr->wh_spot[count].sp_letter);
-373	                                        xw_error(SV_FATAL,
-374	                                        "Error reading %s\n", buf);
-375	                                }               
-376	                                if (feof(fp[count]))
-377	                                {
-378	                                        search = FALSE;
-379	                                        TEST(WHERE); TEST(fprintf(stderr,
-380	                                        "Search failed!\n"));
-381	                                        break;
-382	                                }
-383	                        }
-384	                        if (equivalence_check(wh_ptr->wh_spots, &offset)
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 9
-
-
-385	                        EQ wh_ptr->wh_spots)
-386	                        {
-387	                                equivalent = TRUE;
-388	                        }
-389	                        else
-390	                        {
-391	                                equivalent = FALSE;
-392	                                break;
-393	                        }
-394	
-395	                        if (fseek(fp_dict, offset[0], SEEK_SET) != 0)
-396	                        {
-397	                                TEST(WHERE); xw_error(SV_ERROR, "fseek() error");
-398	                        }
-399	                        if(!fgets(buf, sizeof(buf), fp_dict))
-400	                        {
-401	                                TEST(WHERE); xw_error(SV_ERROR, "fgets() error");
-402	                        }
-403	                        fprintf(stderr, "\"%s\"[%#020lx]==>%s",xw_indexfile,
-404	                                offset[0],buf);
-405	                }       
-406	                while (equivalent && search);
-407	                if(fclose(fp_dict))
-408	                {
-409	                        TEST(WHERE); xw_error(SV_FATAL,"fclose() bombed!/n");
-410	                }
-411	        }       
-412	        for(count = 0; count < wh_ptr->wh_spots; count++)
-413	        {
-414	                if(fclose(fp[count]))
-415	                {
-416	                        TEST(WHERE); xw_error(SV_FATAL, "fclose() bombed!/n");
-417	                }
-418	        }
-419	        return equivalent;
-420	}
-421	
-422	/*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
-423	#               XW_FILLPUZZ             #
-424	#                                       #
-425	\*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
-426	
-427	PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
-428	{
-429	  register WORDHOLE *wh_ptr = &xw_whstart;
-430	  
-431	  xw_findgaps(ph);
-432	  
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 10
-
-
-433	#ifdef DEBUG
-434	      wh_ptr =wh_ptr->wh_next;
-435	
-436	  WHEN; WHERE, nL;
-437	  
-438	  wh_ptr =wh_ptr->wh_next;
-439	  while (wh_ptr != NULL)
-440	    {
-441	      register int i,j, k;
-442	      
-443	      printf("%d %s (%d,%d) ", wh_ptr->wh_key, DECODE(wh_ptr->wh_status),
-444	             wh_ptr->wh_colnum,  wh_ptr->wh_rownum);
-445	      for(i=0; i < wh_ptr->wh_key / 100; i++)
-446	        {
-447	          printf("\"%c\"[%#04x]->%d ", wh_ptr->wh_spot[i].sp_letter,
-448	                 wh_ptr->wh_spot[i].sp_letter, wh_ptr->wh_spot[i].sp_pos);
-449	        }
-450	      for(j = k = 0; j < wh_ptr->wh_key % 100; j++)
-451	        {
-452	          if (wh_ptr->wh_spot[k].sp_pos - 1 EQ j)
-453	            {
-454	              buf[j] = wh_ptr->wh_spot[k++].sp_letter;
-455	            }
-456	          else
-457	            {
-458	                  buf[j] = '?';
-459	            }
-460	        }
-461	        buf[j] = '\0';
-462	        printf("%s\n", buf);
-463	        
-464	        wh_ptr->wh_spots = k;
-465	        wh_ptr->wh_length = j;
-466	        PRINT2(d, wh_ptr->wh_spots, wh_ptr->wh_length);
-467	        wh_ptr = wh_ptr->wh_next;
-468	    }
-469	
-470	#endif /* DEBUG */
-471	
-472	        xw_search_blanks(ph);
-473	  return ph;
-474	}       
-475	
-476	#ifdef  SNARK
-477	main()
-478	{
-479	        BOOLEAN james;
-480	        long    offset[WORDLENGTH],minoffset;
-
-
-22 Jul 22:07 2020 xw_fillpuzz.c Page 11
-
-
-481	        PUZZHEAD        puzzle_header;
-482	        WORDHOLE testdata;
-483	        register WORDHOLE *wh_ptr = &xw_whstart;
-484	
-485	        offset[0] = 4;
-486	        offset[1] = 3;
-487	        offset[2] = 2;
-488	        offset[3] = 4;
-489	        PRINT1(d, equivalence_check(4, &offset));
-490	        
-491	        offset[0] = 5;
-492	        offset[1] = 5;
-493	        offset[2] = 5;
-494	        offset[3] = 5;
-495	        PRINT1(d, equivalence_check(4, &offset));
-496	        
-497	        wh_ptr = &xw_whstart;
-498	        wh_ptr->wh_next = &testdata;
-499	        testdata.wh_key = 1010;
-500	        testdata.wh_rownum = testdata.wh_colnum = 10;
-501	        testdata.wh_status = ACROSS;
-502	        testdata.wh_next = NULL;
-503	        
-504	        testdata.wh_spots = 3;
-505	        testdata.wh_length = testdata.wh_colnum = 10;
-506	        testdata.wh_status = ACROSS;
-507	        testdata.wh_spot[0].sp_pos = 1;
-508	        testdata.wh_spot[0].sp_letter = 'A';
-509	        testdata.wh_spot[1].sp_pos = 2;
-510	        testdata.wh_spot[1].sp_letter = 'C';
-511	        testdata.wh_spot[2].sp_pos = 3;
-512	        testdata.wh_spot[2].sp_letter = 'C';
-513	
-514	        strncpy(xw_indexfile, "john.sort", 16);
-515	
-516	        james = xw_search_blanks(&puzzle_header);
-517	}
-518	#endif  /* SNARK */ 
-519	
-520	/* End of /home/franx/xword/xw_fillpuzz.c */
-
-
- 8 Jul 18:00 2020 xwindex.c Page 1
+26 Jul 15:01 2020 xwindex.c Page 1
 
 
   1	/* /home/franx/xword/xwindex.c Fri21Jul2006 {fcG} */
@@ -3495,7 +4351,7 @@
  48	          printf("\nInput file of dictonary words? ");
 
 
- 8 Jul 18:00 2020 xwindex.c Page 2
+26 Jul 15:01 2020 xwindex.c Page 2
 
 
  49	          scanf(buf, xw_indexfile);
@@ -3548,7 +4404,7 @@
  96	                  alpha_word = FALSE;
 
 
- 8 Jul 18:00 2020 xwindex.c Page 3
+26 Jul 15:01 2020 xwindex.c Page 3
 
 
  97	                }
@@ -3601,7 +4457,7 @@
 144	                {
 
 
- 8 Jul 18:00 2020 xwindex.c Page 4
+26 Jul 15:01 2020 xwindex.c Page 4
 
 
 145	                xw_error(SV_WARNING,
@@ -3654,7 +4510,7 @@
 192	
 
 
- 8 Jul 18:00 2020 xwindex.c Page 5
+26 Jul 15:01 2020 xwindex.c Page 5
 
 
 193	                  while(c != '\n')
@@ -3707,7 +4563,7 @@
 240	    }
 
 
- 8 Jul 18:00 2020 xwindex.c Page 6
+26 Jul 15:01 2020 xwindex.c Page 6
 
 
 241	}
