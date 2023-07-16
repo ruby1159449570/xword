@@ -24,7 +24,7 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	  register	int i;
 
 // #ifndef DEBUG
- 	  printf("\033[2J\033[0;0H");
+ 	  printf("\e[2J\e[0;0H");
 // #else
 //	  printf("xw_printpuzz(%#018lx)\n", (ULONG)puzz_hdr);
 // #endif  /*  DEBUG */
@@ -90,7 +90,7 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 			if(vptr->pz_color EQ 0)
 				vptr->pz_color = CYAN;
 
-			printf("\033[%d;4m%c|\033[0m", 
+			printf("\e[%d;4m%c|\e[0m", 
 				vptr->pz_color, vptr->pz_letter); 
 // #endif /* DEBUG */
 		      }
@@ -99,15 +99,14 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 // #if DEBUG
 			printf("|");
 // #else
-//			if( vptr->pz_color )
-//
-// 	 		{
-				printf("\033[%dm \033[0m", vptr->pz_color );
-//			}
-//			else
-//			{
-//				printf("\033[40m \033[0m");
-//			}
+			if( vptr->pz_color )
+ 	 		{
+				printf("\e[%dm \e[0m", vptr->pz_color );
+			}
+			else
+			{
+				printf("\e[40m \e[0m");
+			}
 // #endif /* DEBUG */
 		      }
 		  vptr = vptr->pz_right;

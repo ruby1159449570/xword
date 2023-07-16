@@ -35,9 +35,9 @@
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
-void	xw_ddebug_breakpoint()
+void	xw_debug_breakpoint()
 {
-	fprintf(stderr,"\033[7m<<<<<<<< EXITING  DEBUG >>>>>>>>\033[0m\n");
+	fprintf(stderr,"\e[7m<<<<<<<< EXITING  DEBUG >>>>>>>>\e[0m\n");
 }
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
@@ -47,14 +47,52 @@ void	xw_ddebug_breakpoint()
 
 void xw_debug(WORDLIST *new)
 {
-	fprintf(stderr,"\033[7m<<<<<<<< ENTERING DEBUG >>>>>>>>\033[0m\n");
+	register	int count;
+	register	WORDHOLE *ptr;
+	extern	WORDHOLE xw_whstart;
 
-	PRINT1(d,new->wl_numchar);
-	PRINT2(s,new->wl_word,new->wl_clue);
-//	PRINT1(s,DECODE(new->wl_status));
-	fprintf(stderr, "Status = %s\t", DECODE(new->wl_status));
-	PRINT2(d,new->wl_xpos,new->wl_ypos);
-	xw_ddebug_breakpoint();
+	fprintf(stderr,"\e[7m<<<<<<<< ENTERING DEBUG >>>>>>>>\e[0m\n");
 
+	TEST(WHERE);
+
+	ptr = &xw_whstart;
+	ptr = ptr->wh_next;
+	for (; ptr EQ NULL; ptr = ptr->wh_next)
+	{
+		register	int i;
+		char	buf[WORDLENGTH+1];
+		
+		fprintf(stderr, "%d:", count);
+		PR(#018lx, ptr);
+		PR(d, ptr->wh_key);
+		PR(d, ptr->wh_rownum);
+		PRINT3(d, ptr->wh_rownum, ptr->wh_colnum, ptr->wh_length);
+		fprintf(stderr, "Status = %d\n", DECODE(ptr->wh_status));
+		PRINT1(d, ptr->wh_spots);
+		for (i = 0; i < ptr->wh_spots; i++)
+		{	
+			buf[i] = (char)(ptr->wh_spot[i].sp_letter);
+#ifdef	SNARK
+			if (ptr->wh_spot[i].sp_pos - 1 EQ j)
+			{
+				buf[i] = wh_ptr->wh_spot[i]sp_letter;
+			}
+			else
+			{
+				buf[i] = '?';
+			}
+#endif	//SNARK
+
+			buf[i] = '\0';
+			fprintf(stderr, "%s", buf);
+
+		}
+
+		PRINT1(d,new->wl_numchar);
+		PRINT2(s,new->wl_word,new->wl_clue);
+		fprintf(stderr, "Status = %s\t", DECODE(new->wl_status));
+		PRINT2(d,new->wl_xpos,new->wl_ypos);
+		xw_debug_breakpoint();
+	}
 }
 /* End of /Users/moonpie/xword/xw_debug.c */

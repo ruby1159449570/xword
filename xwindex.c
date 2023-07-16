@@ -29,15 +29,15 @@ int main(int argc, char *argv[])
   if(setjmp(xw_env) EQ 0)
     {
       printf(
-"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+"\e[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\e[0m\n");
       printf(
-"\033[7m#                                     #\033[0m\n");
+"\e[7m#                                     #\e[0m\n");
       printf(
-"\033[7m#  Welcome to Franx X-word Indexer!   #\033[0m\n");
+"\e[7m#  Welcome to Franx X-word Indexer!   #\e[0m\n");
       printf
-("\033[7m#                                     #\033[0m\n");
+("\e[7m#                                     #\e[0m\n");
       printf(
-"\033[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\033[0m\n");
+"\e[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\e[0m\n");
       WHEN;
 
       if(argc < 2)

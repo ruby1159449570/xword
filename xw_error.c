@@ -3,6 +3,7 @@
 // MODIFICATION HISTORY
 // When		Who	What
 // Wed08Jul2020 {fcG}	64-bit debug code.
+// Sun16Jul2023 {fcG}	Changed to color names.
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -29,19 +30,19 @@ void xw_error(SEVERITY sv, char *fmt, ...)
   switch(sv)
     {
     case SV_FATAL:
-      fprintf(stderr,"\033[4;31mFATAL-");
+      fprintf(stderr,"\e[4;%2dmFATAL-", RED);
       break;
     case SV_ERROR:
-      fprintf(stderr,"\033[31mERROR-");
+      fprintf(stderr,"\e[%2dmERROR-", RED);
       break;
     case SV_WARNING:
-      fprintf(stderr,"\033[35mWARN-");
+      fprintf(stderr,"\e[%2d5mWARN-", PURPLE);
       break;
     case SV_INFO:
-      fprintf(stderr,"\033[32mINFO-");
+      fprintf(stderr,"\e[%2dmINFO-", GREEN);
     }
   vfprintf(stderr, fmt, ap);
-  fprintf(stderr,"\033[0m\n");
+  fprintf(stderr,"\e[0m\n");
   va_end(ap);
 /*perror("xw_error()");  */
   if (errno != 0 && errno != ENOENT)
@@ -69,6 +70,10 @@ void *xw_malloc(size_t size)
 #endif /* SNARK */
     if ((return_code = calloc(1, size)) EQ NULL)
       {
+	if(errno EQ ENOMEM)
+	{
+		PRINT1(d, errno);
+	}
 	xw_error(SV_FATAL, "xw_malloc: OUT OF MEMORY!!!");
       }
 

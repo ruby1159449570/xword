@@ -17,6 +17,9 @@ xw_fillpuzz.c xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
 xw_makeborder.c xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
 xw_tryword.c xwindex.c version.c
 
+xwlookup: xw_lookup.o
+	${CC} ${CFLAGS} xw_lookup.o -o xwlookup
+
 xword: ${OBJS}
 	${CC} ${CFLAGS} datecomp.c -o datecomp
 	./datecomp ${CFLAGS} -c version.c -o version.o 
@@ -60,7 +63,12 @@ git:
 	git add Makefile defs.h xword.h version.h datecomp.c ${SOURCE}
 #######	git remote add origin https://github.com/ruby1159449570/xword.git
 print:
-	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
-defs.h xword.h ${SOURCE} > xword.txt
+	pr -f -e -l58 version.h datecomp.c Makefile \
+defs.h xword.h xw_fillpuzz.c > xword_fillpuzz.txt
+#######	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
+#######defs.h xword.h ${SOURCE} > xword.txt
+
+testwidget: xw_widget.c
+	${CC} ${CFLAGS} xw_widget.c -o testwidget
 
 ######## End of /home/franx/Makefile ########

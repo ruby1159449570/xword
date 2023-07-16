@@ -117,7 +117,7 @@ typedef struct wordhole
   int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
   STATUS wh_status;
   struct wordhole *wh_next;
-  struct spot wh_spot[WORDLENGTH];
+  struct spot wh_spot[WORDLENGTH+1];
  
 } WORDHOLE;
 

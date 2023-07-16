@@ -49,7 +49,7 @@ int xw_sizedict(char index[])
 			TEST(PRINT1(d, count));
 		}
 	}
-	TEST(PR(s,fprintf(stderr,"xw_sizedict: returning %d\n",count-1)));
+	TEST(fprintf(stderr,"xw_sizedict: returning %d\n",count-1));
 	return count - 1;
 }
 
