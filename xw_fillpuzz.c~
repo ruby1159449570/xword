@@ -510,11 +510,13 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 			TEST(WHERE); TEST(PRINT1(#018lx, offset[0]));
 			if (fseek(fp_dict, offset[0], SEEK_SET) != 0)
 			{
-				TEST(WHERE);xw_error(SV_ERROR,"fseek error");
+				TEST(WHERE);xw_error(SV_ERROR,
+					"fseek error");
 			}
 			if(!fgets(buf, sizeof(buf), fp_dict))
 			{
-				TEST(WHERE);xw_error(SV_ERROR,"fgets error");
+				TEST(WHERE);xw_error(SV_ERROR,
+					"fgets error");
 			}
 			clean(buf);
 			if(search_count < SZ_MAXRETSEARCH
@@ -631,6 +633,7 @@ void xw_fillholes()
 		free((char *)ref);
 		ref = tmp;
 	}
+	TEST(PRINT1(#018lx, (ULONG)ref));
 	xw_whstart.wh_next = NULL;
 }
 	
@@ -665,7 +668,7 @@ TRY_AGAIN:
 	WHERE; PRINT1(d, max);
 
 	wh_ptr = &xw_whstart;
-	TEST(WHERE); TEST(PR(#010lx, wh_ptr));
+	TEST(WHERE); TEST(PRINT1(#010lx, wh_ptr));
 	wh_ptr = wh_ptr->wh_next;
 	while (wh_ptr != NULL)
 	{
@@ -781,9 +784,9 @@ TRY_AGAIN:
 	
 			if (xw_switch)
 			{
-				printf("\033[7mEnter # of the word to insert,");
+				printf("\e[7mEnter # of the word to insert,");
 				printf("0 to skip, <CTRL-C> to save & exit\n");
-				printf("\033[0m");
+				printf("\e[0m");
 				for (i = 0; i < num_matches; i++)
 				{
 	//				TEST(PRINT1(s, &return_buf[i][0]));
@@ -795,8 +798,8 @@ TRY_AGAIN:
 				}
 				do
 				{
-	//				printf("\n\007xword\033[%dm[%s]\033[0m> ",
-					printf("\nxword\033[%dm[%s]\033[0m> ",
+	//				printf("\n\axword\e[%dm[%s]\e[0m> ",
+					printf("\nxword\e[%dm[%s]\e[0m> ",
 						CYAN, DECODE(wh_ptr->wh_status));
 					i = scanf("%d", &choice);
 				}	while(i != 1 && (choice < 0
@@ -833,13 +836,13 @@ TRY_AGAIN:
 			new->wl_status = wh_ptr->wh_status;
 			new->wl_numchar = strlen(new->wl_word);
 			
-			new->wh_colnum = wh_ptr->wh_colnum;
-			new->wh_rownum = wh_ptr->wh_rownum;
+			new->wl_xpos = wh_ptr->wh_colnum;
+			new->wl_ypos = wh_ptr->wh_rownum;
 
 			xw_debug(new);
 
 			xw_putwordin(ph, new, wh_ptr->wh_status,
-			new->wh_colnum, new->wh_rownum);
+			wh_ptr->wh_colnum, wh_ptr->wh_rownum);
 
 //			xw_printpuzz(ph);
 				

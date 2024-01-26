@@ -5,6 +5,7 @@
 #					#
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "defs.h"
 
@@ -38,20 +39,11 @@ int main(int argc, char *argv[])
 	ptr = testbuf;
 	PRINT1(#lx, (ULONG)ptr);
 	PRINT1(#018lX, (ULONG)ptr);
+	PRINT1(#018lx, (ULONG)ptr);
 	PRINT1(lx, (ULONG)ptr);
-	if (argc != 2)
-	{
-		free(nothing);
-	}
-	ptr = (char *)zero;
-//	*ptr = zero;
-//	one /= 0;
-	one = 1;
-	zero = 0;
-	one = one/zero; //???
-
-	/*   PR(10x, testbuf); */
-	/*   PR(#010x, sprintf(testbuf, "%s", "This a test...\n")); */
+	PRINT1(d, argc);
+	PRINT1(#018lx, 0xfeedc0defeedc0de);
+	PRINT1(#018lX, 0xfeedc0defeedc0de);
 }
 
 /* End of /home/franx/source/testcc.c */

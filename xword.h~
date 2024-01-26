@@ -29,6 +29,7 @@
 #define	WORDLENGTH	30
 #define	NUMLETTERS	26
 #define	EOWORD		'#'
+#define	DONTCARE	'?'
 #define	NUMWORDS	100
 #define	SZ_MAXRETSEARCH 100
 #define	UNDEFINED	32767
@@ -38,8 +39,8 @@
 			(x) EQ ACROSS ? "ACROSS" : \
 			(x) EQ DOWN ? "DOWN"       : \
 			"???")
-#define	INDEXDIR(x)	(sprintf(xw_indexdir,\
-			"%s.index/%06d", xw_indexfile,(x)))
+
+#define	INDEXDIR(x)	(sprintf(xw_indexdir,"%s.index/%06d", xw_indexfile,(x)))
 
 #define	XWORD_SWITCH	"XWORD_INTERACTIVE"
 
@@ -117,7 +118,7 @@ typedef struct wordhole
   int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
   STATUS wh_status;
   struct wordhole *wh_next;
-  struct spot wh_spot[WORDLENGTH];
+  struct spot wh_spot[WORDLENGTH+1];
  
 } WORDHOLE;
 
@@ -185,7 +186,7 @@ float	version();
 BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
 PUZZHEAD *xw_copypuzz(PUZZHEAD *);
 void	xw_ddebug_breakpoint();
-void	xw_debug(WORDHOLE *wh);
+void	xw_debug();
 PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
 PUZZHEAD *xw_initpuzz(WORDLIST *);
 PUZZLE	*xw_pointpuzz(PUZZHEAD *, int, int);

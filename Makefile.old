@@ -7,15 +7,21 @@ CFLAGS = -g -O0
 #######CFLAGS = -include version.h -Wall
 #######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
 
-OBJS = xword.o xw_buildpuzz.o xw_createlinks.o xw_error.o \
+
+#######OBJS = xword.o xw_buildpuzz.o xw_createlinks.o  xw_debug.o xw_error.o 
+#######OBJS = xw_lookup.o xw_buildpuzz.o xw_createlinks.o  xw_debug.o xw_error.o 
+OBJS = xw_buildpuzz.o xw_createlinks.o  xw_debug.o xw_error.o \
 xw_fillpuzz.o xw_html.o xw_initpuzz.o xw_listutil.o xw_matchpuzz.o \
-xw_printpuzz.o xw_puzzutil.o xw_readsort.o xw_sizedict.o \
+xw_makeborder.o xw_printpuzz.o xw_puzzutil.o xw_readsort.o xw_sizedict.o \
 xw_tryword.o 
 
-SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_error.c \
+SOURCE = xword.c xw_buildpuzz.c xw_createlinks.c xw_debug.c xw_error.c \
 xw_fillpuzz.c xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
-xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
+xw_makeborder.c xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
 xw_tryword.c xwindex.c version.c
+
+xwlookup: xw_lookup.o
+	${CC} ${CFLAGS} xw_lookup.o -o xwlookup
 
 xword: ${OBJS}
 	${CC} ${CFLAGS} datecomp.c -o datecomp
@@ -35,8 +41,14 @@ xwindex: xwindex.o xw_error.o
 testfopen: testfopen.o xw_error.o 
 	${CC} ${CFLAGS} testfopen.o xw_error.o -o testfopen
 
+testfreopen: testfreopen.o 
+	${CC} ${CFLAGS} testfreopen.o -o testfreopen
+
 testindex: testindex.o xw_error.o
 	${CC} ${CFLAGS} testindex.o xw_error.o -o testindex
+
+testgetenvcc: testgetenvcc.o
+	${CC} ${CFLAGS} testgetenvcc.o -o testgetenvcc
 
 strip_punc: strip_punc.o
 	${CC} ${CFLAGS} strip_punc.c -o strip_punc
@@ -54,7 +66,12 @@ git:
 	git add Makefile defs.h xword.h version.h datecomp.c ${SOURCE}
 #######	git remote add origin https://github.com/ruby1159449570/xword.git
 print:
-	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
-defs.h xword.h ${SOURCE} > xword.txt
+	pr -f -e -l58 version.h datecomp.c Makefile \
+defs.h xword.h xw_fillpuzz.c > xword_fillpuzz.txt
+#######	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
+#######defs.h xword.h ${SOURCE} > xword.txt
+
+testwidget: xw_widget.c
+	${CC} ${CFLAGS} xw_widget.c -o testwidget
 
 ######## End of /home/franx/Makefile ########

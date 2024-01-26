@@ -15,9 +15,10 @@
 #define	MAX(x,y)	((x) > (y) ? (x) : (y))
 #define	MIN(x,y)	((x) < (y) ? (x) : (y))
 
-#define	MAXINT		(~(int)(1<<(sizeof(int)*8)-1))
-#define	MAXLONG		(~(1L<<(sizeof(long)*8)-1))
-#define	MAXSHORT	(~(short)(1<<(sizeof(short)*8)-1))
+/* #define	MAXINT	(~(int)(1<<(sizeof(int)*8)(-)1)) */
+#define	MAXINT		(214748364732767)
+#define	MAXLONG		(9223372036854775807)
+#define	MAXSHORT	(32767)
 
 #define	SZ_FILENAME	FILENAME_MAX
 #define	SZ_STRING	100
@@ -29,8 +30,8 @@
 #define	WHERE	printf("%s[%d]", __FILE__, __LINE__) 
 #else
 #define	PR(format,value)	printf("value = %format\t", (value))
-#define	WHEN
-#define	WHERE
+#define	WHEN			;
+#define	WHERE			;
 #endif	/* __STDC__ */
 
 #define	nL			putchar('\n')

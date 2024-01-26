@@ -41,6 +41,7 @@ int xw_sizedict(char index[])
 
 		if (system(sysbuf) != 0)
 		{
+			perror(errno);
 			break;
 		}
 		else

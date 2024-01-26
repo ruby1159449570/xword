@@ -29,6 +29,7 @@
 #define	WORDLENGTH	30
 #define	NUMLETTERS	26
 #define	EOWORD		'#'
+#define	DONTCARE	'?'
 #define	NUMWORDS	100
 #define	SZ_MAXRETSEARCH 100
 #define	UNDEFINED	32767
@@ -38,8 +39,8 @@
 			(x) EQ ACROSS ? "ACROSS" : \
 			(x) EQ DOWN ? "DOWN"       : \
 			"???")
-#define	INDEXDIR(x)	(sprintf(xw_indexdir,\
-			"%s.index/%06d", xw_indexfile,(x)))
+
+#define	INDEXDIR(x)	(sprintf(xw_indexdir,"%s.index/%06d", xw_indexfile,(x)))
 
 #define	XWORD_SWITCH	"XWORD_INTERACTIVE"
 
@@ -161,12 +162,12 @@ extern	WORDLIST xw_start
 	;
 #endif
 
-extern	char	xw_inputfile[SZ_FILENAME+1],
+extern	char	xw_inputfile[SZ_FILENAME],
 		xw_outputfile[SZ_FILENAME+6],
 		xw_debugfile[SZ_FILENAME],
-		xw_indexfile[SZ_FILENAME+1],
-		xw_indexdir[SZ_FILENAME+1],
-		xw_sedfile[SZ_FILENAME+1];
+		xw_indexfile[SZ_FILENAME],
+		xw_indexdir[SZ_FILENAME],
+		xw_sedfile[SZ_FILENAME];
 extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
 extern	time_t	xw_starttime;
 extern	jmp_buf	xw_env;
