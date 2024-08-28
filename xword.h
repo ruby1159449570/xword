@@ -26,11 +26,11 @@
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 #define	CLUELENGTH	200
-#define	WORDLENGTH	30
+#define	WORDLENGTH	50
 #define	NUMLETTERS	26
 #define	EOWORD		'#'
 #define	DONTCARE	'?'
-#define	NUMWORDS	100
+#define	NUMWORDS	1000
 #define	SZ_MAXRETSEARCH 100
 #define	UNDEFINED	32767
 #define	ORD(x)		((x) - 'A')

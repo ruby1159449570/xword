@@ -67,7 +67,7 @@ void xw_debug(WORDLIST *new)
 		PR(d, ptr->wh_key);
 		PR(d, ptr->wh_rownum);
 		PRINT3(d, ptr->wh_rownum, ptr->wh_colnum, ptr->wh_length);
-		fprintf(stderr, "Status = %d\n", DECODE(ptr->wh_status));
+		fprintf(stderr, "Status = %s\n", DECODE(ptr->wh_status));
 		PRINT1(d, ptr->wh_spots);
 		for (i = 0; i < ptr->wh_spots; i++)
 		{	

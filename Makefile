@@ -24,6 +24,7 @@ xword: ${OBJS}
 
 xwlookup: xw_lookup.o ${OBJS}
 	${CC} xw_buildpuzz.o xw_debug.o xw_error.o xw_puzzutil.o \
+	xw_initpuzz.o xw_makeborder.o \
 	xw_printpuzz.o xw_sizedict.o xw_tryword.o xw_lookup.o -o xwlookup
 
 datecomp: datecomp.c

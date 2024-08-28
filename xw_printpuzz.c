@@ -24,7 +24,6 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	  register	int i;
 
 // #ifndef DEBUG
- 	  printf("\e[2J\e[0;0H");
 // #else
 //	  printf("xw_printpuzz(%#018lx)\n", (ULONG)puzz_hdr);
 // #endif  /*  DEBUG */

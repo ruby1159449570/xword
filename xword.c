@@ -34,10 +34,11 @@ static void sigint_handler()
 	"\e[7;%2dm<CTRL-C> received, Hanging up...\e[0m\n", RED);
 	if (sigint_puzzle_header != NULL)
 	{
+		printf("\e[2J\e[0;0H");
 		xw_printpuzz(sigint_puzzle_header);
 		xw_html(sigint_puzzle_header);
 	}
-	xw_error(SV_ERROR, "<CTRL-C> received, Hanging up...");
+xw_error(SV_ERROR, "<CTRL-C> received, Hanging up...");
 }
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\

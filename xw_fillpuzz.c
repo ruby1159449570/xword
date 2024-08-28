@@ -1,4 +1,5 @@
 /* /home/franx/xword/xw_fillpuzz.c Fri28Jul2006 {fcG} */
+
 //
 //  Created by Frank Charles Gallacher on 22/5/20.
 //  Copyleft © 2020 Frank Charles Gallacher. All rights reserved.
@@ -8,6 +9,9 @@
 // Sat18Jul2020 {fcG}	xw_search_blanks implemented...
 // Fri31Jul2020 {fcG}	debugged clear_word, changed AND(&&) to OR(||).
 // Sat23Apr2022 {fcG}	debugged xw_fillpuzz???
+// Thu04Jul2024 {fcG}	xw_searchrank() debug code added
+// Mon08Jul2024 {fcG}   debugged xw_searchrank()
+// Sat20Jul2024 {fcG}	TMI (Too Much Information!); debug code commented
 
 #include <ctype.h>
 #include <errno.h>
@@ -73,92 +77,116 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 	register int i, numletters, numspots;
 	WORDHOLE *wh_ptr;
 
-	numletters = numspots = 0;
-	wh_ptr = (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
-	wh_ptr->wh_rownum = pzptr->pz_rownum;
-	wh_ptr->wh_colnum = pzptr->pz_colnum;
+#ifdef	DEBUG
+/* 	printf("\e[%2dm",RED); */
+	printf("\e[%2dm",CYAN);
+	WHERE;
+	printf("\e[%2dm\t",PURPLE);
+	PR(x, pzptr);
+	printf("\e[%2dm ",GREEN);
+	PR(d, length);
+	printf("\e[%2dm ",CYAN);
+	printf("status=%s", DECODE(stat));
+	printf("\e[0m\n");
+#endif	//DEBUG
 
-	for(i = 0; i < MIN(max, length); i++)
+	if(length <= 2 || length > max)
 	{
-		if (pzptr->pz_letter EQ EOWORD)
+#ifdef	DEBUG
+		printf("Skipping %x", pzptr);
+		PR(d, length);
+#endif	//DEBUG
+		;
+	}
+	else
+	{
+		numletters = numspots = 0;
+		wh_ptr = (WORDHOLE *)xw_malloc(sizeof(WORDHOLE));
+		wh_ptr->wh_rownum = pzptr->pz_rownum;
+		wh_ptr->wh_colnum = pzptr->pz_colnum;
+
+		for(i = 0; i < MIN(max, length); i++)
 		{
-			if (numspots != 0 && numspots
-			!= numletters)
+			if (pzptr->pz_letter EQ EOWORD)
 			{
-				wh_ptr = xw_inserthole(numspots,
-				numletters, wh_ptr, pzptr, stat);
-				wh_ptr->wh_length = numletters;
-				wh_ptr->wh_spots = numspots;
-// 				break;
+				if (numspots != 0 && numspots
+				!= numletters)
+				{
+					wh_ptr = xw_inserthole(numspots,
+					numletters, wh_ptr, pzptr, stat);
+					wh_ptr->wh_length = numletters;
+					wh_ptr->wh_spots = numspots;
+	// 				break;
+				}
+				else
+				{
+					register int j;
+					for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot);
+						j++)
+					{
+						wh_ptr->wh_spot[j].sp_letter
+							= '\0';
+						wh_ptr->wh_spot[j].sp_pos = 0;
+					}
+				}
+				if (stat EQ ACROSS)
+				{
+					wh_ptr->wh_rownum
+						= pzptr->pz_rownum;
+					wh_ptr->wh_colnum
+						= pzptr->pz_colnum+1;
+				}
+				else
+				{
+					wh_ptr->wh_rownum
+						= pzptr->pz_rownum+1;
+					wh_ptr->wh_colnum
+						= pzptr->pz_colnum;
+				}
+				numletters = numspots = 0;
 			}
 			else
 			{
-				register int j;
-				for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot);
-					j++)
+
+				if (pzptr->pz_letter EQ '\0'
+				|| pzptr->pz_letter EQ ' ')
 				{
-					wh_ptr->wh_spot[j].sp_letter
-						= '\0';
-					wh_ptr->wh_spot[j].sp_pos = 0;
+					numletters++;
+				}
+				else
+				{
+					wh_ptr->wh_spot[numspots].sp_pos
+						= ++numletters;
+					wh_ptr->
+					wh_spot[numspots++].sp_letter
+						= pzptr->pz_letter;
 				}
 			}
 			if (stat EQ ACROSS)
 			{
-				wh_ptr->wh_rownum
-					= pzptr->pz_rownum;
-				wh_ptr->wh_colnum
-					= pzptr->pz_colnum+1;
+				pzptr = pzptr->pz_right;
 			}
 			else
 			{
-				wh_ptr->wh_rownum
-					= pzptr->pz_rownum+1;
-				wh_ptr->wh_colnum
-					= pzptr->pz_colnum;
-			}
-			numletters = numspots = 0;
-		}
-		else
-		{
-
-			if (pzptr->pz_letter EQ '\0'
-			|| pzptr->pz_letter EQ ' ')
-			{
-				numletters++;
-			}
-			else
-			{
-				wh_ptr->wh_spot[numspots].sp_pos
-					= ++numletters;
-				wh_ptr->
-				wh_spot[numspots++].sp_letter
-					= pzptr->pz_letter;
+				pzptr = pzptr->pz_down;
 			}
 		}
-		if (stat EQ ACROSS)
-		{
-			pzptr = pzptr->pz_right;
-		}
-		else
-		{
-			pzptr = pzptr->pz_down;
-		}
-	}
 
 /* #ifdef	SNARK */
 
-	if (numspots != 0 && numspots != numletters)
-	{
-		wh_ptr = xw_inserthole(numspots, numletters,
-			wh_ptr, pzptr, stat);
-		wh_ptr->wh_length = numletters;
-		wh_ptr->wh_spots = numspots;
-	}
-	else
-	{
-		free(wh_ptr);
-	}
+		if (numspots != 0 && numspots != numletters)
+		{
+			wh_ptr = xw_inserthole(numspots, numletters,
+				wh_ptr, pzptr, stat);
+			wh_ptr->wh_length = numletters;
+			wh_ptr->wh_spots = numspots;
+		}
+		else
+		{
+			free(wh_ptr);
+		}
 /* #endif	//SNARK */
+	}
 }
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
@@ -180,22 +208,34 @@ void xw_findgaps(PUZZHEAD *ph)
 	for(i = 0; i < ph->ph_numcols - 2; i++)
 	{
 		z_ptr = vptr;
-		for(j = 0; j < ph->ph_numrows - i - 2; j++)
+		for(j = 0; j < ph->ph_numrows - i - 2
+		&& (z_ptr != 0); j++)
 		{
+#ifdef	DEBUG
+			PRINT2(x, vptr, z_ptr);
+#endif	//DEBUG
 			xw_searchrank(z_ptr, DOWN, ph->ph_numrows-j-2);
 			z_ptr = z_ptr->pz_down;
 		}
 		vptr = vptr->pz_right;
+#ifdef	DEBUG
+		WHERE;
+#endif	//DEBUG
 	}
 	vptr = hptr->pz_right;
 	for(i = 0; i < ph->ph_numrows - 2; i++)
 	{
 		z_ptr = vptr;
-		for(j = 0; j < ph->ph_numcols - i - 2; j++)
+		for(j = 0; j < ph->ph_numcols - i - 2
+		&& (z_ptr !=0); j++)
 		{
+#ifdef	DEBUG
+			PRINT2(x, vptr, z_ptr);
+#endif	//DEBUG
 			xw_searchrank(z_ptr, ACROSS, ph->ph_numcols-j-2);
 			z_ptr = z_ptr->pz_down;
 		}
+/* 		WHERE; */
 		vptr = vptr->pz_down;
 	}
 }
@@ -228,8 +268,8 @@ int equivalence_check(int length, long *offset)
 	register int i,j,k;
 	long min;
 
-	//	TEST(PRINT2(#018lx, offset[0], offset[1]));
-	//	TEST(PRINT3(#06lx, offset[0], offset[1], offset[2]));
+	TEST(PRINT2(#018lx, offset[0], offset[1]));
+	TEST(PRINT3(#06lx, offset[0], offset[1], offset[2]));
 
 	min = MAXLONG;
 	for(i = 0; i < length; i++)
@@ -621,9 +661,9 @@ void xw_fillholes()
 {
 	WORDHOLE	*ref, *tmp;
 
-//#ifdef DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "xw_fillholes: STARTING UP\n");
-//#endif /* DEBUG */
+#endif /* DEBUG */
 
 	ref = xw_whstart.wh_next;
 	while(ref != 0)
@@ -650,6 +690,7 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 //	register WORDHOLE *oldwh_ptr;
 	int	oldrownum, oldcolnum, oldlength;
 	STATUS	oldstatus;
+	PUZZLE	*newref;
 
 	max = 0;
 	if((max = xw_sizedict(xw_indexfile)) > WORDLENGTH)
@@ -663,9 +704,12 @@ PUZZHEAD *xw_fillpuzz(PUZZHEAD *ph)
 		xw_error(SV_FATAL, "Error in Dictionary %s\n",	
 			xw_indexfile);
 	}
-	xw_findgaps(ph);
 TRY_AGAIN:
+	xw_findgaps(ph);
+
 	WHERE; PRINT1(d, max);
+	printf("\e[2J\e[0;0H");
+	xw_printpuzz(ph);
 
 	wh_ptr = &xw_whstart;
 	TEST(WHERE); TEST(PRINT1(#010lx, wh_ptr));
@@ -704,7 +748,6 @@ TRY_AGAIN:
 		TEST(PRINT2(d, wh_ptr->wh_spots, wh_ptr->wh_length));
 		wh_ptr = wh_ptr->wh_next;
 	}
-
 	wh_ptr = &xw_whstart;
 	wh_ptr = wh_ptr->wh_next;
 	TEST(WHERE); TEST(PR(#010lx, wh_ptr));
@@ -800,7 +843,8 @@ TRY_AGAIN:
 				{
 	//				printf("\n\axword\e[%dm[%s]\e[0m> ",
 					printf("\nxword\e[%dm[%s]\e[0m> ",
-						CYAN, DECODE(wh_ptr->wh_status));
+					CYAN, DECODE(wh_ptr->wh_status));
+
 					i = scanf("%d", &choice);
 				}	while(i != 1 && (choice < 0
 					&& choice > num_matches));
@@ -841,11 +885,37 @@ TRY_AGAIN:
 
 			xw_debug(new);
 
-			xw_putwordin(ph, new, wh_ptr->wh_status,
-			wh_ptr->wh_colnum, wh_ptr->wh_rownum);
+			newref = xw_pointpuzz(ph, new->wl_xpos,
+				new->wl_ypos);
+
+			if(newref->pz_ofaccrossword != 0
+			&& newref->pz_ofaccrossword->wl_status
+			EQ ACROSS && !strncmp(newref->pz_ofaccrossword,
+			return_buf[choice], count))
+			{
+				printf("\a\a");
+			}	
+			else
+			{
+				if( newref->pz_ofdownword->wl_status != 0
+				&& newref->pz_ofdownword->wl_status
+				EQ DOWN && !strncmp(newref->pz_ofdownword,
+				return_buf[choice], count))
+				{	
+
+					printf("\a\a\a");
+				}
+				else
+				{
+					xw_putwordin(ph, new,
+					wh_ptr->wh_status,
+					wh_ptr->wh_colnum,
+					wh_ptr->wh_rownum);
+				}
+			}
 
 //			xw_printpuzz(ph);
-				
+							
 //			oldwh_ptr = wh_ptr;
 			oldcolnum = wh_ptr->wh_colnum,  
 			oldrownum = wh_ptr->wh_rownum;
@@ -860,9 +930,16 @@ TRY_AGAIN:
 	{
 		TEST(WHERE); xw_error(SV_FATAL,"fclose() bombed!");
 	}
+
 	xw_fillholes();
 	xw_findgaps(ph);
-	if (num_matches != 0)
+
+	wh_ptr = &xw_whstart;
+	wh_ptr->wh_next = NULL;
+
+	WHERE; PRINT1(d,num_matches);
+
+	if (num_matches EQ 0)
 	{
 		goto TRY_AGAIN;
 	}

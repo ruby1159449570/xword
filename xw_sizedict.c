@@ -41,13 +41,13 @@ int xw_sizedict(char index[])
 
 		if (system(sysbuf) != 0)
 		{
-			perror(errno);
+///////			perror(errno);
 			break;
 		}
 		else
 		{
-			TEST(PR(s, sysbuf));
-			TEST(PRINT1(d, count));
+///////			TEST(PR(s, sysbuf));
+///////			TEST(PRINT1(d, count));
 		}
 	}
 	TEST(fprintf(stderr,"xw_sizedict: returning %d\n",count-1));
