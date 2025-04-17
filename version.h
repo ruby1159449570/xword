@@ -1,3 +1,3 @@
-#define	_VERSION_	9.65
+#define	_VERSION_	9.96
 #define	_INCREMENT_	0.01
-#define	DATE_COMPILED	"Sun Jul 21 00:39:28 2024 "
+#define	DATE_COMPILED	"Thu Apr  3 17:52:07 2025 "

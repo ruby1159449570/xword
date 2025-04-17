@@ -610,6 +610,7 @@ int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr)
 					break;
 				}
 
+				TEST(WHERE); TEST(PRINT1(#018lx, offset[0]));
 				if(fseek(fp_dict,offset[0],SEEK_SET) != 0)
 				{
 					TEST(WHERE); xw_error(SV_ERROR,

@@ -327,7 +327,7 @@ if (failword != NULL)
 	}
 #endif	/* SNARK */
 
-//		xw_printpuzz(puzzle_header);
+		xw_printpuzz(puzzle_header);
 		if (strncmp(xw_indexfile, "", SZ_FILENAME))
 		{
 			xw_makeborder(puzzle_header);

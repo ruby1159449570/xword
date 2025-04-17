@@ -3,7 +3,8 @@
 
 CC = clang
 #######CC = gcc
-CFLAGS = -g -O0 -DDEBUG=1 
+#######CFLAGS = -g -O0 -DDEBUG=1 
+CFLAGS = -g -O0
 #######CFLAGS = -include version.h -Wall
 #######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
 
@@ -17,10 +18,10 @@ xw_fillpuzz.c xw_html.c xw_initpuzz.c xw_listutil.c xw_matchpuzz.c \
 xw_makeborder.c xw_printpuzz.c xw_puzzutil.c xw_readsort.c xw_sizedict.c \
 xw_tryword.c xwindex.c version.c
 
-xword: ${OBJS}
-	${CC} ${CFLAGS} datecomp.c -o datecomp
-	./datecomp ${CFLAGS} -c version.c -o version.o 
-	${CC} ${CFLAGS} ${OBJS} version.o -o xword
+xword.exe: ${OBJS}
+	${CC} ${CFLAGS} datecomp.c -o datecomp.exe
+	./datecomp.exe ${CFLAGS} -c version.c -o version.o
+	${CC} ${CFLAGS} ${OBJS} version.o -o xword.exe
 
 xwlookup: xw_lookup.o ${OBJS}
 	${CC} xw_buildpuzz.o xw_debug.o xw_error.o xw_puzzutil.o \

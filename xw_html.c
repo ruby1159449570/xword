@@ -5,6 +5,7 @@
 // Tue17May2011 {fcG}	Updated email address.
 // Sun12Jul2020 {fcG}	stderr => sed file.
 // Mon13Jul2020 {fcG}	sed I flag (fold case) not supported; removed.
+// Mon31Mar2025 {fcG}	replaced date and version...
 
 #include <stdio.h>
 #include <stdarg.h>
