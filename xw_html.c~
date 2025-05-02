@@ -48,8 +48,8 @@ void xw_html(PUZZHEAD *puzz_hdr)
 
 	printf(
 "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Final//EN\">\n");
-	printf("<!-- %s Version: %#4.2f Linked: %s{fcG} -->\n",
-		xw_outputfile, version(), date_compiled());
+/* 	printf("<!-- %s Version: %#4.2f Linked: %s{fcG} -->\n", */
+/* 		xw_outputfile, version(), date_compiled()); */
 	printf(
 "<!-- Copyleft © 2020 Frank Charles Gallacher. \
 All rights reserved.-->\n");
@@ -67,6 +67,9 @@ All rights reserved.-->\n");
 	printf("</HEAD>\n");
 
 	printf("<BODY BGCOLOR=\"White\">\n");
+
+/* 	printf("%s Version: %#4.2f Linked: %s{fcG}\n", */
+/* 		xw_outputfile, version(), date_compiled()); */
 
 	printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
 

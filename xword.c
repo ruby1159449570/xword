@@ -58,16 +58,16 @@ int main(int argc, char *argv[])
       WORDLIST *failword, *word, *firstfail;
       
       printf(
-"\e[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\e[0m\n");
+"\e[7m/#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=#\\\e[0m\n");
       printf(
-"\e[7m#  Welcome to Franx X-word Generator! #\e[0m\n");
+"\e[7m##  Welcome to Franx X-word Generator!\t##\e[0m\n");
       printf(
-"\e[7m#             Version: %#4.2f           #\e[0m\n",
+"\e[7m##             Version: %#4.2f          \t##\e[0m\n",
 	version());
       printf(
-"\e[7m# Link Date: %s#\e[0m\n", date_compiled());
+"\e[7m## Link Date: %s\t##\e[0m\n", date_compiled());
       printf(
-"\e[7m#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#\e[0m\n");
+"\e[7m\\#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=#/\e[0m\n");
 /* 	WHEN; */
 	envstring = getenv(XWORD_SWITCH);
 	if(envstring EQ 0)

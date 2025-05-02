@@ -68,6 +68,9 @@ All rights reserved.-->\n");
 
 	printf("<BODY BGCOLOR=\"White\">\n");
 
+	printf("%s Version: %#4.2f Linked: %s{fcG}\n",
+		xw_outputfile, version(), date_compiled());
+
 	printf("<TABLE BORDER=\"%d\" BGCOLOR=\"Black\">", BORDER);
 
 	hptr = puzz_hdr->ph_puzzle;

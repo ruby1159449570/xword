@@ -26,10 +26,11 @@
 \*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 #define	CLUELENGTH	200
-#define	WORDLENGTH	20
+#define	WORDLENGTH	30
 #define	NUMLETTERS	26
 #define	EOWORD		'#'
-#define	NUMWORDS	100
+#define	DONTCARE	'?'
+#define	NUMWORDS	1000
 #define	SZ_MAXRETSEARCH 100
 #define	UNDEFINED	32767
 #define	ORD(x)		((x) - 'A')
@@ -38,8 +39,10 @@
 			(x) EQ ACROSS ? "ACROSS" : \
 			(x) EQ DOWN ? "DOWN"       : \
 			"???")
-#define	INDEXDIR(x)	(sprintf(xw_indexdir,\
-			"%s.index/%06d", xw_indexfile,(x)))
+
+#define	INDEXDIR(x)	(sprintf(xw_indexdir,"%s.index/%06d", xw_indexfile,(x)))
+
+#define	XWORD_SWITCH	"XWORD_INTERACTIVE"
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		TYPEDEFS		#
@@ -115,7 +118,7 @@ typedef struct wordhole
   int wh_key, wh_rownum, wh_colnum, wh_length, wh_spots;
   STATUS wh_status;
   struct wordhole *wh_next;
-  struct spot wh_spot[WORDLENGTH];
+  struct spot wh_spot[WORDLENGTH+1];
  
 } WORDHOLE;
 
@@ -159,14 +162,16 @@ extern	WORDLIST xw_start
 	;
 #endif
 
-extern	char	xw_inputfile[SZ_FILENAME+1],
+extern	char	xw_inputfile[SZ_FILENAME],
 		xw_outputfile[SZ_FILENAME+6],
-		xw_indexfile[SZ_FILENAME+1],
-		xw_indexdir[SZ_FILENAME+1],
-		xw_sedfile[SZ_FILENAME+1];
+		xw_debugfile[SZ_FILENAME],
+		xw_indexfile[SZ_FILENAME],
+		xw_indexdir[SZ_FILENAME],
+		xw_sedfile[SZ_FILENAME];
 extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
 extern	time_t	xw_starttime;
 extern	jmp_buf	xw_env;
+extern	BOOLEAN	xw_switch;
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		FUNCTIONS		#
@@ -180,6 +185,8 @@ float	version();
 
 BOOLEAN xw_matchpuzz(PUZZHEAD *, PUZZHEAD *);
 PUZZHEAD *xw_copypuzz(PUZZHEAD *);
+void	xw_ddebug_breakpoint();
+void	xw_debug();
 PUZZHEAD *xw_fillpuzz(PUZZHEAD *);
 PUZZHEAD *xw_initpuzz(WORDLIST *);
 PUZZLE	*xw_pointpuzz(PUZZHEAD *, int, int);

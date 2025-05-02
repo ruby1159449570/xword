@@ -73,7 +73,7 @@ WORDLIST *xw_buildpuzz(PUZZHEAD *ph, WORDLIST *word)
 	      {
 		xw_putwordin(ph, word, xw_best.wf_status,
 			xw_best.wf_x, xw_best.wf_y);
-		xw_printpuzz(ph);
+/* 		xw_printpuzz(ph); */
 	  
 	      }
 	  }
@@ -111,7 +111,8 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 	PUZZLE	*ref;
 
 #ifdef	DEBUG
-	printf("xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
+	printf(
+"xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
                 w->wl_word, s, DECODE(s), x, y);
 #endif	/* DEBUG*/
 

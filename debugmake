@@ -2,7 +2,7 @@
 #!/bin/zsh
 #!/Users/moonpie/xword/debugmake Sat04Jul2020 {fcG}
 
-clang -g -O0 -c -o xw_buildpuzz.o xw_buildpuzz.c
+clang -g -O0 -DDEBUG=1 -c -o xw_buildpuzz.o xw_buildpuzz.c
 clang -g -O0 -c -o xw_createlinks.o xw_createlinks.c
 clang -g -O0 -c -o xw_matchpuzz.o xw_matchpuzz.c
 clang -g -O0 -c -o xw_printpuzz.o xw_printpuzz.c

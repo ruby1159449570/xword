@@ -21,11 +21,13 @@ int main(int argc, char *argv[])
 {
   FILE	*fp;
   BOOLEAN alpha_word, printable_clue;
-  int	c,i, linenum = 0, return_code = 0;
+  int	count,i,c, linenum = 0, return_code = 0;
   unsigned long offset;
 	
   char sysbuf[SZ_STRING], buf[WORDLENGTH+1];
   
+	count=0;
+
   if(setjmp(xw_env) EQ 0)
     {
       if(argc < 2)
@@ -89,7 +91,8 @@ int main(int argc, char *argv[])
 		      xw_error(SV_ERROR, "fseek() error");
 		    }
 		  fgets(buf, sizeof(buf), fp);
-		  printf("\"%s\"[%#020lx]==>%s",newfname,offset,buf);
+		  printf("\"%s\"[%#020lx]==>%s/n",newfname,offset,buf);
+		  count++;
        		}
 	      while(!feof(newfp));
 
@@ -100,6 +103,7 @@ int main(int argc, char *argv[])
 	    }
 	}
       fclose(fp);
+      printf("Word Count: %d\n", count);      
       printf("Time elapsed %6.2f secs.\n", difftime(time(NULL), xw_starttime));      
       exit(0);
     }
