@@ -5,6 +5,7 @@
 //
 // MODIFICATION HISTORY
 // When		Who	What
+// Tue06May2025 {fcG}	borders debugged???
 
 #include <ctype.h>
 #include <errno.h>
@@ -36,27 +37,50 @@ void xw_makeborder(PUZZHEAD *ph)
 	y2 = ph->ph_numcols;
 
 	WHERE, PRINT3(#018lx, (ULONG)ph, (ULONG)ptr1, (ULONG)ptr2);
-	WHERE, PRINT4(d, ph->ph_numrows, ph->ph_numcols, ph->ph_puzzle->pz_rownum,ph->ph_puzzle->pz_colnum);
-	WHERE, PRINT4(d, x1, x2, y1, y2);
+	WHERE, PRINT4(d, ph->ph_numrows, ph->ph_numcols,
+	 ph->ph_puzzle->pz_rownum,ph->ph_puzzle->pz_colnum);
+
+#ifdef	SNARK
+	WHERE, PRINT2(d, x1, x2, y1, y2);
+#endif	//SNARK	
 
 	ptr2 = ph->ph_puzzle;
 	while(ptr2->pz_right != NULL)
 	{
+#ifdef	DEBUG
+		WHERE, PR(c, ptr2->pz_letter);
+		PRINT2(#018lx, ptr1, ptr2);
+#endif	//DEBUG
 		ptr2->pz_letter = EOWORD;
 		ptr2 = ptr2->pz_right;
 	}
+	ptr1 = ph->ph_puzzle;
 	while (ptr1->pz_down != NULL)
 	{
-		ptr1->pz_letter = ptr2->pz_letter = EOWORD;
+#ifdef	DEBUG
+		WHERE, PR(c, ptr1->pz_letter);
+		PRINT2(#018lx, ptr1, ptr2);
+#endif	//DEBUG
+		ptr1->pz_letter = EOWORD;
 		ptr1 = ptr1->pz_down;
-		ptr2 = ptr2->pz_down;
 	}
-	
 	while(ptr1->pz_right != NULL)
 	{
+#ifdef	DEBUG
+	WHERE, PR(c, ptr1->pz_letter);
+	PRINT2(#018lx, ptr1, ptr2);
+#endif	//DEBUG
 		ptr1->pz_letter = EOWORD;
 		ptr1 = ptr1->pz_right;
-		x1++;
+	}
+	while(ptr2->pz_down != NULL)
+	{
+#ifdef	DEBUG
+	WHERE, PR(c, ptr2->pz_letter);
+	PRINT2(#018lx, ptr1, ptr2);
+#endif	//DEBUG
+		ptr2->pz_letter = EOWORD;
+		ptr2 = ptr2->pz_down;
 	}
 }
 
