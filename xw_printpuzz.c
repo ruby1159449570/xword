@@ -5,7 +5,6 @@
 // Wed08Jul2020 {fcG}	64-bit debug code.
 // Fri31Jul2020 {fcG}	Coloring added.
 // Sun04May2025 {fcG}   \e replaced \033.
-// Tue06May2025 {fcG}	borders replaced.
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -33,13 +32,13 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 
 	  TEST(WHEN;nL);
 	  puzz_hdr->ph_numletters = 0;
-	  hptr = puzz_hdr->ph_puzzle;
+	  hptr = vptr =  puzz_hdr->ph_puzzle;
 
 	  if(puzz_hdr->ph_numwords != 1)
 	    {
-	      hptr = hptr->pz_down;
+/* 	      hptr = hptr->pz_down; */
 	    }
-	  vptr = hptr->pz_right;
+/* 	  vptr = hptr->pz_right; */
 #ifdef DEBUG
 	  printf("   ");
 	  while(vptr != NULL)
@@ -47,7 +46,7 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	      printf("%2d", vptr->pz_colnum);
 	      vptr = vptr->pz_right;
 	    }
-/* 	  vptr = hptr->pz_right; */
+	vptr = hptr->pz_right;
 	  printf("\n    ");
 #endif /* DEBUG */
 	  printf("+");
@@ -57,8 +56,11 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	    }
 	  printf("\n");
 
-	while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
-	|| (puzz_hdr->ph_numwords != 1))
+/* 	hptr = puzz_hdr->ph_puzzle->pz_right; */
+/* 	hptr = puzz_hdr->ph_puzzle; */
+
+	  while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
+		|| ((hptr != NULL) && (puzz_hdr->ph_numwords != 1)))
 	    {
 #ifdef DEBUG
 
