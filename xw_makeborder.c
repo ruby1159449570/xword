@@ -6,6 +6,7 @@
 // MODIFICATION HISTORY
 // When		Who	What
 // Tue06May2025 {fcG}	borders debugged???
+// Sat10May2025 {fcG}	more borders debugged...
 
 #include <ctype.h>
 #include <errno.h>
