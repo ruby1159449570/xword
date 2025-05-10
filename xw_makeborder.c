@@ -46,6 +46,7 @@ void xw_makeborder(PUZZHEAD *ph)
 
 	ptr2 = ph->ph_puzzle;
 	while(ptr2->pz_right != NULL)
+/* 	while(ptr2 != NULL) */
 	{
 #ifdef	DEBUG
 		WHERE, PR(c, ptr2->pz_letter);
@@ -65,6 +66,7 @@ void xw_makeborder(PUZZHEAD *ph)
 		ptr1 = ptr1->pz_down;
 	}
 	while(ptr1->pz_right != NULL)
+/* 	while(ptr1 != NULL) */
 	{
 #ifdef	DEBUG
 	WHERE, PR(c, ptr1->pz_letter);

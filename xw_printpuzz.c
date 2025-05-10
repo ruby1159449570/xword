@@ -59,8 +59,9 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 /* 	hptr = puzz_hdr->ph_puzzle->pz_right; */
 /* 	hptr = puzz_hdr->ph_puzzle; */
 
-	  while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1))
-		|| ((hptr != NULL) && (puzz_hdr->ph_numwords != 1)))
+	  while(hptr != NULL)
+/* 	  while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1)) */
+/* 		|| ((hptr != NULL) && (puzz_hdr->ph_numwords != 1))) */
 	    {
 #ifdef DEBUG
 
@@ -109,7 +110,8 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	      hptr = hptr->pz_down;
 	      if (hptr != NULL)
 		{
-		  vptr = hptr->pz_right;
+/* 		  vptr = hptr->pz_right; */
+		  vptr = hptr;
 		}
 	      else
 		{
