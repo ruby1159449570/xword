@@ -900,7 +900,7 @@ TRY_AGAIN:
 			}	
 			else
 			{
-				if( newref->pz_ofdownword->wl_status != 0
+				if( newref->pz_ofdownword != 0
 				&& newref->pz_ofdownword->wl_status
 				EQ DOWN && !strncmp(newref->pz_ofdownword,
 				return_buf[choice], count))
@@ -917,7 +917,8 @@ TRY_AGAIN:
 				}
 			}
 
-//			xw_printpuzz(ph);
+			TEST(WHEN;WHERE;nL);
+			xw_printpuzz(ph);
 							
 //			oldwh_ptr = wh_ptr;
 			oldcolnum = wh_ptr->wh_colnum,  

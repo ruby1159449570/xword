@@ -83,17 +83,10 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 		    if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
 		      {
 			puzz_hdr->ph_numletters++;
-#ifdef DEBUG
-			printf("%c|", vptr->pz_letter);
-#else
 			printf("\e[%d;4m%c|\e[0m", vptr->pz_color, vptr->pz_letter);
-#endif /* DEBUG */
 		      }
 		    else
 		      {
-#if DEBUG
-			printf(" |");
-#else
 			if( vptr->pz_color )
 			{
 				printf("\e[%dm  \e[0m", vptr->pz_color );
@@ -102,7 +95,6 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 			{
 				printf("\e[40m  \e[0m");
 			}
-#endif /* DEBUG */
 		      }
 		  vptr = vptr->pz_right;
 		}
