@@ -6,6 +6,7 @@
 // Tue17May2011 {fcG}	cd_word added to CLUEDESCIPTOR...
 // Sun12Jul2020 {fcG}	sed file added...
 // Sat18Jul2020 {fcG}	index file/dirs added
+// Mon19May2025 {fcG}	xw_history_count added...
 
 #ifndef _XWORD_H
 #define _XWORD_H 1
@@ -172,6 +173,8 @@ extern	int	xw_puzz_compact_req, xw_totletters, xw_totwords;
 extern	time_t	xw_starttime;
 extern	jmp_buf	xw_env;
 extern	BOOLEAN	xw_switch;
+extern	char	xw_history_buf[SZ_MAXRETSEARCH][WORDLENGTH + 2];
+extern	int	xw_history_count;
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		FUNCTIONS		#
@@ -214,6 +217,6 @@ WORDLIST	*xw_buildpuzz(PUZZHEAD *, WORDLIST *);
 WORDLIST	*xw_poplist();
 int	xw_search_blanks(PUZZHEAD *ph, FILE *fp_dict, WORDHOLE *wh_ptr);
 
-#endif /* _XWORD_H */
+#endif /* XWORD_H */
 
 /* End of /home/franx/xword/xword.h */

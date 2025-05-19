@@ -5,6 +5,7 @@
 // Sun18Jun2006	{fcG}	ph_checksum aggregate added to
 // 			xw_putwordin().
 // Wed08Jul2020 {fcG}	64-bit debug code.
+// Mon19May2025 {fcG}	xw_history_count added...
 
 #include <stdio.h>
 #include "xword.h"
@@ -158,6 +159,9 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 	w->wl_status = s;
 	w->wl_xpos = x;
 	w->wl_ypos = y;
+	
+	strncpy(&xw_history_buf[++xw_history_count][0],
+		&w->wl_word[0],SZ_MAXRETSEARCH);
 }
 
 /* End of /home/franx/xword/xw_buildpuzz.c */

@@ -3,8 +3,8 @@
 
 CC = clang
 #######CC = gcc
-CFLAGS = -g -O0
-#######CFLAGS = -g -O0 -DDEBUG=1 
+#######CFLAGS = -g -O0
+CFLAGS = -g -O0 -DDEBUG=1 
 #######CFLAGS = -include version.h -Wall
 #######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
 

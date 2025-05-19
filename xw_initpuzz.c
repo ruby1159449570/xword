@@ -3,6 +3,7 @@
 // MODIFICATION HISTORY
 // When		Who	What
 // Wed08Jul2020 {fcG}	64-bit debug code.
+// Mon19May2025 {fcG}	xw_history_count added...
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +22,6 @@
 
 PUZZHEAD *xw_initpuzz(WORDLIST *w)
 {
-
 	PUZZHEAD *puzzle_header;
 
 #if SNARK
@@ -70,7 +70,7 @@ PUZZHEAD *xw_initpuzz(WORDLIST *w)
 	puzzle_header->ph_checksum = 0;
 	for(i = 0; i < w->wl_numchar; i++)
 	{
-		if (ref->pz_letter EQ '\0')
+		if (ref->pz_letter EQ NULL)
 		{
 		  TEST(PR(c, w->wl_word[i]));
 		  TEST(PRINT1(d, w->wl_word[i]));
@@ -106,6 +106,14 @@ PUZZHEAD *xw_initpuzz(WORDLIST *w)
 
 	TEST(WHERE);
 	TEST(PRINT1(#018lx, (ULONG)puzzle_header));
+
+	xw_history_count = 0;
+	
+	strncpy(&xw_history_buf[0][xw_history_count],
+		w->wl_word,  SZ_MAXRETSEARCH);
+
+	PRINT1(s, xw_history_buf);
+
 	return puzzle_header;
 }
 
