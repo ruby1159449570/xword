@@ -210,15 +210,15 @@ while((word = xw_poplist()))
 			"Could not find spot for %s",
 			failword->wl_word);
 
-			if(--xw_history_buf < 0)
-			{
-				xw_error(SV_FATAL,
-				"Could not find spot for %s",
-				failword->wl_word);
-
-			}
-				
 		}
+		if(--xw_history_count < 0)
+		{
+			TEST(WHERE);
+			xw_error(SV_FATAL, "%s Empty puzzle",
+			failword->wl_word);
+
+		}
+				
 	}
 }
 	

@@ -6,8 +6,10 @@
 // 			xw_putwordin().
 // Wed08Jul2020 {fcG}	64-bit debug code.
 // Mon19May2025 {fcG}	xw_history_count added...
+// Wed21May2025 {fcG}	check for duplicates..
 
 #include <stdio.h>
+#include <string.h>
 #include "xword.h"
 
 /* WORDFIT best = { UNDEFINED, 0, 0, UNUSED}; */
@@ -111,6 +113,27 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 	int i;
 	PUZZLE	*ref;
 
+/* Check for duplicates... */
+
+	PRINT2(d,i, xw_history_count);
+
+	for(i=0; i<=xw_history_count; i++)
+	{
+
+#ifdef	DEBUG
+		WHERE;
+		PRINT2(s,&xw_history_buf[i][0], &w->wl_word[0]);
+#endif	/* DEBUG*/
+
+		if(!strncmp(&xw_history_buf[i][0],
+		&w->wl_word[0], SZ_MAXRETSEARCH))
+		{
+			TEST(printf("Found duplicate!\n"));
+			return;
+		}
+		strncpy(&xw_history_buf[++xw_history_count][0],
+		&w->wl_word[0],SZ_MAXRETSEARCH);
+	}
 #ifdef	DEBUG
 	printf(
 "xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
@@ -159,9 +182,6 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 	w->wl_status = s;
 	w->wl_xpos = x;
 	w->wl_ypos = y;
-	
-	strncpy(&xw_history_buf[++xw_history_count][0],
-		&w->wl_word[0],SZ_MAXRETSEARCH);
 }
 
 /* End of /home/franx/xword/xw_buildpuzz.c */
