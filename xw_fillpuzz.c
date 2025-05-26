@@ -15,6 +15,7 @@
 // Fri25Apr2025 {fcG}	this is a test for github...
 // Sat26Apr2025 {fcG}	this is another test for github...
 // Mon12May2025 {fcG}	removed ->wl_status bug...
+// Mon26May2025 {fcG}	Another test...
 
 #include <ctype.h>
 #include <errno.h>
@@ -26,7 +27,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-//#define	extern
+#define	extern
 #include "xword.h"
 
 #define	NOT_WHITE(x)	((x) != '\0' && (x) != EOWORD)
@@ -119,7 +120,7 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 					numletters, wh_ptr, pzptr, stat);
 					wh_ptr->wh_length = numletters;
 					wh_ptr->wh_spots = numspots;
-	// 				break;
+///////	 				break;
 				}
 				else
 				{
@@ -127,9 +128,8 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 					for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot);
 						j++)
 					{
-						wh_ptr->wh_spot[j].sp_letter
-							= '\0';
-						wh_ptr->wh_spot[j].sp_pos = 0;
+					wh_ptr->wh_spot[j].sp_letter = '\0';
+					wh_ptr->wh_spot[j].sp_pos = 0;
 					}
 				}
 				if (stat EQ ACROSS)
@@ -897,7 +897,7 @@ TRY_AGAIN:
 			EQ ACROSS && !strncmp(newref->pz_ofaccrossword,
 			return_buf[choice], count))
 			{
-				printf("\a\a");
+				printf("???");
 			}	
 			else
 			{
@@ -907,7 +907,7 @@ TRY_AGAIN:
 				return_buf[choice], count))
 				{	
 
-					printf("\a\a\a");
+					printf("??");
 				}
 				else
 				{
