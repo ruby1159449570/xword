@@ -18,7 +18,7 @@
 #include <unistd.h>
 
 #include "defs.h"
-#define	extern
+/* #define	extern */
 #include "xword.h"
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
