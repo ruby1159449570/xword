@@ -5,6 +5,7 @@
 // Wed08Jul2020 {fcG}	64-bit debug code.
 // Fri31Jul2020 {fcG}	Coloring added.
 // Sun04May2025 {fcG}   \e replaced \033.
+// Sat05Jul2025 {fcG}	Version: 11.69 Changed negative to RED reverse...
 
 #include <stdio.h>
 #include <stdarg.h>
