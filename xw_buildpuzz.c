@@ -113,15 +113,15 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 	int i;
 	PUZZLE	*ref;
 
-/* Check for duplicates... */
+// Check for duplicates...
 
-	PRINT2(d,i, xw_history_count);
-
+	i = 0;
 	for(i=0; i<=xw_history_count; i++)
 	{
 
 #ifdef	DEBUG
 		WHERE;
+		PRINT2(d,i,xw_history_count);
 		PRINT2(s,&xw_history_buf[i][0], &w->wl_word[0]);
 #endif	/* DEBUG*/
 
@@ -129,11 +129,12 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 		&w->wl_word[0], SZ_MAXRETSEARCH))
 		{
 			TEST(printf("Found duplicate!\n"));
+			goto FOUND_DUP;
 			return;
 		}
-		strncpy(&xw_history_buf[++xw_history_count][0],
-		&w->wl_word[0],SZ_MAXRETSEARCH);
 	}
+	strncpy(&xw_history_buf[++xw_history_count][0],
+	&w->wl_word[0],SZ_MAXRETSEARCH);
 #ifdef	DEBUG
 	printf(
 "xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
@@ -182,6 +183,7 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 	w->wl_status = s;
 	w->wl_xpos = x;
 	w->wl_ypos = y;
+ FOUND_DUP:
+	return;
 }
-
 /* End of /home/franx/xword/xw_buildpuzz.c */

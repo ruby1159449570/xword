@@ -43,7 +43,15 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	  printf("   ");
 	  while(vptr != NULL)
 	    {
-	      printf("%2d", vptr->pz_colnum);
+		if(vptr->pz_colnum < 0)
+		{
+		      printf("\e[7;%2dm%2d\e[0m", RED,
+			 abs(vptr->pz_colnum));
+		}
+		else
+		{
+		      printf("%2d", vptr->pz_colnum);
+		}
 	      vptr = vptr->pz_right;
 	    }
 	vptr = hptr->pz_right;
@@ -62,12 +70,20 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 	  while(hptr != NULL)
 /* 	  while(((hptr != NULL) && (puzz_hdr->ph_numwords EQ 1)) */
 /* 		|| ((hptr != NULL) && (puzz_hdr->ph_numwords != 1))) */
-	    {
+		{
 #ifdef DEBUG
+		if(vptr->pz_rownum < 0)
+		{
+		      printf("  \e[7;%2dm%2d\e[0m", RED,
+			 abs(vptr->pz_rownum));
+		}
+		else
+		{
 
 /*            PRINT2(#018lx, (ULONG)hptr, (ULONG)vptr); */
 
-	      printf("%4d", hptr->pz_rownum);
+		      printf("%4d", hptr->pz_rownum);
+		}
 #endif /* DEBUG */
 	      printf("|");
 

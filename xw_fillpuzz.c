@@ -17,6 +17,8 @@
 // Mon12May2025 {fcG}	removed ->wl_status bug...
 // Mon26May2025 {fcG}	Another test...
 // Fri30May2025 {fcG}	Yet another github passkey test..
+// Tue03Jun2025 {fcG}	Changed key to 10...
+// Tue03Jun2025 {fcG}	Changed key back to 100...
 
 #include <ctype.h>
 #include <errno.h>
@@ -32,6 +34,7 @@
 #include "xword.h"
 
 #define	NOT_WHITE(x)	((x) != '\0' && (x) != EOWORD)
+#define	SZ_KEY		100
 /* #define	SZ_MAXRETSEARCH 40 */
 
 WORDHOLE xw_whstart =
@@ -53,7 +56,7 @@ WORDHOLE *wh, PUZZLE *pzptr, STATUS stat)
 {
 	register WORDHOLE *wh_ptr = &xw_whstart;
 
-	wh->wh_key = (spots * 100) + letters;
+	wh->wh_key = (spots * SZ_KEY) + letters;
 	wh->wh_status = stat;
 	for(EVER)
 	{
@@ -727,14 +730,14 @@ TRY_AGAIN:
 		DECODE(wh_ptr->wh_status), wh_ptr->wh_colnum,
 		wh_ptr->wh_rownum));
 
-		for(i=0; i < wh_ptr->wh_key / 100; i++)
+		for(i=0; i < wh_ptr->wh_key / SZ_KEY; i++)
 		{
 			TEST(printf("\"%c\"[%#04x]->%d ",
 			wh_ptr->wh_spot[i].sp_letter,
 			wh_ptr->wh_spot[i].sp_letter,
 			wh_ptr->wh_spot[i].sp_pos));
 		}
-		for(j = k = 0; j < wh_ptr->wh_key % 100; j++)
+		for(j = k = 0; j < wh_ptr->wh_key % SZ_KEY; j++)
 		{
 			if (wh_ptr->wh_spot[k].sp_pos - 1 EQ j)
 			{
