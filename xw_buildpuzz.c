@@ -135,11 +135,11 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 	}
 	strncpy(&xw_history_buf[++xw_history_count][0],
 	&w->wl_word[0],SZ_MAXRETSEARCH);
-#ifdef	DEBUG
+//#ifdef	DEBUG
 	printf(
 "xw_putwordin: putting %s in at s = %d[%s], x = %d, y = %d\n",
                 w->wl_word, s, DECODE(s), x, y);
-#endif	/* DEBUG*/
+//#endif	/* DEBUG*/
 
 	if (s EQ ACROSS)
 	{
