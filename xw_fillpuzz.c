@@ -19,6 +19,7 @@
 // Fri30May2025 {fcG}	Yet another github passkey test..
 // Tue03Jun2025 {fcG}	Changed key to 10...
 // Tue03Jun2025 {fcG}	Changed key back to 100...
+// Tue29Jul2025 {fcG}	more debug code!!!
 
 #include <ctype.h>
 #include <errno.h>
@@ -756,6 +757,27 @@ TRY_AGAIN:
 		TEST(PRINT2(d, wh_ptr->wh_spots, wh_ptr->wh_length));
 		wh_ptr = wh_ptr->wh_next;
 	}
+
+	wh_ptr = &xw_whstart;
+	do
+	{
+		register int i;
+
+		fprintf(stderr, "KEY [%d] ==> %d", wh_ptr->wh_key,
+			wh_ptr->wh_length);
+		fprintf(stderr, "%#018lx ==>", wh_ptr->wh_key);
+		fprintf(stderr, "%d", wh_ptr->wh_rownum);
+		fprintf(stderr, "%d", wh_ptr->wh_colnum);
+		fprintf(stderr, "%d", wh_ptr->wh_spots);
+		fprintf(stderr, "%s", DECODE(wh_ptr->wh_status));
+		for(i=0; i<wh_ptr->wh_spots; i++)
+		{
+			fprintf(stderr, "%c", wh_ptr->wh_spot[i]);
+		}
+		fprintf(stderr, "\n");
+		wh_ptr = wh_ptr->wh_next;
+	}	while (wh_ptr != NULL);
+
 	wh_ptr = &xw_whstart;
 	wh_ptr = wh_ptr->wh_next;
 	TEST(WHERE); TEST(PR(#010lx, wh_ptr));

@@ -7,6 +7,7 @@
 // Wed08Jul2020 {fcG}	64-bit debug code.
 // Mon19May2025 {fcG}	xw_history_count added...
 // Wed21May2025 {fcG}	check for duplicates..
+// Sun27Jul2025 {fcG}	Added error message for duplicates.
 
 #include <stdio.h>
 #include <string.h>
@@ -128,7 +129,8 @@ void xw_putwordin(PUZZHEAD *p, WORDLIST *w, STATUS s, int x, int y)
 		if(!strncmp(&xw_history_buf[i][0],
 		&w->wl_word[0], SZ_MAXRETSEARCH))
 		{
-			TEST(printf("Found duplicate!\n"));
+			xw_error(SV_INFO, "Found duplicate![%s]\n",
+			&w->wl_word[0]);
 			goto FOUND_DUP;
 			return;
 		}
