@@ -3,8 +3,8 @@
 
 CC = clang
 #######CC = gcc
-#######CFLAGS = -g -O0
-CFLAGS = -g -O0 -DDEBUG=1 
+CFLAGS = -g -O0
+#######CFLAGS = -g -O0 -DDEBUG=1 
 #######CFLAGS = -include version.h -Wall
 #######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
 
@@ -66,7 +66,7 @@ git:
 	git add Makefile defs.h xword.h version.h datecomp.c ${SOURCE}
 #######	git remote add origin https://github.com/ruby1159449570/xword.git
 print:
-	pr -f -e -l58 version.h datecomp.c Makefile \
+	pr -f -e"	"2 -l58 version.h datecomp.c Makefile \
 defs.h xword.h xw_fillpuzz.c > xw_fillpuzz.txt
 #######	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
 #######defs.h xword.h ${SOURCE} > xword.txt
