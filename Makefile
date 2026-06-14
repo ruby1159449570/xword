@@ -67,7 +67,9 @@ git:
 #######	git remote add origin https://github.com/ruby1159449570/xword.git
 print:
 	pr -f -e"	"2 -l58 version.h datecomp.c Makefile \
-defs.h xword.h xw_fillpuzz.c > xw_fillpuzz.txt
+	defs.h xword.h ${SOURCE} > xword.txt
+
+#######	defs.h xword.h xw_fillpuzz.c > xw_fillpuzz.txt
 #######	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
 #######defs.h xword.h ${SOURCE} > xword.txt
 

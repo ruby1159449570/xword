@@ -1,0 +1,50 @@
+#/Users/moonpie/xword/bible/Makefile Sun14Apr2024 {fcG}
+
+CC = clang
+#######CC = gcc
+CFLAGS = -g -O0 -DDEBUG=1 -idirafter ../source 
+#######CFLAGS = -include version.h -Wall
+#######CFLAGS = -g3 -idirafter ../source -Wall -DDEBUG=1 
+
+OBJS = testindex.o
+
+xwindex: xwindex.o xw_error.o
+	${CC} ${CFLAGS} xwindex.o xw_error.o  -o xwindex
+
+testfopen: testfopen.o xw_error.o 
+	${CC} ${CFLAGS} testfopen.o xw_error.o -o testfopen
+
+testfreopen: testfreopen.o 
+	${CC} ${CFLAGS} testfreopen.o -o testfreopen
+
+testindex: ${OBJS} xw_error.o
+	${CC} ${CFLAGS} testindex.o xw_error.o -o testindex
+
+testgetenvcc: testgetenvcc.o
+	${CC} ${CFLAGS} testgetenvcc.o -o testgetenvcc
+
+strip_punc: strip_punc.o
+	${CC} ${CFLAGS} strip_punc.c -o strip_punc
+
+${OBJS} xwindex.o: ../../source/defs.h ../xword.h
+
+bakup:
+	mcopy -t -o Makefile xw*.h xw*.c a:
+	mdir a:
+
+clean:
+	rm -f ${OBJS}
+
+git:
+	git add Makefile defs.h xword.h version.h datecomp.c ${SOURCE}
+#######	git remote add origin https://github.com/ruby1159449570/xword.git
+print:
+	pr -f -e -l58 version.h datecomp.c Makefile \
+defs.h xword.h xw_fillpuzz.c > xword_fillpuzz.txt
+#######	pr -f -e -n3 -l58 version.h datecomp.c Makefile \
+#######defs.h xword.h ${SOURCE} > xword.txt
+
+testwidget: xw_widget.c
+	${CC} ${CFLAGS} xw_widget.c -o testwidget
+
+######## End of /Users/moonpie/xword/bible/Makefile ########

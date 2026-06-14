@@ -31,7 +31,7 @@
 #define	NUMLETTERS	26
 #define	EOWORD		'#'
 #define	DONTCARE	'?'
-#define	NUMWORDS	1000
+#define	NUMWORDS	2000
 #define	SZ_MAXRETSEARCH 100
 #define	UNDEFINED	32767
 #define	ORD(x)		((x) - 'A')

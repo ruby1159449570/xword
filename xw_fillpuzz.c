@@ -130,8 +130,8 @@ void xw_searchrank(PUZZLE *pzptr, STATUS stat, int length)
 				else
 				{
 					register int j;
-					for(j = 0; j < SZ_TABLE(wh_ptr->wh_spot);
-						j++)
+					for(j = 0; j <
+					SZ_TABLE(wh_ptr->wh_spot); j++)
 					{
 					wh_ptr->wh_spot[j].sp_letter = '\0';
 					wh_ptr->wh_spot[j].sp_pos = 0;

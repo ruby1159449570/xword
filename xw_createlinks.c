@@ -95,7 +95,8 @@ ref->wl_word[i],j,(ULONG)ref->wl_sameletter[i]);
 		  }
 		if(i EQ ref->wl_numchar - 1)
 		  {
-		    xw_error(SV_FATAL,"%s does not have letters in any other words",
+		    xw_error(SV_FATAL,
+			"%s does not have letters in any other words",
 			     ref->wl_word);
 		  }
 	      }

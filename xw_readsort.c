@@ -53,7 +53,8 @@ int xw_readsort()
 	  if (i > WORDLENGTH)
 	    {
 	      new->wl_word[i] = '\0';
-	      xw_error(SV_INFO,"line %d: %s... too long for word (limit %d)",
+	      xw_error(SV_INFO,
+			"line %d: %s... too long for word (limit %d)",
 		       linenum,new->wl_word, WORDLENGTH);
 	      return_code++;
 	      while(c != ' ' && c != '\n' && c != '\t' && c != EOF)
@@ -103,7 +104,8 @@ int xw_readsort()
 		{
 		  new->wl_clue[i] = '\0';
 		}
-	      xw_error(SV_INFO, "line %d: %30s... too long for clue (limit %d)",
+	      xw_error(SV_INFO,
+			"line %d: %30s... too long for clue (limit %d)",
 		       linenum, new->wl_clue, CLUELENGTH);
 	      return_code++;
 	      while(c != '\n')
@@ -123,7 +125,9 @@ int xw_readsort()
 	}
       if(i < 2)
 	{
-	  xw_error(SV_INFO, "line %d: clue for %s not long enough for clue",linenum,new->wl_word);
+	  xw_error(SV_INFO,
+		"line %d: clue for %s not long enough for clue",
+		linenum,new->wl_word);
 	  return_code++;
 	}
       
@@ -138,7 +142,8 @@ int xw_readsort()
       ref = &xw_start;
       for(EVER)
 	{
-	  if ((ref->wl_next EQ 0) || (ref->wl_next->wl_numchar < new->wl_numchar))
+	  if ((ref->wl_next EQ 0) || (ref->wl_next->wl_numchar
+		 < new->wl_numchar))
 	    {
 #ifdef DEBUG
 	      printf("readsort: inserting after %s of length %d\n",

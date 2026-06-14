@@ -97,16 +97,17 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 		    }
 		  else
 #endif /* DEBUG */
-		    if((vptr->pz_letter != '\0') && (vptr->pz_letter != EOWORD))
+		    if((vptr->pz_letter != '\0')
+			&& (vptr->pz_letter != EOWORD))
 		      {
 			puzz_hdr->ph_numletters++;
-			printf("\e[%d;4m%c|\e[0m", vptr->pz_color, vptr->pz_letter);
+			printf("\e[%d;4m%c|\e[0m", vptr->pz_color,					vptr->pz_letter);
 		      }
 		    else
 		      {
 			if( vptr->pz_color )
 			{
-				printf("\e[%dm  \e[0m", vptr->pz_color );
+				printf("\e[%dm  \e[0m", vptr->pz_color);
 			}
 			else
 			{
@@ -150,7 +151,8 @@ void xw_printpuzz(PUZZHEAD *puzz_hdr)
 		 puzz_hdr->ph_numwords, difftime(time(NULL), xw_starttime));
 #if DEBUG
 	  PR(s, puzz_hdr->ph_lastword->wl_word);
-	  PRINT2(#018lx, (ULONG)puzz_hdr->ph_lastword, (ULONG)puzz_hdr->ph_prevpuzz);
+	  PRINT2(#018lx, (ULONG)puzz_hdr->ph_lastword,
+			(ULONG)puzz_hdr->ph_prevpuzz);
 #endif /* DEBUG */
 
 }

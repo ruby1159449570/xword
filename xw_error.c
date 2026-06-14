@@ -85,6 +85,3 @@ void *xw_malloc(size_t size)
 }
 
 /* End of /home/franx/xword/xw_error.c */
-
-
-

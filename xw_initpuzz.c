@@ -136,7 +136,8 @@ PUZZHEAD *xw_copypuzz(PUZZHEAD *old)
 	memcpy(new, old, sizeof(PUZZHEAD));
 	new->ph_lastword = NULL;
 
-	prevrow = (PUZZLE **)xw_malloc(old->ph_numcols * sizeof(PUZZLE *));
+	prevrow = (PUZZLE **)xw_malloc(old->ph_numcols
+		* sizeof(PUZZLE *));
 
 	hptr = vptr = old->ph_puzzle;
 	prevcol = NULL;
