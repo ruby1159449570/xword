@@ -95,4 +95,5 @@ void xw_debug(WORDLIST *new)
 		xw_debug_breakpoint();
 	}
 }
+
 /* End of /Users/moonpie/xword/xw_debug.c */

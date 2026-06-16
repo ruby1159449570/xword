@@ -1,4 +1,6 @@
 /* /home/franx/xword/xword.h Mon26Jan2004 {fcG} */
+//  Created by Frank Charles Gallacher on 22/5/20.
+//  Copyleft © 2020 Frank Charles Gallacher. All rights reserved.
 
 // MODIFACTION HISTORY
 // When		Who	What
@@ -21,6 +23,8 @@
 #include <unistd.h>
 #include "defs.h"
 
+/* #define      extern */
+
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		DEFINES			#
 #					#
@@ -41,7 +45,8 @@
 			(x) EQ DOWN ? "DOWN"       : \
 			"???")
 
-#define	INDEXDIR(x)	(sprintf(xw_indexdir,"%s.index/%06d", xw_indexfile,(x)))
+#define	INDEXDIR(x)	(sprintf(xw_indexdir,"%s.index/%06d", \
+			 xw_indexfile,(x)))
 
 #define	XWORD_SWITCH	"XWORD_INTERACTIVE"
 
@@ -122,7 +127,6 @@ typedef struct wordhole
   struct spot wh_spot[WORDLENGTH+1];
  
 } WORDHOLE;
-
 
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*\
 #		EXTERNS			#
