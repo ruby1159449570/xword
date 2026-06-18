@@ -1,5 +1,4 @@
-/* /home/franx/xword/xw_fillpuzz.c Fri28Jul2006 {fcG} */
-
+// Users/moonpie/xword/xw_fillpuzz.c {fcG}
 //
 //  Created by Frank Charles Gallacher on 22/5/20.
 //  Copyleft © 2020 Frank Charles Gallacher. All rights reserved.
@@ -20,6 +19,7 @@
 // Tue03Jun2025 {fcG}	Changed key to 10...
 // Tue03Jun2025 {fcG}	Changed key back to 100...
 // Sat13Dec2025 {fcG}	???
+// Thu18Jun2026 {fcG}	debugged the free() call..
 
 #include <ctype.h>
 #include <errno.h>
@@ -757,6 +757,7 @@ TRY_AGAIN:
 		TEST(PRINT2(d, wh_ptr->wh_spots, wh_ptr->wh_length));
 		wh_ptr = wh_ptr->wh_next;
 	}
+	WHERE; PRINT1(#018lx, &xw_whstart);
 	wh_ptr = &xw_whstart;
 	wh_ptr = wh_ptr->wh_next;
 	TEST(WHERE); TEST(PR(#010lx, wh_ptr));
@@ -945,12 +946,16 @@ TRY_AGAIN:
 	xw_findgaps(ph);
 
 	wh_ptr = &xw_whstart;
-	wh_ptr = wh_ptr->wh_next;;
-/* 	while(wh_ptr) */
-/* 	{ */
-/* 		free(wh_ptr); */
-/* 		wh_ptr->wh_next = NULL; */
-/* 	}	 */
+	wh_ptr = wh_ptr->wh_next;
+	while(wh_ptr != NULL)
+	{
+		WHERE; PRINT1(#018lx, wh_ptr);
+		PRINT2(d, wh_ptr->wh_key, wh_ptr->wh_rownum);
+		PRINT2(d, wh_ptr->wh_colnum, wh_ptr->wh_length);
+		printf("status =%s\n", DECODE(wh_ptr->wh_status));
+		wh_ptr = wh_ptr->wh_next;
+		free(wh_ptr);
+	}	
 
 	wh_ptr = &xw_whstart;
 	wh_ptr = wh_ptr->wh_next;

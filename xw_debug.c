@@ -51,7 +51,7 @@ void xw_debug(WORDLIST *new)
 	register	WORDHOLE *ptr;
 	extern	WORDHOLE xw_whstart;
 
-	fprintf(stderr,"\e[7m<<<<<<<< ENTERING DEBUG >>>>>>>>\e[0m\n");
+///////	fprintf(stderr,"\e[7m<<<<<<<< ENTERING DEBUG >>>>>>>>\e[0m\n");
 
 	TEST(WHERE);
 
